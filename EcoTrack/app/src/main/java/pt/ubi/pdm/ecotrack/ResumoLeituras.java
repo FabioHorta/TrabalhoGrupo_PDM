@@ -1,0 +1,186 @@
+package pt.ubi.pdm.ecotrack;
+
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.view.Gravity;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TableLayout;
+import android.widget.TableRow;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import java.io.File;
+
+public class ResumoLeituras extends AppCompatActivity {
+
+    private DBHelper dbHelper;
+    private TextView tvConsumoAtual, tvDataAtual;
+    private TableLayout tabelaHistorico;
+    private Button btnVoltar;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.layout_leituras);
+
+        dbHelper = new DBHelper(this);
+
+        tvConsumoAtual = findViewById(R.id.tvConsumoResumo);
+        tvDataAtual = findViewById(R.id.tvDataResumo);
+        tabelaHistorico = findViewById(R.id.tabelaHistorico);
+        btnVoltar = findViewById(R.id.btnVoltarResumo);
+
+        carregarEcraCompleto(); // Função única para carregar tudo
+
+        btnVoltar.setOnClickListener(v -> {
+            Intent intent = new Intent(ResumoLeituras.this, LeiturasMensais.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        });
+    }
+
+    // Método auxiliar para recarregar tudo (usado ao iniciar e após apagar)
+    private void carregarEcraCompleto() {
+        carregarDadosUltimaLeitura();
+        carregarHistoricoComImagens();
+    }
+
+    private void carregarDadosUltimaLeitura() {
+        double ultima = dbHelper.obterUltimaLeituraOuDefault(0);
+        if (ultima > 0) {
+            tvConsumoAtual.setText(String.format("%.1f kWh", ultima));
+            tvDataAtual.setText("Última leitura registada");
+        } else {
+            tvConsumoAtual.setText("---");
+            tvDataAtual.setText("Sem dados");
+        }
+    }
+
+    private void carregarHistoricoComImagens() {
+        tabelaHistorico.removeAllViews(); // Limpa a tabela antes de desenhar
+
+        Cursor cursor = dbHelper.obterLeituras();
+
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                // Precisamos do ID para poder apagar!
+                int indexId = cursor.getColumnIndex(DBHelper.C_LF_ID);
+                int indexData = cursor.getColumnIndex(DBHelper.C_LF_DATA);
+                int indexValor = cursor.getColumnIndex(DBHelper.C_LF_VALOR);
+                int indexPath = cursor.getColumnIndex(DBHelper.C_LF_IMAGEM_PATH);
+
+                if (indexId != -1 && indexData != -1 && indexValor != -1) {
+                    long id = cursor.getLong(indexId); // <-- ID da linha
+                    String data = cursor.getString(indexData);
+                    double valor = cursor.getDouble(indexValor);
+                    String caminhoImagem = "";
+
+                    if (indexPath != -1) {
+                        caminhoImagem = cursor.getString(indexPath);
+                    }
+
+                    criarLinhaTabela(id, data, valor, caminhoImagem);
+                }
+
+            } while (cursor.moveToNext());
+            cursor.close();
+        } else {
+            TableRow row = new TableRow(this);
+            TextView tvVazio = new TextView(this);
+            tvVazio.setText("Histórico vazio.");
+            tvVazio.setPadding(16, 16, 16, 16);
+            row.addView(tvVazio);
+            tabelaHistorico.addView(row);
+        }
+    }
+
+    private void criarLinhaTabela(long id, String data, double valor, String pathImagem) {
+        TableRow row = new TableRow(this);
+        row.setPadding(0, 20, 0, 20);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setBackgroundResource(android.R.drawable.list_selector_background);
+
+        // 1. Coluna Data
+        TextView tvData = new TextView(this);
+        tvData.setText(data);
+        tvData.setTextSize(14);
+        tvData.setTextColor(Color.DKGRAY);
+        tvData.setPadding(8, 0, 0, 0);
+
+        // 2. Coluna Imagem
+        ImageView imgView = new ImageView(this);
+        TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(120, 120);
+        imgView.setLayoutParams(layoutParams);
+        imgView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
+        if (pathImagem != null && !pathImagem.isEmpty()) {
+            File imgFile = new File(getFilesDir(), pathImagem);
+            if (imgFile.exists()) {
+                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                imgView.setImageBitmap(myBitmap);
+            } else {
+                imgView.setImageResource(android.R.drawable.ic_menu_camera);
+            }
+        } else {
+            imgView.setImageResource(android.R.drawable.ic_menu_camera);
+        }
+
+        // 3. Coluna Valor
+        TextView tvValor = new TextView(this);
+        tvValor.setText(String.format("%.0f", valor));
+        tvValor.setTextSize(14);
+        tvValor.setTextColor(Color.BLACK);
+        tvValor.setGravity(Gravity.CENTER);
+
+        // 4. Coluna Apagar (Botão Lixo)
+        ImageButton btnApagar = new ImageButton(this);
+        btnApagar.setImageResource(android.R.drawable.ic_menu_delete);
+        btnApagar.setBackgroundColor(Color.TRANSPARENT);
+        btnApagar.setColorFilter(Color.RED); // Pinta o ícone de vermelho
+        btnApagar.setPadding(8, 8, 8, 8);
+
+        // Lógica de Clique para Apagar
+        btnApagar.setOnClickListener(v -> {
+            // Mostra um alerta de confirmação
+            new AlertDialog.Builder(this)
+                    .setTitle("Apagar Leitura")
+                    .setMessage("Tem a certeza que quer eliminar este registo?")
+                    .setPositiveButton("Sim", (dialog, which) -> {
+                        // 1. Apagar da BD
+                        dbHelper.apagarLeitura(id);
+
+                        // 2. Tentar apagar a imagem do telemóvel para poupar espaço
+                        if (pathImagem != null) {
+                            try {
+                                File f = new File(getFilesDir(), pathImagem);
+                                if(f.exists()) f.delete();
+                            } catch (Exception e) { e.printStackTrace(); }
+                        }
+
+                        // 3. Atualizar a tabela visualmente
+                        Toast.makeText(this, "Registo apagado.", Toast.LENGTH_SHORT).show();
+                        carregarEcraCompleto(); // <-- Recarrega a lista
+                    })
+                    .setNegativeButton("Não", null)
+                    .show();
+        });
+
+        // Adicionar tudo à linha
+        row.addView(tvData);
+        row.addView(imgView);
+        row.addView(tvValor);
+        row.addView(btnApagar); // <-- Adiciona o botão no fim
+
+        tabelaHistorico.addView(row);
+    }
+}

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_verde"
+    tools:context=".MapaGastosActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="24dp">
+
+        <!-- Título -->
+        <TextView
+            android:id="@+id/tvTitulo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ECOTRACK"
+            android:textColor="@color/green"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mapa de Gastos Mensais"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/onMint"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Gráfico de Pizza -->
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/pieChart"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Lista de categorias -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Exemplo 1 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="12dp"
+                android:background="@drawable/card_background_white"
+                android:elevation="2dp"
+                android:layout_marginBottom="8dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_manage"
+                    android:tint="#1565C0"
+                    android:layout_marginEnd="12dp"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Aquecimento - 35%"
+                    android:textSize="16sp"
+                    android:textColor="#000000"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="€45,00"
+                    android:textSize="14sp"
+                    android:textColor="#2E7D32"/>
+            </LinearLayout>
+
+            <!-- Exemplo 2 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="12dp"
+                android:background="@drawable/card_background_white"
+                android:elevation="2dp"
+                android:layout_marginBottom="8dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_gallery"
+                    android:tint="#E65100"
+                    android:layout_marginEnd="12dp"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Iluminação - 20%"
+                    android:textSize="16sp"
+                    android:textColor="#000000"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="€25,00"
+                    android:textSize="14sp"
+                    android:textColor="#2E7D32"/>
+            </LinearLayout>
+
+            <!-- Exemplo 3 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="12dp"
+                android:background="@drawable/card_background_white"
+                android:elevation="2dp"
+                android:layout_marginBottom="8dp"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_agenda"
+                    android:tint="#2E7D32"
+                    android:layout_marginEnd="12dp"/>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Eletrodomésticos - 45%"
+                    android:textSize="16sp"
+                    android:textColor="#000000"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="€58,00"
+                    android:textSize="14sp"
+                    android:textColor="#2E7D32"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Sugestão -->
+        <TextView
+            android:id="@+id/tvSugestao"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="💡 Dica: Reduza o tempo de aquecimento em 15% para economizar até €10/mês."
+            android:textSize="15sp"
+            android:textColor="@color/onMint"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Botões -->
+        <Button
+            android:id="@+id/btnSimular"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Simular Redução de Consumo"
+            android:backgroundTint="@color/onMint"
+            android:textColor="@color/pastel_whitewarm"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp"/>
+
+        <Button
+            android:id="@+id/btnVoltarMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Voltar ao Menu"
+            android:backgroundTint="@color/onMint"
+            android:textColor="@color/pastel_whitewarm"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</ScrollView>

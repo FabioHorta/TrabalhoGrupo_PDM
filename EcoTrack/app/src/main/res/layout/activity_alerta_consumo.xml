@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_verde"
+    android:orientation="vertical"
+    tools:context=".AlertaConsumoActivity">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Nome da Aplicação -->
+        <TextView
+            android:id="@+id/NomedaAplicacao"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:text="ECOTRACK"
+            android:textColor="@color/green"
+            android:textSize="40sp"
+            android:textStyle="bold" />
+
+        <!-- Mensagem -->
+        <TextView
+            android:id="@+id/mensagemExplicacao"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="24dp"
+            android:text="Verifique se o seu consumo atual apresenta anomalias em relação ao mês anterior."
+            android:textAlignment="center"
+            android:textColor="@color/green"
+            android:textSize="20sp" />
+
+        <!-- Consumo do mês anterior -->
+        <EditText
+            android:id="@+id/etConsumoAnterior"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:hint="Consumo do mês anterior (kWh)"
+            android:inputType="numberDecimal"
+            android:padding="12dp" />
+
+        <!-- Consumo do mês atual -->
+        <EditText
+            android:id="@+id/etConsumoAtual"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:hint="Consumo do mês atual (kWh)"
+            android:inputType="numberDecimal"
+            android:padding="12dp" />
+
+        <!-- Botão de verificação -->
+        <Button
+            android:id="@+id/btnVerificar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:backgroundTint="@color/green"
+            android:text="Verificar Consumo"
+            android:textColor="#FFFFFF"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <!-- Resultado -->
+        <TextView
+            android:id="@+id/tvResultado"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Insira os valores de consumo para análise."
+            android:textColor="@color/green"
+            android:textSize="18sp"
+            android:gravity="center"
+            android:layout_marginBottom="20dp"
+            android:padding="8dp" />
+
+        <!-- Botão para voltar ao menu -->
+        <Button
+            android:id="@+id/btnVoltarMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:backgroundTint="@color/green"
+            android:text="Voltar ao Menu"
+            android:textColor="#FFFFFF"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

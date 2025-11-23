@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_verde"
+    tools:context=".LeiturasMensais">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
+
+        <!-- Título principal -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ECOTRACK"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:textColor="@color/green"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Leituras Mensais de Energia"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/onMint"
+            android:layout_marginBottom="24dp"
+            android:textAlignment="center"/>
+
+        <!-- Campo: leitura anterior -->
+        <TextView
+            android:id="@+id/tvLeituraAnterior"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Leitura anterior: 2350 kWh"
+            android:textColor="@color/onMint"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp"/>
+
+        <!-- Campo: nova leitura -->
+        <EditText
+            android:id="@+id/etNovaLeitura"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Insira a nova leitura (kWh)"
+            android:inputType="numberDecimal"
+            android:padding="12dp"
+            android:backgroundTint="#FFFFFF"
+            android:textColor="#000000"
+            android:textSize="16sp"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Botão para escolher imagem -->
+
+        <!-- Visualização da imagem -->
+        <Button
+            android:id="@+id/btnEscolherImagem"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="@color/onMint"
+            android:text="Selecionar Foto do Contador"
+            android:textColor="@color/pastel_whitewarm"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/imgContador"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:scaleType="centerCrop"
+            android:background="#E0E0E0"
+            android:layout_marginBottom="20dp"
+            android:contentDescription="Imagem do contador"/>
+
+        <!-- Visualização da imagem -->
+        <Button
+            android:id="@+id/btnTirarFoto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="@color/onMint"
+            android:text="Tirar foto"
+            android:textColor="@color/pastel_whitewarm"
+            android:textStyle="bold" />
+
+        <!-- Botão de cálculo -->
+        <Button
+            android:id="@+id/btnCalcular"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Calcular Diferença"
+            android:backgroundTint="@color/onMint"
+            android:textColor="@color/pastel_whitewarm"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp"/>
+
+        <!-- Resultado -->
+        <TextView
+            android:id="@+id/tvResultado"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:layout_marginBottom="20dp"/>
+
+        <!-- Botão de guardar -->
+        <Button
+            android:id="@+id/btnGuardar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Guardar Leitura"
+            android:backgroundTint="#FFFFFF"
+            android:textColor="@color/green"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp"/>
+
+        <Button
+            android:id="@+id/btnVerHistorico"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ver Histórico e Gráficos"
+            android:backgroundTint="@color/onMint"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp"/>
+
+        <!-- Botão de voltar -->
+        <Button
+            android:id="@+id/btnVoltar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Voltar ao Menu"
+            android:backgroundTint="@color/onMint"
+            android:textColor="@color/pastel_whitewarm"
+            android:textStyle="bold"/>
+    </LinearLayout>
+</ScrollView>

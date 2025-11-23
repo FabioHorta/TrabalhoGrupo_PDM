@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@drawable/gradient_verde">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Cabeçalho Melhorado -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="4dp"
+            app:cardUseCompatPadding="true"
+            app:cardBackgroundColor="@android:color/white">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="24dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!-- Avatar Circular -->
+                <FrameLayout
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:background="@drawable/circle_avatar">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:text="🌱"
+                        android:textSize="36sp"
+                        android:gravity="center"/>
+                </FrameLayout>
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_marginStart="16dp"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:text="Bem-vindo(a) de volta,"
+                        android:textSize="16sp"
+                        android:textColor="#1E4D42"
+                        android:fontFamily="sans-serif-medium"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <TextView
+                        android:id="@+id/tvNomeUtilizador"
+                        android:text="Utilizador"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="#5FA89E"
+                        android:layout_marginTop="4dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Grid de Menu Cards -->
+        <GridLayout
+            android:layout_marginTop="24dp"
+            android:columnCount="2"
+            android:rowCount="3"
+            android:alignmentMode="alignMargins"
+            android:columnOrderPreserved="false"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Card 1: Melhor Tipo de Energia -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnMelhorTipo"
+                android:layout_width="0dp"
+                android:layout_height="160dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="3dp"
+                app:strokeWidth="0dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@android:color/white">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <!-- Ícone com fundo gradiente -->
+                    <FrameLayout
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/icon_background">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:text="⚡"
+                            android:textSize="28sp"
+                            android:gravity="center"/>
+                    </FrameLayout>
+
+                    <TextView
+                        android:text="Melhor Tipo de Energia"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#1E4D42"
+                        android:layout_marginTop="12dp"
+                        android:lineSpacingExtra="2dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <TextView
+                        android:text="Descubra a melhor opção"
+                        android:textSize="12sp"
+                        android:textColor="#5FA89E"
+                        android:layout_marginTop="4dp"
+                        android:alpha="0.9"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card 2: Alertas de Consumo -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnAlertas"
+                android:layout_width="0dp"
+                android:layout_height="160dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="3dp"
+                app:strokeWidth="0dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@android:color/white">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <FrameLayout
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/icon_background">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:text="🚨"
+                            android:textSize="28sp"
+                            android:gravity="center"/>
+                    </FrameLayout>
+
+                    <TextView
+                        android:text="Alertas de Consumo"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#1E4D42"
+                        android:layout_marginTop="12dp"
+                        android:lineSpacingExtra="2dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <TextView
+                        android:text="Notificações de gastos"
+                        android:textSize="12sp"
+                        android:textColor="#5FA89E"
+                        android:layout_marginTop="4dp"
+                        android:alpha="0.9"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card 3: Leituras Mensais -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnLeituras"
+                android:layout_width="0dp"
+                android:layout_height="160dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="3dp"
+                app:strokeWidth="0dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@android:color/white">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <FrameLayout
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/icon_background">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:text="📄"
+                            android:textSize="28sp"
+                            android:gravity="center"/>
+                    </FrameLayout>
+
+                    <TextView
+                        android:text="Leituras Mensais"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#1E4D42"
+                        android:layout_marginTop="12dp"
+                        android:lineSpacingExtra="2dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <TextView
+                        android:text="Histórico de consumos"
+                        android:textSize="12sp"
+                        android:textColor="#5FA89E"
+                        android:layout_marginTop="4dp"
+                        android:alpha="0.9"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card 4: Mapas de Gastos -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnCalculadora"
+                android:layout_width="0dp"
+                android:layout_height="160dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="3dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@android:color/white">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+                    <FrameLayout
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/icon_background">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:text="💶"
+                            android:textSize="28sp"
+                            android:gravity="center"/>
+                    </FrameLayout>
+                    <TextView
+                        android:text="Simulador de Custos"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#1E4D42"
+                        android:layout_marginTop="12dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                    <TextView
+                        android:text="Estime a sua fatura"
+                        android:textSize="12sp"
+                        android:textColor="#5FA89E"
+                        android:layout_marginTop="4dp"
+                        android:alpha="0.9"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card 5: Estimativas -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnEstimativa"
+                android:layout_width="0dp"
+                android:layout_height="160dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="3dp"
+                app:strokeWidth="0dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@android:color/white">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <FrameLayout
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/icon_background">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:text="📝"
+                            android:textSize="28sp"
+                            android:gravity="center"/>
+                    </FrameLayout>
+
+                    <TextView
+                        android:text="Estimativas de Consumo"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#1E4D42"
+                        android:layout_marginTop="12dp"
+                        android:lineSpacingExtra="2dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <TextView
+                        android:text="Previsões de gastos"
+                        android:textSize="12sp"
+                        android:textColor="#5FA89E"
+                        android:layout_marginTop="4dp"
+                        android:alpha="0.9"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card 6: Apoio ao Cliente -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/btnApoioaoCliente"
+                android:layout_width="0dp"
+                android:layout_height="160dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="3dp"
+                app:strokeWidth="0dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@android:color/white">
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:padding="20dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <FrameLayout
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:background="@drawable/icon_background">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:text="📞"
+                            android:textSize="28sp"
+                            android:gravity="center"/>
+                    </FrameLayout>
+
+                    <TextView
+                        android:text="Apoio ao Cliente"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#1E4D42"
+                        android:layout_marginTop="12dp"
+                        android:lineSpacingExtra="2dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                    <TextView
+                        android:text="Contacte a equipa"
+                        android:textSize="12sp"
+                        android:textColor="#5FA89E"
+                        android:layout_marginTop="4dp"
+                        android:alpha="0.9"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </GridLayout>
+
+    </LinearLayout>
+</ScrollView>

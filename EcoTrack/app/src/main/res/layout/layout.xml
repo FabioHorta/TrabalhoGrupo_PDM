@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_verde"
+    tools:context=".RegisterActivity">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Título -->
+        <TextView
+            android:id="@+id/NomedaAplicacao"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="ECOTRACK"
+            android:textColor="@color/green"
+            android:textSize="40sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/mensagemdeboasvindas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Por favor, preencha os seus dados para criar a conta"
+            android:textColor="@color/green"
+            android:textSize="20sp"
+            android:textAlignment="center"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Campos -->
+
+        <EditText
+            android:id="@+id/NomeCompleto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:hint="Nome completo"
+            android:inputType="textPersonName"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/NomedeUtilizador"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:hint="Username ou Email"
+            android:inputType="textEmailAddress"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/NIF"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:hint="NIF (9 dígitos)"
+            android:inputType="number"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/Password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:hint="Password"
+            android:inputType="textPassword"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/ConfirmacaoPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:hint="Confirmar password"
+            android:inputType="textPassword"
+            android:padding="12dp" />
+
+        <!-- Botões -->
+        <Button
+            android:id="@+id/botaodelogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Criar Conta"
+            android:textStyle="bold"
+            android:textColor="@color/green"
+            android:textSize="17sp"
+            android:backgroundTint="#FFFFFF"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/signUpPrompt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Já tenho conta? Fazer login"
+            android:textSize="17sp"
+            android:textColor="@color/green"
+            android:backgroundTint="#FFFFFF"
+            android:textStyle="bold"
+            android:layout_marginTop="1dp" />
+
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

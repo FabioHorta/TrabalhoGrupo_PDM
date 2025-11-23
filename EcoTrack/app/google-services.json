@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "365153452294",
+    "project_id": "projetogrupo-7eb3a",
+    "storage_bucket": "projetogrupo-7eb3a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:365153452294:android:b96bfcdd1c1852ec30de87",
+        "android_client_info": {
+          "package_name": "pt.ubi.pdm.ecotrack"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkJ6kzRRpkiOiM97DVG-X_B_PBoKtjfzM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:365153452294:android:5966d4da0ae1f8be30de87",
+        "android_client_info": {
+          "package_name": "pt.ubi.pdm.projeto_grupo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkJ6kzRRpkiOiM97DVG-X_B_PBoKtjfzM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

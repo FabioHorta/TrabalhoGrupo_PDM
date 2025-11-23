@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_verde"
+    tools:context=".EstimativaConsumo">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
+
+        <!-- Cabeçalho -->
+        <TextView
+            android:id="@+id/tvTitulo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ECOTRACK"
+            android:textColor="@color/green"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Alertas e Estimativas de Consumo"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="20dp"
+            android:textAlignment="center" />
+
+        <!-- 🌡️ ALERTAS DE CONSUMO -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@drawable/rounded_white_box"
+            android:layout_marginBottom="24dp"
+            android:elevation="4dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="⚠️ Alerta de Consumo Elevado"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/green"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvAlerta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="O consumo deste mês está 12% acima da média. Verifique aquecimento e iluminação."
+                android:textSize="15sp"
+                android:textColor="#333333"
+                android:layout_marginBottom="10dp" />
+
+            <TextView
+                android:id="@+id/tvSugestao"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="💡 Sugestão: reduza o uso de aquecimento em 15% para economizar cerca de €9/mês."
+                android:textSize="15sp"
+                android:textColor="#555555" />
+        </LinearLayout>
+
+        <!-- 📈 ESTIMATIVA E SIMULAÇÃO -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@drawable/rounded_white_box"
+            android:elevation="4dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📊 Estimativa do Próximo Mês"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/green"
+                android:layout_marginBottom="10dp" />
+
+            <!-- Dados base -->
+            <TextView
+                android:id="@+id/tvConsumoAtual"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Consumo médio atual: 150 kWh"
+                android:textSize="15sp"
+                android:textColor="#000000"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:id="@+id/tvCustoAtual"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Custo médio mensal: €60"
+                android:textSize="15sp"
+                android:textColor="#000000"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Entrada -->
+            <EditText
+                android:id="@+id/etReducao"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Insira a percentagem de redução (%)"
+                android:inputType="numberDecimal"
+                android:padding="12dp"
+                android:backgroundTint="@color/green"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:layout_marginBottom="20dp" />
+
+            <!-- Botões -->
+            <Button
+                android:id="@+id/btnCalcular"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Calcular Estimativa"
+                android:backgroundTint="@color/green"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:layout_marginBottom="10dp" />
+
+            <Button
+                android:id="@+id/btnVoltar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Voltar ao Menu"
+                android:backgroundTint="#388E3C"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:layout_marginBottom="20dp" />
+
+            <!-- Resultado -->
+            <TextView
+                android:id="@+id/tvResultado"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textAlignment="center"
+                android:textColor="#000000"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
