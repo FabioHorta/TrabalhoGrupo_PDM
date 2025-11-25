@@ -1,20 +1,22 @@
 package pt.ubi.pdm.ecotrack;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.content.Intent;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class LeiturasMensais extends AppCompatActivity {
@@ -32,30 +34,36 @@ public class LeiturasMensais extends AppCompatActivity {
 
     // Launcher para escolher imagem da galeria
     private final ActivityResultLauncher<String> escolherImagemLauncher =
-            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
-                if (uri != null) {
-                    imagemSelecionadaUri = uri;
-                    try {
-                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(
-                                getContentResolver(), uri);
-                        imgContador.setImageBitmap(bitmap);
-                        imagemAtualBitmap = bitmap;
-                    } catch (IOException e) {
-                        Toast.makeText(this, "Erro ao carregar imagem.", Toast.LENGTH_SHORT).show();
+            registerForActivityResult(new ActivityResultContracts.GetContent(), new androidx.activity.result.ActivityResultCallback<Uri>() {
+                @Override
+                public void onActivityResult(Uri uri) {
+                    if (uri != null) {
+                        imagemSelecionadaUri = uri;
+                        try {
+                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(
+                                    getContentResolver(), uri);
+                            imgContador.setImageBitmap(bitmap);
+                            imagemAtualBitmap = bitmap;
+                        } catch (IOException e) {
+                            Toast.makeText(LeiturasMensais.this, "Erro ao carregar imagem.", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
             });
 
     // Launcher para tirar foto com a câmara (thumbnail)
     private final ActivityResultLauncher<Intent> tirarFotoLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    Bundle extras = result.getData().getExtras();
-                    if (extras != null) {
-                        Bitmap imageBitmap = (Bitmap) extras.get("data");
-                        if (imageBitmap != null) {
-                            imgContador.setImageBitmap(imageBitmap);
-                            imagemAtualBitmap = imageBitmap;   // ← AQUI FICA ESSE CÓDIGO
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new androidx.activity.result.ActivityResultCallback<androidx.activity.result.ActivityResult>() {
+                @Override
+                public void onActivityResult(androidx.activity.result.ActivityResult result) {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Bundle extras = result.getData().getExtras();
+                        if (extras != null) {
+                            Bitmap imageBitmap = (Bitmap) extras.get("data");
+                            if (imageBitmap != null) {
+                                imgContador.setImageBitmap(imageBitmap);
+                                imagemAtualBitmap = imageBitmap;
+                            }
                         }
                     }
                 }
@@ -67,7 +75,7 @@ public class LeiturasMensais extends AppCompatActivity {
         setContentView(R.layout.activity_leituras_mensais);
 
         dbHelper = new DBHelper(this);
-        // para ir buscar o valor da ultima fatura
+        // Para ir buscar o valor da última leitura
         leituraAnterior = dbHelper.obterUltimaLeituraOuDefault(0);
 
         ligarViews();
@@ -76,13 +84,13 @@ public class LeiturasMensais extends AppCompatActivity {
 
     private void ligarViews() {
         tvLeituraAnterior = findViewById(R.id.tvLeituraAnterior);
-        etNovaLeitura     = findViewById(R.id.etNovaLeitura);
+        etNovaLeitura = findViewById(R.id.etNovaLeitura);
         btnEscolherImagem = findViewById(R.id.btnEscolherImagem);
-        imgContador       = findViewById(R.id.imgContador);
-        btnCalcular       = findViewById(R.id.btnCalcular);
-        tvResultado       = findViewById(R.id.tvResultado);
-        btnGuardar        = findViewById(R.id.btnGuardar);
-        btnVoltar         = findViewById(R.id.btnVoltar);
+        imgContador = findViewById(R.id.imgContador);
+        btnCalcular = findViewById(R.id.btnCalcular);
+        tvResultado = findViewById(R.id.tvResultado);
+        btnGuardar = findViewById(R.id.btnGuardar);
+        btnVoltar = findViewById(R.id.btnVoltar);
         btnTirarFoto = findViewById(R.id.btnTirarFoto);
         btnVerHistorico = findViewById(R.id.btnVerHistorico);
 
@@ -98,21 +106,47 @@ public class LeiturasMensais extends AppCompatActivity {
     }
 
     private void configurarEventos() {
-        btnEscolherImagem.setOnClickListener(v ->
-                escolherImagemLauncher.launch("image/*")
-        );
+        btnEscolherImagem.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                escolherImagemLauncher.launch("image/*");
+            }
+        });
 
-        btnCalcular.setOnClickListener(v -> calcularConsumo());
+        btnCalcular.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                calcularConsumo();
+            }
+        });
 
-        btnGuardar.setOnClickListener(v -> guardarLeituraComImagem());
+        btnGuardar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                guardarLeituraComImagem();
+            }
+        });
 
-        btnVoltar.setOnClickListener(v -> finish());
+        btnVoltar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
-        btnTirarFoto.setOnClickListener(v -> abrirCamera());
+        btnTirarFoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                abrirCamera();
+            }
+        });
 
-        btnVerHistorico.setOnClickListener(v -> {
-            Intent intent = new Intent(LeiturasMensais.this, ResumoLeituras.class);
-            startActivity(intent);
+        btnVerHistorico.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(LeiturasMensais.this, ResumoLeituras.class);
+                startActivity(intent);
+            }
         });
     }
 
@@ -161,17 +195,13 @@ public class LeiturasMensais extends AppCompatActivity {
             );
         }
 
-        // 2) Guardar a leitura atual na BD
-        //String dataHoje = java.time.LocalDate.now().toString();
-        //dbHelper.inserirLeitura(dataHoje, leituraAtual);
-
-        // 3) Atualizar leituraAnterior
+        // 2) Atualizar leituraAnterior (temporariamente, para cálculos)
         leituraAnterior = leituraAtual;
         tvLeituraAnterior.setText(
                 "Leitura anterior do contador: " + leituraAnterior + " kWh"
         );
 
-        // 4) Análise de anomalias baseada em CONSUMOS (diferenças), não nas leituras totais
+        // 3) Análise de anomalias baseada em CONSUMOS (diferenças), não nas leituras totais
         //    Usamos a média dos consumos dos últimos 6 períodos.
         double mediaConsumos = dbHelper.calcularMediaConsumos(6);
 
@@ -244,6 +274,17 @@ public class LeiturasMensais extends AppCompatActivity {
 
         if (id > 0) {
             Toast.makeText(this, "Leitura e imagem guardadas com sucesso.", Toast.LENGTH_SHORT).show();
+
+            // Atualizar a leitura anterior para a próxima vez
+            leituraAnterior = leituraValor;
+            tvLeituraAnterior.setText("Leitura anterior do contador: " + leituraAnterior + " kWh");
+
+            // Limpar campos
+            etNovaLeitura.setText("");
+            tvResultado.setText("");
+            imgContador.setImageResource(android.R.drawable.ic_menu_camera);
+            imagemAtualBitmap = null;
+            imagemSelecionadaUri = null;
         } else {
             Toast.makeText(this, "Erro ao guardar leitura com imagem.", Toast.LENGTH_SHORT).show();
         }
@@ -254,8 +295,10 @@ public class LeiturasMensais extends AppCompatActivity {
 
         String fileName = "contador_" + System.currentTimeMillis() + ".png";
 
-        try (java.io.FileOutputStream fos = openFileOutput(fileName, MODE_PRIVATE)) {
+        try {
+            FileOutputStream fos = openFileOutput(fileName, MODE_PRIVATE);
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
+            fos.close();
             return fileName;  // este nome é o que vamos guardar na BD
         } catch (Exception e) {
             e.printStackTrace();
@@ -263,6 +306,7 @@ public class LeiturasMensais extends AppCompatActivity {
             return null;
         }
     }
+
     private void abrirCamera() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         if (intent.resolveActivity(getPackageManager()) != null) {

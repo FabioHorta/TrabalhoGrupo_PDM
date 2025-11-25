@@ -11,25 +11,20 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String DB_NAME = "ecotrack.db";
     private static final int DB_VERSION = 1;
 
+    //Tabela: Utilizadores
     public static final String T_USERS = "users";
     public static final String C_USER_ID = "id";
     public static final String C_USER_UID = "firebase_uid";
     public static final String C_USER_EMAIL = "email";
     public static final String C_USER_NAME = "name";
 
-
+    // Tabela: Leituras
     public static final String T_LEITURAS = "leituras";
     public static final String C_LEITURA_ID = "id";
     public static final String C_LEITURA_DATA = "data";
     public static final String C_LEITURA_VALOR = "valor_kwh";
+    public static final String C_LEITURA_IMAGEM_PATH = "imagem_path";
 
-
-    // Tabela de leituras com foto
-    public static final String T_LEITURAS_FOTO = "leituras_foto";
-    public static final String C_LF_ID = "id";
-    public static final String C_LF_DATA = "data";
-    public static final String C_LF_VALOR = "valor_kwh";
-    public static final String C_LF_IMAGEM_PATH = "imagem_path";
 
     public DBHelper(Context ctx) {
         super(ctx, DB_NAME, null, DB_VERSION);
@@ -43,20 +38,13 @@ public class DBHelper extends SQLiteOpenHelper {
                 C_USER_EMAIL + " TEXT UNIQUE NOT NULL, " +
                 C_USER_NAME + " TEXT)");
 
+        // Tabela única de leituras (com foto opcional)
         db.execSQL(
                 "CREATE TABLE " + T_LEITURAS + " (" +
                         C_LEITURA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                         C_LEITURA_DATA + " TEXT NOT NULL, " +
-                        C_LEITURA_VALOR + " REAL NOT NULL" +
-                        ")"
-        );
-
-        db.execSQL(
-                "CREATE TABLE " + T_LEITURAS_FOTO + " (" +
-                        C_LF_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        C_LF_DATA + " TEXT NOT NULL, " +
-                        C_LF_VALOR + " REAL NOT NULL, " +
-                        C_LF_IMAGEM_PATH + " TEXT" +
+                        C_LEITURA_VALOR + " REAL NOT NULL, " +
+                        C_LEITURA_IMAGEM_PATH + " TEXT" +
                         ")"
         );
     }
@@ -64,6 +52,7 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldV, int newV) {
         db.execSQL("DROP TABLE IF EXISTS " + T_USERS);
+        db.execSQL("DROP TABLE IF EXISTS " + T_LEITURAS);
         onCreate(db);
     }
 
@@ -119,15 +108,6 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
 
-    // Inserir uma nova leitura
-    public long inserirLeitura(String data, double valorKwh) {
-        SQLiteDatabase db = getWritableDatabase();
-        ContentValues cv = new ContentValues();
-        cv.put(C_LEITURA_DATA, data);
-        cv.put(C_LEITURA_VALOR, valorKwh);
-        return db.insert(T_LEITURAS, null, cv);
-    }
-
     // Calcular média dos últimos N registos (por ordem de data)
     public double calcularMediaUltimasLeituras(int limite) {
         SQLiteDatabase db = getReadableDatabase();
@@ -153,18 +133,15 @@ public class DBHelper extends SQLiteOpenHelper {
 
     // Calcular média dos consumos (diferenças) dos últimos N períodos
 // Ex.: se N = 6, usa as últimas 7 leituras para obter 6 diferenças.
-    // CORREÇÃO: Agora usa a tabela T_LEITURAS_FOTO para calcular os consumos
     public double calcularMediaConsumos(int numPeriodos) {
         SQLiteDatabase db = getReadableDatabase();
 
-        // Para ter N períodos, precisamos de N+1 leituras
         int limiteLeituras = numPeriodos + 1;
 
-
         Cursor c = db.rawQuery(
-                "SELECT " + C_LF_VALOR +
-                        " FROM " + T_LEITURAS_FOTO +
-                        " ORDER BY " + C_LF_ID + " DESC " +
+                "SELECT " + C_LEITURA_VALOR +
+                        " FROM " + T_LEITURAS +
+                        " ORDER BY " + C_LEITURA_ID + " DESC " +
                         " LIMIT ?",
                 new String[]{String.valueOf(limiteLeituras)}
         );
@@ -174,7 +151,6 @@ public class DBHelper extends SQLiteOpenHelper {
             return 0;
         }
 
-        // Guardar as leituras num array
         double[] leituras = new double[c.getCount()];
         int idx = 0;
         do {
@@ -182,46 +158,38 @@ public class DBHelper extends SQLiteOpenHelper {
         } while (c.moveToNext());
         c.close();
 
-        if (leituras.length < 2) {
-            return 0;
-        }
+        if (leituras.length < 2) return 0;
 
         double somaConsumos = 0;
         int contPeriodos = 0;
 
-        // Calcular as diferenças (Consumo = Leitura Atual - Leitura Anterior)
         for (int i = 0; i < leituras.length - 1; i++) {
             double atual = leituras[i];
             double anterior = leituras[i + 1];
 
             if (atual >= anterior) {
-                double consumo = atual - anterior;
-                somaConsumos += consumo;
+                somaConsumos += (atual - anterior);
                 contPeriodos++;
             }
         }
 
         if (contPeriodos == 0) return 0;
 
-        // Se pedimos 1 período (para a calculadora), devolve o consumo exato desse mês
         if (numPeriodos == 1) {
-            return somaConsumos;
+            return somaConsumos;   // consumo do último período
         }
 
-        // Senão, devolve a média
         return somaConsumos / contPeriodos;
     }
 
     // Obter a última leitura (para mostrar como leitura anterior)
-    // CORREÇÃO: Agora vai buscar à tabela T_LEITURAS_FOTO
     public double obterUltimaLeituraOuDefault(double defaultValor) {
         SQLiteDatabase db = getReadableDatabase();
 
-        // Seleciona o valor da tabela de fotos, ordenado pelo ID decrescente (o último inserido)
         Cursor c = db.rawQuery(
-                "SELECT " + C_LF_VALOR +
-                        " FROM " + T_LEITURAS_FOTO +
-                        " ORDER BY " + C_LF_ID + " DESC " +
+                "SELECT " + C_LEITURA_VALOR +
+                        " FROM " + T_LEITURAS +
+                        " ORDER BY " + C_LEITURA_ID + " DESC " +
                         " LIMIT 1",
                 null
         );
@@ -237,10 +205,10 @@ public class DBHelper extends SQLiteOpenHelper {
     public long inserirLeituraComFoto(String data, double valorKwh, String imagemPath) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
-        cv.put(C_LF_DATA, data);
-        cv.put(C_LF_VALOR, valorKwh);
-        cv.put(C_LF_IMAGEM_PATH, imagemPath);
-        return db.insert(T_LEITURAS_FOTO, null, cv);
+        cv.put(C_LEITURA_DATA, data);
+        cv.put(C_LEITURA_VALOR, valorKwh);
+        cv.put(C_LEITURA_IMAGEM_PATH, imagemPath);
+        return db.insert(T_LEITURAS, null, cv);
     }
 
     // apaga todos (por exemplo, num logout)
@@ -250,28 +218,24 @@ public class DBHelper extends SQLiteOpenHelper {
 
     // Método para obter todas as leituras (para o histórico)
     // Adiciona isto no final da classe DBHelper
-    public android.database.Cursor obterLeituras() {
-        android.database.sqlite.SQLiteDatabase db = getReadableDatabase();
-        // Seleciona tudo da tabela de fotos, ordenado pela data (mais recente primeiro)
+    public Cursor obterLeituras() {
+        SQLiteDatabase db = getReadableDatabase();
+        // Últimas leituras, mais recente primeiro
         return db.query(
-                T_LEITURAS_FOTO,
+                T_LEITURAS,
                 null,
                 null,
                 null,
                 null,
                 null,
-                C_LF_ID + " DESC"
+                C_LEITURA_ID + " DESC"
         );
     }
 
     // Método para apagar uma leitura específica pelo ID
     public void apagarLeitura(long id) {
-        android.database.sqlite.SQLiteDatabase db = getWritableDatabase();
-        // Apaga da tabela de fotos onde o ID for igual ao passado
-        db.delete(T_LEITURAS_FOTO, C_LF_ID + "=?", new String[]{String.valueOf(id)});
-
-        // (Opcional) Se quiseres apagar também da tabela simples de leituras, descomenta:
-        // db.delete(T_LEITURAS, C_LEITURA_ID + "=?", new String[]{String.valueOf(id)});
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete(T_LEITURAS, C_LEITURA_ID + "=?", new String[]{String.valueOf(id)});
     }
 }
 
