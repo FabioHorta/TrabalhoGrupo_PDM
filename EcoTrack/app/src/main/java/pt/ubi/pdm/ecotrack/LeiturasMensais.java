@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.database.Cursor;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -152,7 +153,6 @@ public class LeiturasMensais extends AppCompatActivity {
 
     private void calcularConsumo() {
         String novaLeituraStr = etNovaLeitura.getText().toString().trim();
-
         if (novaLeituraStr.isEmpty()) {
             Toast.makeText(this, "Insere a leitura atual do contador (kWh).", Toast.LENGTH_SHORT).show();
             return;
@@ -167,88 +167,54 @@ public class LeiturasMensais extends AppCompatActivity {
         }
 
         if (leituraAtual < 0) {
-            Toast.makeText(this,
-                    "A leitura não pode ser negativa.",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "A leitura não pode ser negativa.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Regra: A nova leitura não pode ser INFERIOR à anterior (mas pode ser igual)
         if (leituraAnterior > 0 && leituraAtual < leituraAnterior) {
-            Toast.makeText(this,
-                    "A nova leitura não pode ser inferior à leitura anterior do contador.",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "A nova leitura não pode ser inferior à leitura anterior do contador.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // 1) Calcular o consumo do período
-        double consumoPeriodo;
+        double consumoPeriodo = leituraAnterior > 0 ? leituraAtual - leituraAnterior : 0;
         if (leituraAnterior > 0) {
-            consumoPeriodo = leituraAtual - leituraAnterior;
-            tvResultado.setText(
-                    String.format("Consumo desde a leitura anterior: %.1f kWh", consumoPeriodo)
-            );
+            tvResultado.setText(String.format(java.util.Locale.getDefault(), "Consumo desde a leitura anterior: %.1f kWh", consumoPeriodo));
         } else {
-            consumoPeriodo = 0;
-            tvResultado.setText(
-                    String.format("Leitura registada: %.1f kWh. Esta é a primeira leitura.", leituraAtual)
-            );
+            tvResultado.setText(String.format(java.util.Locale.getDefault(), "Leitura registada: %.1f kWh. Esta é a primeira leitura.", leituraAtual));
         }
 
-        // 2) Atualizar leituraAnterior (temporariamente, para cálculos)
-        leituraAnterior = leituraAtual;
-        tvLeituraAnterior.setText(
-                "Leitura anterior do contador: " + leituraAnterior + " kWh"
-        );
+        // NÃO atualizar leituraAnterior nem tvLeituraAnterior aqui — só após gravação!
 
-        // 3) Análise de anomalias baseada em CONSUMOS (diferenças), não nas leituras totais
-        //    Usamos a média dos consumos dos últimos 6 períodos.
         double mediaConsumos = dbHelper.calcularMediaConsumos(6);
-
-        // Só faz sentido analisar se já tivermos consumos > 0 e média > 0
         if (mediaConsumos <= 0 || consumoPeriodo <= 0) {
-            Toast.makeText(this,
-                    "Leitura registada. Serão necessárias mais leituras para analisar anomalias.",
-                    Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Leitura registada. Serão necessárias mais leituras para analisar anomalias.", Toast.LENGTH_LONG).show();
             return;
         }
 
-        double percentagemAumento =
-                ((consumoPeriodo - mediaConsumos) / mediaConsumos) * 100.0;
+        double percentagemAumento = ((consumoPeriodo - mediaConsumos) / mediaConsumos) * 100.0;
 
-        if (percentagemAumento > 20.0) {
-            Toast.makeText(
-                    LeiturasMensais.this,
-                    String.format(
+        if (percentagemAumento > DBHelper.LIMITE_PERCENTUAL_SUP) {
+            Toast.makeText(this,
+                    String.format(java.util.Locale.getDefault(),
                             "Atenção: o consumo deste período (%.1f kWh) está %.1f%% acima da média (%.1f kWh).",
-                            consumoPeriodo, percentagemAumento, mediaConsumos
-                    ),
-                    Toast.LENGTH_LONG
-            ).show();
-        } else if (percentagemAumento < -20.0) {
-            Toast.makeText(
-                    LeiturasMensais.this,
-                    String.format(
+                            consumoPeriodo, percentagemAumento, mediaConsumos),
+                    Toast.LENGTH_LONG).show();
+        } else if (percentagemAumento < DBHelper.LIMITE_PERCENTUAL_INF) {
+            Toast.makeText(this,
+                    String.format(java.util.Locale.getDefault(),
                             "Bom trabalho! O consumo deste período (%.1f kWh) está %.1f%% abaixo da média (%.1f kWh).",
-                            consumoPeriodo, Math.abs(percentagemAumento), mediaConsumos
-                    ),
-                    Toast.LENGTH_LONG
-            ).show();
+                            consumoPeriodo, Math.abs(percentagemAumento), mediaConsumos),
+                    Toast.LENGTH_LONG).show();
         } else {
-            Toast.makeText(
-                    LeiturasMensais.this,
-                    String.format(
+            Toast.makeText(this,
+                    String.format(java.util.Locale.getDefault(),
                             "Consumo dentro de valores normais. Este período: %.1f kWh, média: %.1f kWh.",
-                            consumoPeriodo, mediaConsumos
-                    ),
-                    Toast.LENGTH_SHORT
-            ).show();
+                            consumoPeriodo, mediaConsumos),
+                    Toast.LENGTH_SHORT).show();
         }
     }
-
     private void guardarLeituraComImagem() {
         String leituraStr = etNovaLeitura.getText().toString().trim();
-
         if (leituraStr.isEmpty()) {
             Toast.makeText(this, "Insere primeiro a leitura do contador.", Toast.LENGTH_SHORT).show();
             return;
@@ -262,24 +228,37 @@ public class LeiturasMensais extends AppCompatActivity {
             return;
         }
 
-        // Guardar a imagem (se houver) em ficheiro interno
         String imagemPath = null;
         if (imagemAtualBitmap != null) {
             imagemPath = guardarImagemInterna(imagemAtualBitmap);
         }
 
         String dataHoje = java.time.LocalDate.now().toString();
-
         long id = dbHelper.inserirLeituraComFoto(dataHoje, leituraValor, imagemPath);
 
         if (id > 0) {
-            Toast.makeText(this, "Leitura e imagem guardadas com sucesso.", Toast.LENGTH_SHORT).show();
-
-            // Atualizar a leitura anterior para a próxima vez
+            // Como só esta Activity altera a BD, podemos actualizar com o valor inserido
             leituraAnterior = leituraValor;
             tvLeituraAnterior.setText("Leitura anterior do contador: " + leituraAnterior + " kWh");
 
-            // Limpar campos
+            // Obter análise criada (se existir) e mostrar feedback
+            try (Cursor analise = dbHelper.obterAnaliseConsumo(id)) {
+                if (analise != null && analise.moveToFirst()) {
+                    double consumo = analise.getDouble(analise.getColumnIndexOrThrow(DBHelper.C_CONSUMO_ANALISADO_VALOR));
+                    double mediaRef = analise.getDouble(analise.getColumnIndexOrThrow(DBHelper.C_CONSUMO_ANALISADO_MEDIA_REF));
+                    double percent = analise.getDouble(analise.getColumnIndexOrThrow(DBHelper.C_CONSUMO_ANALISADO_PERCENTAGEM));
+                    String status = analise.getString(analise.getColumnIndexOrThrow(DBHelper.C_CONSUMO_ANALISADO_STATUS));
+                    String msg = String.format("Análise: %s — consumo %.1f kWh — %.1f%% (média %.1f kWh)",
+                            status, consumo, percent, mediaRef);
+                    Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this, "Leitura guardada. Será necessária mais leitura para análise.", Toast.LENGTH_SHORT).show();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // limpar UI
             etNovaLeitura.setText("");
             tvResultado.setText("");
             imgContador.setImageResource(android.R.drawable.ic_menu_camera);
