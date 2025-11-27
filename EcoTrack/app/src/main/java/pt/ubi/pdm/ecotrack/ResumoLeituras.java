@@ -39,7 +39,7 @@ public class ResumoLeituras extends AppCompatActivity {
         tabelaHistorico = findViewById(R.id.tabelaHistorico);
         btnVoltar = findViewById(R.id.btnVoltarResumo);
 
-        carregarEcraCompleto(); // Função única para carregar tudo
+        carregarEcraCompleto();
 
         btnVoltar.setOnClickListener(v -> {
             Intent intent = new Intent(ResumoLeituras.this, LeiturasMensais.class);
@@ -49,7 +49,6 @@ public class ResumoLeituras extends AppCompatActivity {
         });
     }
 
-    // Método auxiliar para recarregar tudo (usado ao iniciar e após apagar)
     private void carregarEcraCompleto() {
         carregarDadosUltimaLeitura();
         carregarHistoricoComImagens();
@@ -67,27 +66,23 @@ public class ResumoLeituras extends AppCompatActivity {
     }
 
     private void carregarHistoricoComImagens() {
-        tabelaHistorico.removeAllViews(); // Limpa a tabela antes de desenhar
+        tabelaHistorico.removeAllViews();
 
         Cursor cursor = dbHelper.obterLeituras();
 
         if (cursor != null && cursor.moveToFirst()) {
             do {
-                // Precisamos do ID para poder apagar!
-                int indexId = cursor.getColumnIndex(DBHelper.C_LF_ID);
-                int indexData = cursor.getColumnIndex(DBHelper.C_LF_DATA);
-                int indexValor = cursor.getColumnIndex(DBHelper.C_LF_VALOR);
-                int indexPath = cursor.getColumnIndex(DBHelper.C_LF_IMAGEM_PATH);
+                // Ajustado para a nova tabela "leituras" (constantes do DBHelper)
+                int indexId = cursor.getColumnIndex(DBHelper.C_LEITURA_ID);
+                int indexData = cursor.getColumnIndex(DBHelper.C_LEITURA_DATA);
+                int indexValor = cursor.getColumnIndex(DBHelper.C_LEITURA_VALOR);
+                int indexPath = cursor.getColumnIndex(DBHelper.C_LEITURA_IMAGEM_PATH);
 
                 if (indexId != -1 && indexData != -1 && indexValor != -1) {
-                    long id = cursor.getLong(indexId); // <-- ID da linha
+                    long id = cursor.getLong(indexId);
                     String data = cursor.getString(indexData);
                     double valor = cursor.getDouble(indexValor);
-                    String caminhoImagem = "";
-
-                    if (indexPath != -1) {
-                        caminhoImagem = cursor.getString(indexPath);
-                    }
+                    String caminhoImagem = (indexPath != -1) ? cursor.getString(indexPath) : "";
 
                     criarLinhaTabela(id, data, valor, caminhoImagem);
                 }
@@ -110,14 +105,12 @@ public class ResumoLeituras extends AppCompatActivity {
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setBackgroundResource(android.R.drawable.list_selector_background);
 
-        // 1. Coluna Data
         TextView tvData = new TextView(this);
         tvData.setText(data);
         tvData.setTextSize(14);
         tvData.setTextColor(Color.DKGRAY);
         tvData.setPadding(8, 0, 0, 0);
 
-        // 2. Coluna Imagem
         ImageView imgView = new ImageView(this);
         TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(120, 120);
         imgView.setLayoutParams(layoutParams);
@@ -135,51 +128,43 @@ public class ResumoLeituras extends AppCompatActivity {
             imgView.setImageResource(android.R.drawable.ic_menu_camera);
         }
 
-        // 3. Coluna Valor
         TextView tvValor = new TextView(this);
-        tvValor.setText(String.format("%.0f", valor));
+        tvValor.setText(String.format("%.1f kWh", valor));
         tvValor.setTextSize(14);
         tvValor.setTextColor(Color.BLACK);
         tvValor.setGravity(Gravity.CENTER);
 
-        // 4. Coluna Apagar (Botão Lixo)
         ImageButton btnApagar = new ImageButton(this);
         btnApagar.setImageResource(android.R.drawable.ic_menu_delete);
         btnApagar.setBackgroundColor(Color.TRANSPARENT);
-        btnApagar.setColorFilter(Color.RED); // Pinta o ícone de vermelho
+        btnApagar.setColorFilter(Color.RED);
         btnApagar.setPadding(8, 8, 8, 8);
 
-        // Lógica de Clique para Apagar
         btnApagar.setOnClickListener(v -> {
-            // Mostra um alerta de confirmação
             new AlertDialog.Builder(this)
                     .setTitle("Apagar Leitura")
                     .setMessage("Tem a certeza que quer eliminar este registo?")
                     .setPositiveButton("Sim", (dialog, which) -> {
-                        // 1. Apagar da BD
                         dbHelper.apagarLeitura(id);
-
-                        // 2. Tentar apagar a imagem do telemóvel para poupar espaço
-                        if (pathImagem != null) {
+                        if (pathImagem != null && !pathImagem.isEmpty()) {
                             try {
                                 File f = new File(getFilesDir(), pathImagem);
-                                if(f.exists()) f.delete();
-                            } catch (Exception e) { e.printStackTrace(); }
+                                if (f.exists()) f.delete();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         }
-
-                        // 3. Atualizar a tabela visualmente
                         Toast.makeText(this, "Registo apagado.", Toast.LENGTH_SHORT).show();
-                        carregarEcraCompleto(); // <-- Recarrega a lista
+                        carregarEcraCompleto();
                     })
                     .setNegativeButton("Não", null)
                     .show();
         });
 
-        // Adicionar tudo à linha
         row.addView(tvData);
         row.addView(imgView);
         row.addView(tvValor);
-        row.addView(btnApagar); // <-- Adiciona o botão no fim
+        row.addView(btnApagar);
 
         tabelaHistorico.addView(row);
     }

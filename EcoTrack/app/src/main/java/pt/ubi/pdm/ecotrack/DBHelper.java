@@ -6,10 +6,14 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+
 public class DBHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "ecotrack.db";
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
 
     //Tabela: Utilizadores
     public static final String T_USERS = "users";
@@ -25,6 +29,12 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String C_LEITURA_VALOR = "valor_kwh";
     public static final String C_LEITURA_IMAGEM_PATH = "imagem_path";
 
+    // Tabela: Médias de Consumo
+    public static final String T_MEDIA_CONSUMOS = "media_consumos";
+    public static final String C_MEDIA_NPERIODOS = "num_periodos";
+    public static final String C_MEDIA_VALOR = "media_valor";
+    public static final String C_MEDIA_ATUALIZADA_EM = "atualizada_em";
+
 
     public DBHelper(Context ctx) {
         super(ctx, DB_NAME, null, DB_VERSION);
@@ -32,13 +42,14 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        //Criação da tabela dos utilizadores
         db.execSQL("CREATE TABLE " + T_USERS + " (" +
                 C_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 C_USER_UID + " TEXT UNIQUE, " +
                 C_USER_EMAIL + " TEXT UNIQUE NOT NULL, " +
                 C_USER_NAME + " TEXT)");
 
-        // Tabela única de leituras (com foto opcional)
+        //Criação da tabela das leituras
         db.execSQL(
                 "CREATE TABLE " + T_LEITURAS + " (" +
                         C_LEITURA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -47,18 +58,32 @@ public class DBHelper extends SQLiteOpenHelper {
                         C_LEITURA_IMAGEM_PATH + " TEXT" +
                         ")"
         );
+
+        //Criação da tabela das médias de consumo
+        db.execSQL(
+                "CREATE TABLE " + T_MEDIA_CONSUMOS + " (" +
+                        C_MEDIA_NPERIODOS + " INTEGER PRIMARY KEY, " +
+                        C_MEDIA_VALOR + " REAL NOT NULL, " +
+                        C_MEDIA_ATUALIZADA_EM + " TEXT" +
+                        ")"
+        );
     }
 
+    //apaga as tabelas da bd e torna a cria-las
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldV, int newV) {
-        db.execSQL("DROP TABLE IF EXISTS " + T_USERS);
-        db.execSQL("DROP TABLE IF EXISTS " + T_LEITURAS);
-        onCreate(db);
+        if (oldV < 2) {
+            db.execSQL("CREATE TABLE IF NOT EXISTS " + T_MEDIA_CONSUMOS + " (" +
+                    C_MEDIA_NPERIODOS + " INTEGER PRIMARY KEY, " +
+                    C_MEDIA_VALOR + " REAL NOT NULL, " +
+                    C_MEDIA_ATUALIZADA_EM + " TEXT)");
+        }
+        //onCreate(db);
     }
 
-    // ---------- USERS ----------
+    // ---------- UTILIZADORES ----------
 
-    // insere ou actualiza utilizador vindo do Firebase
+    // insere ou atualiza utilizadores vindos da Firebase
     public long saveOrUpdateUser(String firebaseUid, String email, String name) {
         SQLiteDatabase db = getWritableDatabase();
 
@@ -67,16 +92,19 @@ public class DBHelper extends SQLiteOpenHelper {
         cv.put(C_USER_EMAIL, email);
         cv.put(C_USER_NAME, name);
 
-        // já existe?
+        // verifica se já existe (se existir devolve o id, senão existir devolve -1)
         long existingId = getUserIdByUid(firebaseUid);
         if (existingId > 0) {
+            //faz update
             db.update(T_USERS, cv, C_USER_UID + "=?", new String[]{firebaseUid});
             return existingId;
         } else {
+            //insere
             return db.insert(T_USERS, null, cv);
         }
     }
 
+    //Procura e devolve o id de um utilizador
     public long getUserIdByUid(String uid) {
         Cursor c = getReadableDatabase().query(
                 T_USERS,
@@ -93,49 +121,12 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
-    // exemplo simples para saber se temos algum utilizador guardado
-    public boolean hasAnyUser() {
-        Cursor c = getReadableDatabase().rawQuery(
-                "SELECT COUNT(*) FROM " + T_USERS, null);
-        try {
-            if (c.moveToFirst()) {
-                return c.getInt(0) > 0;
-            }
-            return false;
-        } finally {
-            c.close();
-        }
-    }
-
-
-    // Calcular média dos últimos N registos (por ordem de data)
-    public double calcularMediaUltimasLeituras(int limite) {
-        SQLiteDatabase db = getReadableDatabase();
-
-        // Pega nos últimos N registos por ordem de inserção (id decrescente)
-        Cursor c = db.rawQuery(
-                "SELECT AVG(" + C_LEITURA_VALOR + ") FROM (" +
-                        "SELECT " + C_LEITURA_VALOR +
-                        " FROM " + T_LEITURAS +
-                        " ORDER BY " + C_LEITURA_ID + " DESC " +
-                        " LIMIT ?" +
-                        ")",
-                new String[]{String.valueOf(limite)}
-        );
-
-        double media = 0;
-        if (c.moveToFirst()) {
-            media = c.getDouble(0);
-        }
-        c.close();
-        return media;
-    }
-
     // Calcular média dos consumos (diferenças) dos últimos N períodos
-// Ex.: se N = 6, usa as últimas 7 leituras para obter 6 diferenças.
     public double calcularMediaConsumos(int numPeriodos) {
-        SQLiteDatabase db = getReadableDatabase();
+        return calcularMediaConsumosInterno(getReadableDatabase(), numPeriodos);
+    }
 
+    private double calcularMediaConsumosInterno(SQLiteDatabase db, int numPeriodos) {
         int limiteLeituras = numPeriodos + 1;
 
         Cursor c = db.rawQuery(
@@ -176,7 +167,7 @@ public class DBHelper extends SQLiteOpenHelper {
         if (contPeriodos == 0) return 0;
 
         if (numPeriodos == 1) {
-            return somaConsumos;   // consumo do último período
+            return somaConsumos;
         }
 
         return somaConsumos / contPeriodos;
@@ -202,22 +193,62 @@ public class DBHelper extends SQLiteOpenHelper {
         return valor;
     }
 
+    //Inserir uma leitura com fotografia
     public long inserirLeituraComFoto(String data, double valorKwh, String imagemPath) {
         SQLiteDatabase db = getWritableDatabase();
-        ContentValues cv = new ContentValues();
-        cv.put(C_LEITURA_DATA, data);
-        cv.put(C_LEITURA_VALOR, valorKwh);
-        cv.put(C_LEITURA_IMAGEM_PATH, imagemPath);
-        return db.insert(T_LEITURAS, null, cv);
+        db.beginTransaction();
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put(C_LEITURA_DATA, data);
+            cv.put(C_LEITURA_VALOR, valorKwh);
+            cv.put(C_LEITURA_IMAGEM_PATH, imagemPath);
+            long rowId = db.insert(T_LEITURAS, null, cv);
+
+            // Recalcula e guarda médias para N = 1, 3, 6
+            if (rowId != -1) {
+                recalcularEMedia(db, new int[]{1, 3, 6});
+            }
+
+            db.setTransactionSuccessful();
+            return rowId;
+        } finally {
+            db.endTransaction();
+        }
     }
 
-    // apaga todos (por exemplo, num logout)
-    public void clearUsers() {
-        getWritableDatabase().delete(T_USERS, null, null);
+    // Recalcula e guarda médias para os períodos especificados
+    private void recalcularEMedia(SQLiteDatabase db, int[] periodos) {
+        for (int n : periodos) {
+            double media = calcularMediaConsumosInterno(db, n);
+            ContentValues cv = new ContentValues();
+            cv.put(C_MEDIA_NPERIODOS, n);
+            cv.put(C_MEDIA_VALOR, media);
+            cv.put(C_MEDIA_ATUALIZADA_EM, Instant.now().toString());
+            db.insertWithOnConflict(T_MEDIA_CONSUMOS, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+        }
     }
 
-    // Método para obter todas as leituras (para o histórico)
-    // Adiciona isto no final da classe DBHelper
+    // Obter todas as médias armazenadas
+    public Map<Integer, Double> obterMediasArmazenadas() {
+        Map<Integer, Double> medias = new HashMap<>();
+        Cursor c = getReadableDatabase().query(
+                T_MEDIA_CONSUMOS,
+                new String[]{C_MEDIA_NPERIODOS, C_MEDIA_VALOR},
+                null, null, null, null, null
+        );
+        try {
+            while (c.moveToNext()) {
+                int n = c.getInt(0);
+                double media = c.getDouble(1);
+                medias.put(n, media);
+            }
+        } finally {
+            c.close();
+        }
+        return medias;
+    }
+
+    // Obter todas as leituras- Adiciona isto no final da classe DBHelper
     public Cursor obterLeituras() {
         SQLiteDatabase db = getReadableDatabase();
         // Últimas leituras, mais recente primeiro
@@ -232,11 +263,22 @@ public class DBHelper extends SQLiteOpenHelper {
         );
     }
 
-    // Método para apagar uma leitura específica pelo ID
+    //Apagar uma leitura especifica a partir do id
     public void apagarLeitura(long id) {
         SQLiteDatabase db = getWritableDatabase();
-        db.delete(T_LEITURAS, C_LEITURA_ID + "=?", new String[]{String.valueOf(id)});
+        db.beginTransaction();
+        try {
+            db.delete(T_LEITURAS, C_LEITURA_ID + "=?", new String[]{String.valueOf(id)});
+            // Recalcula médias após apagar
+            recalcularEMedia(db, new int[]{1, 3, 6});
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    // apaga todos (por exemplo, num logout)
+    public void clearUsers() {
+        getWritableDatabase().delete(T_USERS, null, null);
     }
 }
-
-
