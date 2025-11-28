@@ -329,7 +329,10 @@ public class DBHelper extends SQLiteOpenHelper {
         return valor;
     }
 
-    public void clearUsers() {
-        getWritableDatabase().delete(T_USERS, null, null);
+
+    @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+        db.setForeignKeyConstraintsEnabled(true);
     }
 }

@@ -68,124 +68,59 @@ public class AlertasConsumo extends AppCompatActivity {
     }
 
     private void analisarConsumoManual() {
-        // 1. Vai buscar os dados das leituras à BD
-        android.database.Cursor cursor = dbHelper.obterLeituras();
-        List<Double> leituras = new ArrayList<>();
-
-        if (cursor != null && cursor.moveToFirst()) {
-            int colIndex = cursor.getColumnIndex(DBHelper.C_LEITURA_VALOR);
-            do {
-                if (colIndex != -1) {
-                    leituras.add(cursor.getDouble(colIndex));
-                }
-            } while (cursor.moveToNext());
-            cursor.close();
-        }
-
-        // --- VERIFICAÇÕES DE SEGURANÇA ---
-
-        // Nenhuma leitura
-        if (leituras.isEmpty()) {
+        // Buscar os últimos registos de análise da BD
+        android.database.Cursor cursor = dbHelper.obterHistoricoConsumosAnalisados(null);
+        if (cursor == null || !cursor.moveToFirst()) {
+            // Sem dados
             configurarAlerta(
                     "Sem Dados",
-                    "Ainda não inseriu leituras. Vá a 'Leituras Mensais'.",
+                    "Ainda não existem análises de consumo. Insira leituras em 'Leituras Mensais'.",
                     Color.GRAY,
                     android.R.drawable.ic_menu_info_details
             );
             layoutSugestoes.setVisibility(View.GONE);
             btnAgendar.setVisibility(View.GONE);
+            if (cursor != null) cursor.close();
             return;
         }
 
-        // Apenas 1 leitura
-        if (leituras.size() < 2) {
-            configurarAlerta(
-                    "Dados Insuficientes",
-                    "Precisa de pelo menos 2 leituras para calcular o consumo.",
-                    Color.GRAY,
-                    android.R.drawable.ic_menu_info_details
-            );
-            layoutSugestoes.setVisibility(View.GONE);
-            btnAgendar.setVisibility(View.GONE);
-            return;
-        }
+        // Ler dados do registo mais recente
+        int idxStatus = cursor.getColumnIndex(DBHelper.C_CONSUMO_ANALISADO_STATUS);
+        int idxPercentagem = cursor.getColumnIndex(DBHelper.C_CONSUMO_ANALISADO_PERCENTAGEM);
+        int idxConsumo = cursor.getColumnIndex(DBHelper.C_CONSUMO_ANALISADO_VALOR);
+        int idxMediaRef = cursor.getColumnIndex(DBHelper.C_CONSUMO_ANALISADO_MEDIA_REF);
+        int idxDataLeitura = cursor.getColumnIndex("data_leitura");
+        int idxValorLeitura = cursor.getColumnIndex("valor_leitura");
 
-        // 2. Obter valores - lista está ordenada da mais recente para a mais antiga
-        double leituraMaisRecente = leituras.get(0);
-        double leituraPenultima = leituras.get(1);
-
-        // Verificação de erro: leitura atual não pode ser menor que a anterior
-        if (leituraMaisRecente < leituraPenultima) {
+        if (idxStatus == -1 || idxPercentagem == -1 || idxConsumo == -1 || idxMediaRef == -1) {
             configurarAlerta(
-                    "❌ Erro na Leitura",
-                    String.format(
-                            "A leitura atual (%.0f) é inferior à anterior (%.0f). Verifique se se enganou a escrever.",
-                            leituraMaisRecente, leituraPenultima
-                    ),
+                    "Erro",
+                    "Dados incompletos na análise.",
                     Color.RED,
-                    android.R.drawable.ic_delete
+                    android.R.drawable.ic_dialog_alert
             );
             layoutSugestoes.setVisibility(View.GONE);
             btnAgendar.setVisibility(View.GONE);
+            cursor.close();
             return;
         }
 
-        // 3. Consumo atual (mês)
-        double consumoAtual = leituraMaisRecente - leituraPenultima;
+        String status = cursor.getString(idxStatus);
+        double percentagem = cursor.getDouble(idxPercentagem);
+        double consumoAtual = cursor.getDouble(idxConsumo);
+        double mediaRef = cursor.getDouble(idxMediaRef);
+        String dataLeitura = idxDataLeitura != -1 ? cursor.getString(idxDataLeitura) : "N/A";
+        double valorLeitura = idxValorLeitura != -1 ? cursor.getDouble(idxValorLeitura) : 0;
 
-        // Se só existem 2 leituras, ainda não há histórico suficiente para média
-        if (leituras.size() < 3) {
-            configurarAlerta(
-                    "Primeiro Registo",
-                    String.format("Consumo registado: %.1f kWh. Insira mais dados no próximo mês.", consumoAtual),
-                    Color.parseColor("#1976D2"),
-                    android.R.drawable.ic_menu_info_details
-            );
-            layoutSugestoes.setVisibility(View.GONE);
-            btnAgendar.setVisibility(View.GONE);
-            return;
-        }
+        cursor.close();
 
-        // 4. Calcular média histórica dos consumos (máx. 6 períodos anteriores)
-        double somaConsumosAntigos = 0;
-        int contadorPeriodos = 0;
-
-        // Começamos no índice 1 porque o par (0,1) já foi usado para o consumoAtual
-        for (int i = 1; i < leituras.size() - 1; i++) {
-            double recente = leituras.get(i);
-            double antiga = leituras.get(i + 1);
-
-            if (recente >= antiga) {
-                somaConsumosAntigos += (recente - antiga);
-                contadorPeriodos++;
-            }
-            if (contadorPeriodos >= 6) break; // limita a 6 períodos
-        }
-
-        // Sem períodos válidos → tratar como sem histórico suficiente
-        if (contadorPeriodos == 0) {
-            configurarAlerta(
-                    "A recolher histórico",
-                    String.format("Consumo atual: %.1f kWh.", consumoAtual),
-                    Color.BLUE,
-                    android.R.drawable.ic_menu_info_details
-            );
-            layoutSugestoes.setVisibility(View.GONE);
-            btnAgendar.setVisibility(View.GONE);
-            return;
-        }
-
-        double mediaHistorica = somaConsumosAntigos / contadorPeriodos;
-        double diferenca = consumoAtual - mediaHistorica;
-        double percentagem = (mediaHistorica > 0)
-                ? (diferenca / mediaHistorica) * 100.0
-                : 0;
-
-        // 5. Gerar alertas consoante a percentagem
-        if (percentagem >= 40.0) {
+        // --- Decidir alerta com base no status ---
+        if (status.equals("ALTO")) {
             configurarAlerta(
                     "🚨 ALERTA CRÍTICO!",
-                    String.format("Aumento de %.0f%%! Verifique possíveis fugas ou avarias.", percentagem),
+                    String.format("Aumento de %.0f%%! Verifique possíveis fugas ou avarias.\n\n" +
+                                    "📅 Leitura: %s\n🔢 Valor: %.1f kWh",
+                            percentagem, dataLeitura, valorLeitura),
                     Color.parseColor("#D32F2F"),
                     android.R.drawable.ic_dialog_alert
             );
@@ -196,38 +131,12 @@ public class AlertasConsumo extends AppCompatActivity {
             );
             btnAgendar.setVisibility(View.VISIBLE);
 
-        } else if (percentagem >= 20.0) {
+        } else if (status.equals("BAIXO")) {
             configurarAlerta(
-                    "⚠️ Consumo Elevado",
-                    String.format("Gastou cerca de %.0f%% a mais que o habitual.", percentagem),
-                    Color.parseColor("#FF9800"),
-                    android.R.drawable.stat_notify_error
-            );
-            mostrarDicas(
-                    "Reduza o uso de aquecedores e ar condicionado.",
-                    "Evite deixar equipamentos em standby.",
-                    "Use máquinas de lavar nas horas de vazio."
-            );
-            btnAgendar.setVisibility(View.GONE);
-
-        } else if (percentagem > 0) {
-            configurarAlerta(
-                    "📈 Ligeiro Aumento",
-                    String.format("O consumo subiu %.1f%% face à média.", percentagem),
-                    Color.parseColor("#FBC02D"),
-                    android.R.drawable.ic_menu_sort_by_size
-            );
-            mostrarDicas(
-                    "Substitua lâmpadas por LEDs.",
-                    "Tape as panelas ao cozinhar.",
-                    "Desligue carregadores da tomada."
-            );
-            btnAgendar.setVisibility(View.GONE);
-
-        } else {
-            configurarAlerta(
-                    "✅ Bom Trabalho!",
-                    String.format("Poupança de %.1f%% em relação à média!", Math.abs(percentagem)),
+                    "✅ Excelente!",
+                    String.format("Poupança de %.1f%% em relação à média!\n\n" +
+                                    "📅 Leitura: %s\n🔢 Valor: %.1f kWh",
+                            Math.abs(percentagem), dataLeitura, valorLeitura),
                     Color.parseColor("#388E3C"),
                     android.R.drawable.ic_input_add
             );
@@ -238,6 +147,57 @@ public class AlertasConsumo extends AppCompatActivity {
             );
             tvTituloSugestoes.setText("Dicas para manter:");
             btnAgendar.setVisibility(View.GONE);
+
+        } else { // NORMAL
+            if (percentagem >= 20.0) {
+                configurarAlerta(
+                        "⚠️ Consumo Elevado",
+                        String.format("Gastou cerca de %.0f%% a mais que o habitual.\n\n" +
+                                        "📅 Leitura: %s\n🔢 Valor: %.1f kWh",
+                                percentagem, dataLeitura, valorLeitura),
+                        Color.parseColor("#FF9800"),
+                        android.R.drawable.stat_notify_error
+                );
+                mostrarDicas(
+                        "Reduza o uso de aquecedores e ar condicionado.",
+                        "Evite deixar equipamentos em standby.",
+                        "Use máquinas de lavar nas horas de vazio."
+                );
+                btnAgendar.setVisibility(View.GONE);
+
+            } else if (percentagem > 0) {
+                configurarAlerta(
+                        "📈 Ligeiro Aumento",
+                        String.format("O consumo subiu %.1f%% face à média.\n\n" +
+                                        "📅 Leitura: %s\n🔢 Valor: %.1f kWh",
+                                percentagem, dataLeitura, valorLeitura),
+                        Color.parseColor("#FBC02D"),
+                        android.R.drawable.ic_menu_sort_by_size
+                );
+                mostrarDicas(
+                        "Substitua lâmpadas por LEDs.",
+                        "Tape as panelas ao cozinhar.",
+                        "Desligue carregadores da tomada."
+                );
+                btnAgendar.setVisibility(View.GONE);
+
+            } else {
+                configurarAlerta(
+                        "✅ Bom Trabalho!",
+                        String.format("Poupança de %.1f%% em relação à média!\n\n" +
+                                        "📅 Leitura: %s\n🔢 Valor: %.1f kWh",
+                                Math.abs(percentagem), dataLeitura, valorLeitura),
+                        Color.parseColor("#388E3C"),
+                        android.R.drawable.ic_input_add
+                );
+                mostrarDicas(
+                        "Continue a monitorizar o seu consumo.",
+                        "Isole portas e janelas para manter o calor.",
+                        "Partilhe estas boas práticas com a família."
+                );
+                tvTituloSugestoes.setText("Dicas para manter:");
+                btnAgendar.setVisibility(View.GONE);
+            }
         }
     }
 
