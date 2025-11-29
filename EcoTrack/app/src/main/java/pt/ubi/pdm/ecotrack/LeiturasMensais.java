@@ -30,41 +30,32 @@ public class LeiturasMensais extends AppCompatActivity {
     private Uri imagemSelecionadaUri;
 
     private DBHelper dbHelper;
-    // removida a variável de instância leituraAnterior
     private Bitmap imagemAtualBitmap;
 
-    // Launcher para escolher imagem da galeria
+    // Launchers
     private final ActivityResultLauncher<String> escolherImagemLauncher =
-            registerForActivityResult(new ActivityResultContracts.GetContent(), new androidx.activity.result.ActivityResultCallback<Uri>() {
-                @Override
-                public void onActivityResult(Uri uri) {
-                    if (uri != null) {
-                        imagemSelecionadaUri = uri;
-                        try {
-                            Bitmap bitmap = MediaStore.Images.Media.getBitmap(
-                                    getContentResolver(), uri);
-                            imgContador.setImageBitmap(bitmap);
-                            imagemAtualBitmap = bitmap;
-                        } catch (IOException e) {
-                            Toast.makeText(LeiturasMensais.this, "Erro ao carregar imagem.", Toast.LENGTH_SHORT).show();
-                        }
+            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+                if (uri != null) {
+                    imagemSelecionadaUri = uri;
+                    try {
+                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                        imgContador.setImageBitmap(bitmap);
+                        imagemAtualBitmap = bitmap;
+                    } catch (IOException e) {
+                        Toast.makeText(this, "Erro ao carregar imagem.", Toast.LENGTH_SHORT).show();
                     }
                 }
             });
 
-    // Launcher para tirar foto com a câmara (thumbnail)
     private final ActivityResultLauncher<Intent> tirarFotoLauncher =
-            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new androidx.activity.result.ActivityResultCallback<androidx.activity.result.ActivityResult>() {
-                @Override
-                public void onActivityResult(androidx.activity.result.ActivityResult result) {
-                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                        Bundle extras = result.getData().getExtras();
-                        if (extras != null) {
-                            Bitmap imageBitmap = (Bitmap) extras.get("data");
-                            if (imageBitmap != null) {
-                                imgContador.setImageBitmap(imageBitmap);
-                                imagemAtualBitmap = imageBitmap;
-                            }
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Bundle extras = result.getData().getExtras();
+                    if (extras != null) {
+                        Bitmap imageBitmap = (Bitmap) extras.get("data");
+                        if (imageBitmap != null) {
+                            imgContador.setImageBitmap(imageBitmap);
+                            imagemAtualBitmap = imageBitmap;
                         }
                     }
                 }
@@ -76,7 +67,6 @@ public class LeiturasMensais extends AppCompatActivity {
         setContentView(R.layout.activity_leituras_mensais);
 
         dbHelper = new DBHelper(this);
-        // NÃO inicializar leituraAnterior em memória; vamos sempre ler da BD quando necessário
 
         ligarViews();
         configurarEventos();
@@ -94,7 +84,6 @@ public class LeiturasMensais extends AppCompatActivity {
         btnTirarFoto = findViewById(R.id.btnTirarFoto);
         btnVerHistorico = findViewById(R.id.btnVerHistorico);
 
-        // Mostrar a leitura anterior lendo directamente da BD (inline)
         double leituraAnterior = dbHelper.obterUltimaLeituraOuDefault(0);
         if (leituraAnterior > 0) {
             tvLeituraAnterior.setText("Leitura anterior do contador: " + leituraAnterior + " kWh");
@@ -106,7 +95,6 @@ public class LeiturasMensais extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Recarregar o valor da BD sempre que a Activity volta ao ecrã
         if (tvLeituraAnterior != null) {
             double leituraAnterior = dbHelper.obterUltimaLeituraOuDefault(0);
             if (leituraAnterior > 0) {
@@ -118,47 +106,14 @@ public class LeiturasMensais extends AppCompatActivity {
     }
 
     private void configurarEventos() {
-        btnEscolherImagem.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                escolherImagemLauncher.launch("image/*");
-            }
-        });
-
-        btnCalcular.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                calcularConsumo();
-            }
-        });
-
-        btnGuardar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                guardarLeituraComImagem();
-            }
-        });
-
-        btnVoltar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
-
-        btnTirarFoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                abrirCamera();
-            }
-        });
-
-        btnVerHistorico.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(LeiturasMensais.this, ResumoLeituras.class);
-                startActivity(intent);
-            }
+        btnEscolherImagem.setOnClickListener(v -> escolherImagemLauncher.launch("image/*"));
+        btnCalcular.setOnClickListener(v -> calcularConsumo());
+        btnGuardar.setOnClickListener(v -> guardarLeituraComImagem());
+        btnVoltar.setOnClickListener(v -> finish());
+        btnTirarFoto.setOnClickListener(v -> abrirCamera());
+        btnVerHistorico.setOnClickListener(v -> {
+            Intent intent = new Intent(LeiturasMensais.this, ResumoLeituras.class);
+            startActivity(intent);
         });
     }
 
@@ -182,7 +137,6 @@ public class LeiturasMensais extends AppCompatActivity {
             return;
         }
 
-        // Obter leitura anterior directamente da BD (sem armazenar em campo)
         double leituraAnterior = dbHelper.obterUltimaLeituraOuDefault(0);
         if (leituraAnterior > 0 && leituraAtual < leituraAnterior) {
             Toast.makeText(this, "A nova leitura não pode ser inferior à leitura anterior do contador.", Toast.LENGTH_SHORT).show();
@@ -191,12 +145,16 @@ public class LeiturasMensais extends AppCompatActivity {
 
         double consumoPeriodo = leituraAnterior > 0 ? leituraAtual - leituraAnterior : 0;
         if (leituraAnterior > 0) {
-            tvResultado.setText(String.format(java.util.Locale.getDefault(), "Consumo desde a leitura anterior: %.1f kWh", consumoPeriodo));
+            tvResultado.setText(String.format("Consumo desde a leitura anterior: %.1f kWh", consumoPeriodo));
         } else {
-            tvResultado.setText(String.format(java.util.Locale.getDefault(), "Leitura registada: %.1f kWh. Esta é a primeira leitura.", leituraAtual));
+            tvResultado.setText(String.format("Leitura registada: %.1f kWh. Esta é a primeira leitura.", leituraAtual));
         }
 
-        // NÃO atualizar qualquer variável de leitura anterior aqui — a BD é a fonte de verdade
+        int totalLeituras = dbHelper.contarLeituras();
+        if (totalLeituras < 2) {
+            Toast.makeText(this, "Serão necessárias pelo menos 2 leituras para análise.", Toast.LENGTH_LONG).show();
+            return;
+        }
 
         double mediaConsumos = dbHelper.calcularMediaConsumos(6);
         if (mediaConsumos <= 0 || consumoPeriodo <= 0) {
@@ -208,20 +166,17 @@ public class LeiturasMensais extends AppCompatActivity {
 
         if (percentagemAumento > DBHelper.LIMITE_PERCENTUAL_SUP) {
             Toast.makeText(this,
-                    String.format(java.util.Locale.getDefault(),
-                            "Atenção: o consumo deste período (%.1f kWh) está %.1f%% acima da média (%.1f kWh).",
+                    String.format("Atenção: o consumo deste período (%.1f kWh) está %.1f%% acima da média (%.1f kWh).",
                             consumoPeriodo, percentagemAumento, mediaConsumos),
                     Toast.LENGTH_LONG).show();
         } else if (percentagemAumento < DBHelper.LIMITE_PERCENTUAL_INF) {
             Toast.makeText(this,
-                    String.format(java.util.Locale.getDefault(),
-                            "Bom trabalho! O consumo deste período (%.1f kWh) está %.1f%% abaixo da média (%.1f kWh).",
+                    String.format("Bom trabalho! O consumo deste período (%.1f kWh) está %.1f%% abaixo da média (%.1f kWh).",
                             consumoPeriodo, Math.abs(percentagemAumento), mediaConsumos),
                     Toast.LENGTH_LONG).show();
         } else {
             Toast.makeText(this,
-                    String.format(java.util.Locale.getDefault(),
-                            "Consumo dentro de valores normais. Este período: %.1f kWh, média: %.1f kWh.",
+                    String.format("Consumo dentro de valores normais. Este período: %.1f kWh, média: %.1f kWh.",
                             consumoPeriodo, mediaConsumos),
                     Toast.LENGTH_SHORT).show();
         }
@@ -242,7 +197,6 @@ public class LeiturasMensais extends AppCompatActivity {
             return;
         }
 
-        // Validar com a leitura actual da BD
         double leituraAnterior = dbHelper.obterUltimaLeituraOuDefault(0);
         if (leituraAnterior > 0 && leituraValor < leituraAnterior) {
             Toast.makeText(this, "A nova leitura não pode ser inferior à leitura anterior.", Toast.LENGTH_SHORT).show();
@@ -258,7 +212,6 @@ public class LeiturasMensais extends AppCompatActivity {
         long id = dbHelper.inserirLeituraComFoto(dataHoje, leituraValor, imagemPath);
 
         if (id > 0) {
-            // Atualiza o texto da leitura anterior lendo da BD (inline)
             double novaLeituraAnterior = dbHelper.obterUltimaLeituraOuDefault(0);
             if (novaLeituraAnterior > 0) {
                 tvLeituraAnterior.setText("Leitura anterior do contador: " + novaLeituraAnterior + " kWh");
@@ -266,7 +219,6 @@ public class LeiturasMensais extends AppCompatActivity {
                 tvLeituraAnterior.setText("Ainda não existem leituras anteriores.");
             }
 
-            // Obter análise criada (se existir) e mostrar feedback
             try (Cursor analise = dbHelper.obterAnaliseConsumo(id)) {
                 if (analise != null && analise.moveToFirst()) {
                     double consumo = analise.getDouble(analise.getColumnIndexOrThrow(DBHelper.C_CONSUMO_ANALISADO_VALOR));
@@ -283,7 +235,6 @@ public class LeiturasMensais extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            // limpar UI
             etNovaLeitura.setText("");
             tvResultado.setText("");
             imgContador.setImageResource(android.R.drawable.ic_menu_camera);
@@ -303,7 +254,7 @@ public class LeiturasMensais extends AppCompatActivity {
             FileOutputStream fos = openFileOutput(fileName, MODE_PRIVATE);
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, fos);
             fos.close();
-            return fileName;  // este nome é o que vamos guardar na BD
+            return fileName;
         } catch (Exception e) {
             e.printStackTrace();
             Toast.makeText(this, "Erro ao guardar imagem.", Toast.LENGTH_SHORT).show();

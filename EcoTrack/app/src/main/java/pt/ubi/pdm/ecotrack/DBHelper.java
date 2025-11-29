@@ -58,13 +58,11 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // Criar tabelas
         db.execSQL("CREATE TABLE " + T_USERS + " (" +
                 C_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 C_USER_UID + " TEXT UNIQUE, " +
                 C_USER_EMAIL + " TEXT UNIQUE NOT NULL, " +
                 C_USER_NAME + " TEXT)");
-
         db.execSQL("CREATE TABLE " + T_LEITURAS + " (" +
                 C_LEITURA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 C_LEITURA_DATA + " TEXT NOT NULL, " +
@@ -75,12 +73,10 @@ public class DBHelper extends SQLiteOpenHelper {
                 C_LEITURA_CREATED_AT_TS + " INTEGER, " +
                 "FOREIGN KEY (" + C_LEITURA_PREV_ID + ") REFERENCES " + T_LEITURAS + "(" + C_LEITURA_ID + ") ON DELETE SET NULL" +
                 ")");
-
         db.execSQL("CREATE TABLE " + T_MEDIA_CONSUMOS + " (" +
                 C_MEDIA_NPERIODOS + " INTEGER PRIMARY KEY, " +
                 C_MEDIA_VALOR + " REAL NOT NULL, " +
                 C_MEDIA_ATUALIZADA_EM + " TEXT)");
-
         db.execSQL("CREATE TABLE " + T_CONSUMOS_ANALISADOS + " (" +
                 C_CONSUMO_ANALISADO_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 C_CONSUMO_ANALISADO_LEITURA_ID + " INTEGER NOT NULL, " +
@@ -94,8 +90,6 @@ public class DBHelper extends SQLiteOpenHelper {
                 C_CONSUMO_ANALISADO_CREATED_AT_TS + " INTEGER, " +
                 "FOREIGN KEY (" + C_CONSUMO_ANALISADO_LEITURA_ID + ") REFERENCES " + T_LEITURAS + "(" + C_LEITURA_ID + ") ON DELETE CASCADE" +
                 ")");
-
-        // Criar índices
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_leituras_prev ON " + T_LEITURAS + "(" + C_LEITURA_PREV_ID + ")");
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_leituras_created_ts ON " + T_LEITURAS + "(" + C_LEITURA_CREATED_AT_TS + ")");
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_consumos_analisados_leitura ON " + T_CONSUMOS_ANALISADOS + "(" + C_CONSUMO_ANALISADO_LEITURA_ID + ")");
@@ -112,6 +106,12 @@ public class DBHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
+    @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+        db.setForeignKeyConstraintsEnabled(true);
+    }
+
     // ---------- UTILIZADORES ----------
     public long saveOrUpdateUser(String firebaseUid, String email, String name) {
         SQLiteDatabase db = getWritableDatabase();
@@ -119,7 +119,6 @@ public class DBHelper extends SQLiteOpenHelper {
         cv.put(C_USER_UID, firebaseUid);
         cv.put(C_USER_EMAIL, email);
         cv.put(C_USER_NAME, name);
-
         long existingId = getUserIdByUid(firebaseUid);
         if (existingId > 0) {
             db.update(T_USERS, cv, C_USER_UID + "=?", new String[]{firebaseUid});
@@ -145,6 +144,8 @@ public class DBHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         try {
+            double mediaAntes = calcularMediaConsumosInterno(db, 6);
+
             long prevId = -1;
             double prevValor = -1;
             Cursor c = db.rawQuery("SELECT " + C_LEITURA_ID + ", " + C_LEITURA_VALOR +
@@ -171,7 +172,7 @@ public class DBHelper extends SQLiteOpenHelper {
             long rowId = db.insert(T_LEITURAS, null, cv);
 
             if (rowId != -1 && consumoPeriodo != null) {
-                criarRegistroConsumoAnalisado(db, rowId, consumoPeriodo, 6);
+                criarRegistroConsumoAnalisado(db, rowId, consumoPeriodo, 6, mediaAntes);
                 recalcularEMedia(db, new int[]{1, 3, 6});
             }
 
@@ -196,6 +197,16 @@ public class DBHelper extends SQLiteOpenHelper {
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
+        }
+    }
+
+    public int contarLeituras() {
+        Cursor c = getReadableDatabase().rawQuery("SELECT COUNT(*) FROM " + T_LEITURAS, null);
+        try {
+            if (c.moveToFirst()) return c.getInt(0);
+            return 0;
+        } finally {
+            c.close();
         }
     }
 
@@ -237,7 +248,6 @@ public class DBHelper extends SQLiteOpenHelper {
         }
 
         if (contPeriodos == 0) return 0;
-        if (numPeriodos == 1) return somaConsumos;
         return somaConsumos / contPeriodos;
     }
 
@@ -266,16 +276,39 @@ public class DBHelper extends SQLiteOpenHelper {
         return medias;
     }
 
+    private Map<Integer, Double> obterMediasArmazenadasInterno(SQLiteDatabase db) {
+        Map<Integer, Double> medias = new HashMap<>();
+        Cursor c = db.query(T_MEDIA_CONSUMOS,
+                new String[]{C_MEDIA_NPERIODOS, C_MEDIA_VALOR}, null, null, null, null, null);
+        try {
+            while (c.moveToNext()) {
+                medias.put(c.getInt(0), c.getDouble(1));
+            }
+        } finally {
+            c.close();
+        }
+        return medias;
+    }
+
     // ---------- ANÁLISE DE CONSUMO ----------
     private void criarRegistroConsumoAnalisado(SQLiteDatabase db, long leituraId,
                                                double consumoValor, int numPeriodos) {
-        Map<Integer, Double> medias = obterMediasArmazenadas();
-        Double mediaRef = medias.get(numPeriodos);
-        if (mediaRef == null || mediaRef <= 0) {
-            mediaRef = calcularMediaConsumosInterno(db, numPeriodos);
+        criarRegistroConsumoAnalisado(db, leituraId, consumoValor, numPeriodos, null);
+    }
+
+    private void criarRegistroConsumoAnalisado(SQLiteDatabase db, long leituraId,
+                                               double consumoValor, int numPeriodos, Double mediaRefParam) {
+        Double mediaRef = mediaRefParam;
+
+        if (mediaRef == null) {
+            Map<Integer, Double> medias = obterMediasArmazenadasInterno(db);
+            mediaRef = medias.get(numPeriodos);
+            if (mediaRef == null || mediaRef <= 0) {
+                mediaRef = calcularMediaConsumosInterno(db, numPeriodos);
+            }
         }
 
-        if (mediaRef <= 0 || consumoValor <= 0) return;
+        if (mediaRef == null || mediaRef <= 0 || consumoValor <= 0) return;
 
         double percentagem = ((consumoValor - mediaRef) / mediaRef) * 100.0;
         String status = "NORMAL";
@@ -327,12 +360,5 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         c.close();
         return valor;
-    }
-
-
-    @Override
-    public void onConfigure(SQLiteDatabase db) {
-        super.onConfigure(db);
-        db.setForeignKeyConstraintsEnabled(true);
     }
 }
