@@ -216,42 +216,79 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     private double calcularMediaConsumosInterno(SQLiteDatabase db, int numPeriodos) {
-        int limiteLeituras = numPeriodos + 1;
-        Cursor c = db.rawQuery("SELECT " + C_LEITURA_VALOR + " FROM " + T_LEITURAS +
-                        " ORDER BY " + C_LEITURA_ID + " DESC LIMIT ?",
-                new String[]{String.valueOf(limiteLeituras)});
+        if (numPeriodos <= 0) return 0.0;
 
-        if (!c.moveToFirst()) {
-            c.close();
-            return 0;
-        }
+        Cursor c = null;
+        try {
+            // 1) Tentar usar consumos já calculados (consumo_periodo)
+            String sqlConsumidos = "SELECT " + C_LEITURA_CONSUMO_PERIODO +
+                    " FROM " + T_LEITURAS +
+                    " WHERE " + C_LEITURA_CONSUMO_PERIODO + " IS NOT NULL AND " + C_LEITURA_CONSUMO_PERIODO + " > 0" +
+                    " ORDER BY " + C_LEITURA_CREATED_AT_TS + " DESC, " + C_LEITURA_ID + " DESC" +
+                    " LIMIT " + numPeriodos;
+            c = db.rawQuery(sqlConsumidos, null);
 
-        double[] leituras = new double[c.getCount()];
-        int idx = 0;
-        do {
-            leituras[idx++] = c.getDouble(0);
-        } while (c.moveToNext());
-        c.close();
-
-        if (leituras.length < 2) return 0;
-
-        double somaConsumos = 0;
-        int contPeriodos = 0;
-
-        for (int i = 0; i < leituras.length - 1; i++) {
-            double atual = leituras[i];
-            double anterior = leituras[i + 1];
-            if (atual >= anterior) {
-                somaConsumos += (atual - anterior);
-                contPeriodos++;
+            double soma = 0.0;
+            int contador = 0;
+            if (c != null && c.moveToFirst()) {
+                do {
+                    soma += c.getDouble(0);
+                    contador++;
+                } while (c.moveToNext());
             }
+            if (c != null) {
+                c.close();
+                c = null;
+            }
+            if (contador > 0) {
+                return soma / contador;
+            }
+
+            // 2) Fallback: calcular a partir das últimas leituras (precisamos de numPeriodos + 1 leituras)
+            String sqlLeituras = "SELECT " + C_LEITURA_VALOR +
+                    " FROM " + T_LEITURAS +
+                    " ORDER BY " + C_LEITURA_CREATED_AT_TS + " DESC, " + C_LEITURA_ID + " DESC" +
+                    " LIMIT " + (numPeriodos + 1);
+            c = db.rawQuery(sqlLeituras, null);
+            if (c == null || !c.moveToFirst()) {
+                if (c != null) c.close();
+                return 0.0;
+            }
+
+            int n = c.getCount();
+            if (n < 2) {
+                c.close();
+                return 0.0;
+            }
+
+            double[] leituras = new double[n];
+            int idx = 0;
+            do {
+                leituras[idx++] = c.getDouble(0);
+            } while (c.moveToNext());
+            c.close();
+            c = null;
+
+            double somaConsumos = 0.0;
+            int contPeriodos = 0;
+            // leituras[0] = mais recente, leituras[1] = anterior, etc.
+            for (int i = 0; i < leituras.length - 1 && contPeriodos < numPeriodos; i++) {
+                double atual = leituras[i];
+                double anterior = leituras[i + 1];
+                double consumo = atual - anterior;
+                if (consumo > 0) { // ignora zeros e negativos
+                    somaConsumos += consumo;
+                    contPeriodos++;
+                }
+            }
+
+            if (contPeriodos == 0) return 0.0;
+            return somaConsumos / contPeriodos;
+
+        } finally {
+            if (c != null && !c.isClosed()) c.close();
         }
-
-        if (contPeriodos == 0) return 0;
-        return somaConsumos / contPeriodos;
-    }
-
-    private void recalcularEMedia(SQLiteDatabase db, int[] periodos) {
+    }    private void recalcularEMedia(SQLiteDatabase db, int[] periodos) {
         for (int n : periodos) {
             double media = calcularMediaConsumosInterno(db, n);
             ContentValues cv = new ContentValues();
