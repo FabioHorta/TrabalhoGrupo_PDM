@@ -20,17 +20,22 @@
         android:id="@+id/etData"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Data (ex: 20/01/2025)"
+        android:hint="Escolher data"
+        android:focusable="false"
+        android:clickable="true"
         android:textColor="@color/onMint"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="16dp" />
 
     <EditText
         android:id="@+id/etHora"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Hora (ex: 14:30)"
+        android:hint="Escolher hora"
+        android:focusable="false"
+        android:clickable="true"
         android:textColor="@color/onMint"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="16dp" />
+
 
     <EditText
         android:id="@+id/etDescricao"
