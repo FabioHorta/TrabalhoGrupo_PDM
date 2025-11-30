@@ -4,9 +4,10 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="24dp"
-    android:background="@drawable/gradient_verde"
-    android:gravity="center">
+    android:gravity="center"
+    android:background="@drawable/gradient_verde">
 
+    <!-- Título -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -16,20 +17,53 @@
         android:textStyle="bold"
         android:layout_marginBottom="20dp"/>
 
+    <!-- Descrição -->
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:text="Aqui o utilizador pode agendar assistência técnica, enviar mensagens, ou consultar relatórios."
+        android:layout_marginBottom="30dp"
+        android:text="O utilizador pode agendar assistência técnica, enviar mensagens, ou consultar relatórios."
         android:textAlignment="center"
         android:textColor="@color/onMint"
         android:textSize="16sp" />
 
+    <!-- Botão 1: Agendar Assistência -->
+    <Button
+        android:id="@+id/btnAgendarAssistencia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Agendar Assistência Técnica"
+        android:backgroundTint="#FFFFFF"
+        android:textColor="@color/green"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Botão 2: Enviar Mensagem -->
+    <Button
+        android:id="@+id/btnEnviarMensagem"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enviar Mensagem"
+        android:backgroundTint="#FFFFFF"
+        android:textColor="@color/green"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Botão 3: Consultar Relatórios -->
+    <Button
+        android:id="@+id/btnConsultarRelatorios"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Consultar Relatórios"
+        android:backgroundTint="#FFFFFF"
+        android:textColor="@color/green"
+        android:layout_marginBottom="40dp" />
+
+    <!-- Voltar -->
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Voltar"
         android:onClick="onBackPressed"
         android:backgroundTint="#FFFFFF"
-        android:textColor="@color/green"/>
+        android:textColor="@color/green" />
+
 </LinearLayout>

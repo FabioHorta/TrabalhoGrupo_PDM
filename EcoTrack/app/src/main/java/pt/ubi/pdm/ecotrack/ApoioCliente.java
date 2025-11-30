@@ -1,19 +1,37 @@
 package pt.ubi.pdm.ecotrack;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 public class ApoioCliente extends AppCompatActivity {
+
+    Button btnAgendarAssistencia, btnEnviarMensagem, btnConsultarRelatorios;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_apoio_cliente);
+
+        btnAgendarAssistencia = findViewById(R.id.btnAgendarAssistencia);
+        btnEnviarMensagem = findViewById(R.id.btnEnviarMensagem);
+        btnConsultarRelatorios = findViewById(R.id.btnConsultarRelatorios);
+
+        btnAgendarAssistencia.setOnClickListener(v -> {
+            Intent intent = new Intent(ApoioCliente.this, AgendarAssistencia.class);
+            startActivity(intent);
+        });
+
+        btnEnviarMensagem.setOnClickListener(v -> {
+            Intent intent = new Intent(ApoioCliente.this, EnviarMensagem.class);
+            startActivity(intent);
+        });
+
+        btnConsultarRelatorios.setOnClickListener(v -> {
+            Intent intent = new Intent(ApoioCliente.this, Relatorios.class);
+            startActivity(intent);
+        });
     }
 }

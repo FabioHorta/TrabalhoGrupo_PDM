@@ -95,6 +95,17 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_consumos_analisados_leitura ON " + T_CONSUMOS_ANALISADOS + "(" + C_CONSUMO_ANALISADO_LEITURA_ID + ")");
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_consumos_analisados_created ON " + T_CONSUMOS_ANALISADOS + "(" + C_CONSUMO_ANALISADO_CREATED_AT_TS + ")");
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_consumos_analisados_status ON " + T_CONSUMOS_ANALISADOS + "(" + C_CONSUMO_ANALISADO_STATUS + ")");
+        db.execSQL("CREATE TABLE IF NOT EXISTS mensagens_suporte (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "assunto TEXT," +
+                "mensagem TEXT," +
+                "data TEXT)");
+        db.execSQL("CREATE TABLE assistencias (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "data TEXT, " +
+                "hora TEXT, " +
+                "descricao TEXT, " +
+                "feedback TEXT)");
     }
 
     @Override
@@ -103,6 +114,8 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + T_LEITURAS);
         db.execSQL("DROP TABLE IF EXISTS " + T_MEDIA_CONSUMOS);
         db.execSQL("DROP TABLE IF EXISTS " + T_CONSUMOS_ANALISADOS);
+        db.execSQL("DROP TABLE IF EXISTS mensagens_suporte");
+        db.execSQL("DROP TABLE IF EXISTS assistencias");
         onCreate(db);
     }
 
@@ -398,4 +411,39 @@ public class DBHelper extends SQLiteOpenHelper {
         c.close();
         return valor;
     }
+    // Inserir mensagem
+    public boolean inserirMensagem(String assunto, String mensagem, String data) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put("assunto", assunto);
+        cv.put("mensagem", mensagem);
+        cv.put("data", data);
+        long r = db.insert("mensagens_suporte", null, cv);
+        return r != -1;
+    }
+
+    // Listar mensagens
+    public Cursor listarMensagens() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM mensagens_suporte ORDER BY id DESC", null);
+    }
+
+    // Inserir assistência técnica
+    public boolean inserirAssistencia(String data, String hora, String descricao) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put("data", data);
+        cv.put("hora", hora);
+        cv.put("descricao", descricao);
+        cv.put("feedback", "Pendente");
+        long r = db.insert("assistencias", null, cv);
+        return r != -1;
+    }
+
+    // Listar assistências + feedback
+    public Cursor listarAssistencias() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT * FROM assistencias ORDER BY id DESC", null);
+    }
+
 }

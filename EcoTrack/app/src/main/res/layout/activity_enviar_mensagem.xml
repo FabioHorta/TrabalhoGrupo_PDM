@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center"
+    android:background="@drawable/gradient_verde">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enviar Mensagem"
+        android:textColor="@color/onMint"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp"/>
+
+    <EditText
+        android:id="@+id/etAssunto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Assunto"
+        android:textColor="@color/onMint"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/etMensagem"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:gravity="top"
+        android:hint="Escreve a tua mensagem…"
+        android:inputType="textMultiLine"
+        android:textColor="@color/onMint"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btnEnviar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enviar"
+        android:backgroundTint="#FFFFFF"
+        android:textColor="@color/green"
+        android:layout_marginBottom="24dp"/>
+
+    <ListView
+        android:id="@+id/listMensagens"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+</LinearLayout>

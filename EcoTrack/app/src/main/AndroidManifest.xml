@@ -61,6 +61,15 @@
             android:name=".TipoEnergia"
             android:exported="false" />
 
+        <activity android:name=".AgendarAssistencia"
+            android:exported="false" />
+
+        <activity android:name=".EnviarMensagem"
+            android:exported="false" />
+
+        <activity android:name=".Relatorios"
+            android:exported="false" />
+
     </application>
 
 </manifest>

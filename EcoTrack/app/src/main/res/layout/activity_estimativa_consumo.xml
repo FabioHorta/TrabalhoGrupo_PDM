@@ -116,11 +116,17 @@
                 android:layout_height="wrap_content"
                 android:hint="Insira a percentagem de redução (%)"
                 android:inputType="numberDecimal"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:clickable="true"
+                android:cursorVisible="true"
+                android:importantForAutofill="yes"
                 android:padding="12dp"
                 android:backgroundTint="@color/green"
                 android:textColor="#000000"
                 android:textSize="16sp"
                 android:layout_marginBottom="20dp" />
+
 
             <!-- Botões -->
             <Button
