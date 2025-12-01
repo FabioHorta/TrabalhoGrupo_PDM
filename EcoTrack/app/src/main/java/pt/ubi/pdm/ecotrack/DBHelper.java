@@ -27,6 +27,31 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String C_USER_NAME = "name";
     public static final String C_USER_PRECO_KWH = "preco_kwh";
 
+    public static final String T_LEITURAS = "leituras";
+    public static final String C_LEITURA_ID = "id";
+    public static final String C_LEITURA_DATA = "data";
+    public static final String C_LEITURA_VALOR = "valor_kwh";
+    public static final String C_LEITURA_IMAGEM_PATH = "imagem_path";
+    public static final String C_LEITURA_PREV_ID = "prev_leitura_id";
+    public static final String C_LEITURA_CONSUMO_PERIODO = "consumo_periodo";
+    public static final String C_LEITURA_CREATED_AT_TS = "created_at_ts";
+    public static final String T_MEDIA_CONSUMOS = "media_consumos";
+    public static final String C_MEDIA_NPERIODOS = "num_periodos";
+    public static final String C_MEDIA_VALOR = "media_valor";
+    public static final String C_MEDIA_ATUALIZADA_EM = "atualizada_em";
+
+    public static final String T_CONSUMOS_ANALISADOS = "consumos_analisados";
+    public static final String C_CONSUMO_ANALISADO_ID = "id";
+    public static final String C_CONSUMO_ANALISADO_LEITURA_ID = "leitura_id";
+    public static final String C_CONSUMO_ANALISADO_VALOR = "consumo_valor";
+    public static final String C_CONSUMO_ANALISADO_MEDIA_REF = "media_referencia";
+    public static final String C_CONSUMO_ANALISADO_NUM_PERIODOS = "num_periodos";
+    public static final String C_CONSUMO_ANALISADO_PERCENTAGEM = "percentagem_diferenca";
+    public static final String C_CONSUMO_ANALISADO_STATUS = "status";
+    public static final String C_CONSUMO_ANALISADO_LIMITE_SUP = "limite_superior";
+    public static final String C_CONSUMO_ANALISADO_LIMITE_INF = "limite_inferior";
+    public static final String C_CONSUMO_ANALISADO_CREATED_AT_TS = "created_at_ts";
+
 
     // --- TABELA CASAS (NOVA: CARACTERÍSTICAS + LOCALIZAÇÃO) ---
     public static final String T_CASAS = "casas";
@@ -51,31 +76,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String C_APP_CATEGORIA = "categoria";
     public static final String C_APP_QUANTIDADE = "qtd";
 
-    public static final String T_LEITURAS = "leituras";
-    public static final String C_LEITURA_ID = "id";
-    public static final String C_LEITURA_DATA = "data";
-    public static final String C_LEITURA_VALOR = "valor_kwh";
-    public static final String C_LEITURA_IMAGEM_PATH = "imagem_path";
-    public static final String C_LEITURA_PREV_ID = "prev_leitura_id";
-    public static final String C_LEITURA_CONSUMO_PERIODO = "consumo_periodo";
-    public static final String C_LEITURA_CREATED_AT_TS = "created_at_ts";
 
-    public static final String T_MEDIA_CONSUMOS = "media_consumos";
-    public static final String C_MEDIA_NPERIODOS = "num_periodos";
-    public static final String C_MEDIA_VALOR = "media_valor";
-    public static final String C_MEDIA_ATUALIZADA_EM = "atualizada_em";
-
-    public static final String T_CONSUMOS_ANALISADOS = "consumos_analisados";
-    public static final String C_CONSUMO_ANALISADO_ID = "id";
-    public static final String C_CONSUMO_ANALISADO_LEITURA_ID = "leitura_id";
-    public static final String C_CONSUMO_ANALISADO_VALOR = "consumo_valor";
-    public static final String C_CONSUMO_ANALISADO_MEDIA_REF = "media_referencia";
-    public static final String C_CONSUMO_ANALISADO_NUM_PERIODOS = "num_periodos";
-    public static final String C_CONSUMO_ANALISADO_PERCENTAGEM = "percentagem_diferenca";
-    public static final String C_CONSUMO_ANALISADO_STATUS = "status";
-    public static final String C_CONSUMO_ANALISADO_LIMITE_SUP = "limite_superior";
-    public static final String C_CONSUMO_ANALISADO_LIMITE_INF = "limite_inferior";
-    public static final String C_CONSUMO_ANALISADO_CREATED_AT_TS = "created_at_ts";
 
     public DBHelper(Context ctx) {
         super(ctx, DB_NAME, null, DB_VERSION);
@@ -116,8 +117,20 @@ public class DBHelper extends SQLiteOpenHelper {
                 C_CONSUMO_ANALISADO_CREATED_AT_TS + " INTEGER, " +
                 "FOREIGN KEY (" + C_CONSUMO_ANALISADO_LEITURA_ID + ") REFERENCES " + T_LEITURAS + "(" + C_LEITURA_ID + ") ON DELETE CASCADE" +
                 ")");
+        db.execSQL("CREATE TABLE " + T_CASAS + " (" +
+                C_CASA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                C_CASA_USER_EMAIL + " TEXT NOT NULL, " +
+                C_CASA_NOME + " TEXT, " +
+                C_CASA_TIPO + " TEXT, " +
+                C_CASA_USO + " TEXT, " +
+                C_CASA_PESSOAS + " INTEGER, " +
+                C_CASA_ANO + " TEXT, " +
+                C_CASA_MORADA + " TEXT, " +
+                C_CASA_DISTRITO + " TEXT, " +
+                C_CASA_CONCELHO + " TEXT, " +
+                C_CASA_FREGUESIA + " TEXT, " +
+                C_CASA_COD_POSTAL + " TEXT)");
 
-        db.execSQL("CREATE TABLE " + T_CASAS + " (" + C_CASA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " + C_CASA_USER_EMAIL + " TEXT NOT NULL, " + C_CASA_NOME + " TEXT, " + C_CASA_TIPO + " TEXT, " + C_CASA_USO + " TEXT, " + C_CASA_PESSOAS + " INTEGER, " + C_CASA_ANO + " TEXT, " + C_CASA_MORADA + " TEXT, " + C_CASA_DISTRITO + " TEXT, " + C_CASA_CONCELHO + " TEXT, " + C_CASA_FREGUESIA + " TEXT, " + C_CASA_COD_POSTAL + " TEXT)");
         db.execSQL("CREATE TABLE " + T_ELETRODOMESTICOS + " (" +
                 C_APP_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 C_APP_CASA_ID + " INTEGER NOT NULL, " +
@@ -126,6 +139,8 @@ public class DBHelper extends SQLiteOpenHelper {
                 C_APP_QUANTIDADE + " INTEGER, " +
                 "UNIQUE(" + C_APP_CASA_ID + ", " + C_APP_NOME + "), " + // Evita duplicados na mesma casa
                 "FOREIGN KEY (" + C_APP_CASA_ID + ") REFERENCES " + T_CASAS + "(" + C_CASA_ID + ") ON DELETE CASCADE)");
+
+
 
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_leituras_prev ON " + T_LEITURAS + "(" + C_LEITURA_PREV_ID + ")");
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_leituras_created_ts ON " + T_LEITURAS + "(" + C_LEITURA_CREATED_AT_TS + ")");
@@ -163,69 +178,6 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     // ---------- UTILIZADORES ----------
-
-    public void atualizarPrecoUtilizador(String email, double preco) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues cv = new ContentValues();
-        cv.put(C_USER_PRECO_KWH, preco);
-        db.update(T_USERS, cv, C_USER_EMAIL + " = ?", new String[]{email});
-    }
-
-    // Obtém todos os dados para preencher o ecrã
-    public Cursor obterDadosUtilizadorPorEmail(String email) {
-        return getReadableDatabase().rawQuery("SELECT * FROM " + T_USERS + " WHERE " + C_USER_EMAIL + " = ?", new String[]{email});
-    }
-
-    // --- MÉTODOS CASAS ---
-    public int guardarCasaCompleta(int id, String email, String nome, String tipo, String uso, int pessoas, String ano,
-                                   String morada, String distrito, String concelho, String freguesia, String codPostal) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues cv = new ContentValues();
-        cv.put(C_CASA_USER_EMAIL, email);
-        cv.put(C_CASA_NOME, nome);
-        cv.put(C_CASA_TIPO, tipo);
-        cv.put(C_CASA_USO, uso);
-        cv.put(C_CASA_PESSOAS, pessoas);
-        cv.put(C_CASA_ANO, ano);
-        cv.put(C_CASA_MORADA, morada);
-        cv.put(C_CASA_DISTRITO, distrito);
-        cv.put(C_CASA_CONCELHO, concelho);
-        cv.put(C_CASA_FREGUESIA, freguesia);
-        cv.put(C_CASA_COD_POSTAL, codPostal);
-
-        if (id == -1) {
-            // Inserir nova casa: db.insert devolve o ID da linha criada (long)
-            return (int) db.insert(T_CASAS, null, cv);
-        } else {
-            // Atualizar casa existente: devolvemos o ID que já tínhamos
-            db.update(T_CASAS, cv, C_CASA_ID + "=?", new String[]{String.valueOf(id)});
-            return id;
-        }
-    }
-
-    public Cursor listarCasasDoUtilizador(String email) {
-        return getReadableDatabase().rawQuery("SELECT * FROM " + T_CASAS + " WHERE " + C_CASA_USER_EMAIL + " = ?", new String[]{email});
-    }
-
-    public Cursor obterCasaPorId(int id) {
-        return getReadableDatabase().rawQuery("SELECT * FROM " + T_CASAS + " WHERE " + C_CASA_ID + " = ?", new String[]{String.valueOf(id)});
-    }
-
-    // --- MÉTODOS ELETRODOMÉSTICOS ---
-    public void atualizarEletrodomestico(int casaId, String nome, String categoria, int qtd) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues cv = new ContentValues();
-        cv.put(C_APP_CASA_ID, casaId);
-        cv.put(C_APP_NOME, nome);
-        cv.put(C_APP_CATEGORIA, categoria);
-        cv.put(C_APP_QUANTIDADE, qtd);
-        db.insertWithOnConflict(T_ELETRODOMESTICOS, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
-    }
-
-    public Cursor obterEletrodomesticosDaCasa(int casaId) {
-        return getReadableDatabase().rawQuery("SELECT * FROM " + T_ELETRODOMESTICOS + " WHERE " + C_APP_CASA_ID + " = ?", new String[]{String.valueOf(casaId)});
-    }
-
     public long saveOrUpdateUser(String firebaseUid, String email, String name) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
@@ -250,6 +202,18 @@ public class DBHelper extends SQLiteOpenHelper {
         } finally {
             c.close();
         }
+    }
+
+    public void atualizarPrecoUtilizador(String email, double preco) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(C_USER_PRECO_KWH, preco);
+        db.update(T_USERS, cv, C_USER_EMAIL + " = ?", new String[]{email});
+    }
+
+    // Obtém todos os dados para preencher o ecrã
+    public Cursor obterDadosUtilizadorPorEmail(String email) {
+        return getReadableDatabase().rawQuery("SELECT * FROM " + T_USERS + " WHERE " + C_USER_EMAIL + " = ?", new String[]{email});
     }
 
     // ---------- LEITURAS ----------
@@ -519,5 +483,56 @@ public class DBHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM assistencias ORDER BY id DESC", null);
     }
+
+    // --- MÉTODOS CASAS ---
+    public int guardarCasaCompleta(int id, String email, String nome, String tipo, String uso, int pessoas, String ano,
+                                   String morada, String distrito, String concelho, String freguesia, String codPostal) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(C_CASA_USER_EMAIL, email);
+        cv.put(C_CASA_NOME, nome);
+        cv.put(C_CASA_TIPO, tipo);
+        cv.put(C_CASA_USO, uso);
+        cv.put(C_CASA_PESSOAS, pessoas);
+        cv.put(C_CASA_ANO, ano);
+        cv.put(C_CASA_MORADA, morada);
+        cv.put(C_CASA_DISTRITO, distrito);
+        cv.put(C_CASA_CONCELHO, concelho);
+        cv.put(C_CASA_FREGUESIA, freguesia);
+        cv.put(C_CASA_COD_POSTAL, codPostal);
+
+        if (id == -1) {
+            // Inserir nova casa: db.insert devolve o ID da linha criada (long)
+            return (int) db.insert(T_CASAS, null, cv);
+        } else {
+            // Atualizar casa existente: devolvemos o ID que já tínhamos
+            db.update(T_CASAS, cv, C_CASA_ID + "=?", new String[]{String.valueOf(id)});
+            return id;
+        }
+    }
+
+    public Cursor listarCasasDoUtilizador(String email) {
+        return getReadableDatabase().rawQuery("SELECT * FROM " + T_CASAS + " WHERE " + C_CASA_USER_EMAIL + " = ?", new String[]{email});
+    }
+
+    public Cursor obterCasaPorId(int id) {
+        return getReadableDatabase().rawQuery("SELECT * FROM " + T_CASAS + " WHERE " + C_CASA_ID + " = ?", new String[]{String.valueOf(id)});
+    }
+
+    // --- MÉTODOS ELETRODOMÉSTICOS ---
+    public void atualizarEletrodomestico(int casaId, String nome, String categoria, int qtd) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(C_APP_CASA_ID, casaId);
+        cv.put(C_APP_NOME, nome);
+        cv.put(C_APP_CATEGORIA, categoria);
+        cv.put(C_APP_QUANTIDADE, qtd);
+        db.insertWithOnConflict(T_ELETRODOMESTICOS, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+    }
+
+    public Cursor obterEletrodomesticosDaCasa(int casaId) {
+        return getReadableDatabase().rawQuery("SELECT * FROM " + T_ELETRODOMESTICOS + " WHERE " + C_APP_CASA_ID + " = ?", new String[]{String.valueOf(casaId)});
+    }
+
 
 }
