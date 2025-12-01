@@ -126,7 +126,7 @@
             android:id="@+id/btnVerHistorico"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Ver Histórico e Gráficos"
+            android:text="Ver Histórico"
             android:backgroundTint="@color/onMint"
             android:textColor="#FFFFFF"
             android:textStyle="bold"
