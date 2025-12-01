@@ -233,34 +233,10 @@ public class DBHelper extends SQLiteOpenHelper {
 
         Cursor c = null;
         try {
-            // 1) Tentar usar consumos já calculados (consumo_periodo)
-            String sqlConsumidos = "SELECT " + C_LEITURA_CONSUMO_PERIODO +
-                    " FROM " + T_LEITURAS +
-                    " WHERE " + C_LEITURA_CONSUMO_PERIODO + " IS NOT NULL AND " + C_LEITURA_CONSUMO_PERIODO + " > 0" +
-                    " ORDER BY " + C_LEITURA_CREATED_AT_TS + " DESC, " + C_LEITURA_ID + " DESC" +
-                    " LIMIT " + numPeriodos;
-            c = db.rawQuery(sqlConsumidos, null);
-
-            double soma = 0.0;
-            int contador = 0;
-            if (c != null && c.moveToFirst()) {
-                do {
-                    soma += c.getDouble(0);
-                    contador++;
-                } while (c.moveToNext());
-            }
-            if (c != null) {
-                c.close();
-                c = null;
-            }
-            if (contador > 0) {
-                return soma / contador;
-            }
-
-            // 2) Fallback: calcular a partir das últimas leituras (precisamos de numPeriodos + 1 leituras)
+            // Pegar as últimas (numPeriodos + 1) leituras cumulativas (id DESC para consistência com UI)
             String sqlLeituras = "SELECT " + C_LEITURA_VALOR +
                     " FROM " + T_LEITURAS +
-                    " ORDER BY " + C_LEITURA_CREATED_AT_TS + " DESC, " + C_LEITURA_ID + " DESC" +
+                    " ORDER BY " + C_LEITURA_ID + " DESC" +
                     " LIMIT " + (numPeriodos + 1);
             c = db.rawQuery(sqlLeituras, null);
             if (c == null || !c.moveToFirst()) {
@@ -274,6 +250,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 return 0.0;
             }
 
+            // Ler valores das leituras (mais recente primeiro)
             double[] leituras = new double[n];
             int idx = 0;
             do {
@@ -282,9 +259,9 @@ public class DBHelper extends SQLiteOpenHelper {
             c.close();
             c = null;
 
+            // Calcular consumos (diferenças) até numPeriodos
             double somaConsumos = 0.0;
             int contPeriodos = 0;
-            // leituras[0] = mais recente, leituras[1] = anterior, etc.
             for (int i = 0; i < leituras.length - 1 && contPeriodos < numPeriodos; i++) {
                 double atual = leituras[i];
                 double anterior = leituras[i + 1];
@@ -301,7 +278,8 @@ public class DBHelper extends SQLiteOpenHelper {
         } finally {
             if (c != null && !c.isClosed()) c.close();
         }
-    }    private void recalcularEMedia(SQLiteDatabase db, int[] periodos) {
+    }
+    private void recalcularEMedia(SQLiteDatabase db, int[] periodos) {
         for (int n : periodos) {
             double media = calcularMediaConsumosInterno(db, n);
             ContentValues cv = new ContentValues();
@@ -341,10 +319,6 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     // ---------- ANÁLISE DE CONSUMO ----------
-    private void criarRegistroConsumoAnalisado(SQLiteDatabase db, long leituraId,
-                                               double consumoValor, int numPeriodos) {
-        criarRegistroConsumoAnalisado(db, leituraId, consumoValor, numPeriodos, null);
-    }
 
     private void criarRegistroConsumoAnalisado(SQLiteDatabase db, long leituraId,
                                                double consumoValor, int numPeriodos, Double mediaRefParam) {
