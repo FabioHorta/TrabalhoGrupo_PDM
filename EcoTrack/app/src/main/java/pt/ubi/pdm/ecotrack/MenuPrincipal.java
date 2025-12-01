@@ -2,7 +2,6 @@ package pt.ubi.pdm.ecotrack;
 
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -21,12 +20,14 @@ import java.io.File;
 public class MenuPrincipal extends AppCompatActivity {
 
     private MaterialCardView btnMelhorTipo, btnAlertas, btnCalculadoraCusto, btnEstimativa, btnLeituras, btnApoioaoCliente;
+
+    // Cabeçalho
     private MaterialCardView cardPerfilTopo;
     private ImageView imgPerfilTopo;
     private TextView tvNomeUtilizador;
 
     private FirebaseAuth mAuth;
-    private DBHelper dbHelper; // Precisamos disto para aceder à BD
+    private DBHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,14 +35,14 @@ public class MenuPrincipal extends AppCompatActivity {
         setContentView(R.layout.activity_principal_menu);
 
         mAuth = FirebaseAuth.getInstance();
-        dbHelper = new DBHelper(this); // Inicializar
+        dbHelper = new DBHelper(this);
 
         initViews();
-        verificarAutenticacaoEAtualizar();
+        atualizarCabecalho(); // Carrega os dados mal abre
     }
 
     private void initViews(){
-        // Botões do Grid
+        // Botões
         btnMelhorTipo = findViewById(R.id.btnMelhorTipo);
         btnAlertas = findViewById(R.id.btnAlertas);
         btnCalculadoraCusto = findViewById(R.id.btnCalculadora);
@@ -68,83 +69,53 @@ public class MenuPrincipal extends AppCompatActivity {
         btnCalculadoraCusto.setOnClickListener(v -> startActivity(new Intent(this, CalculadoraCustos.class)));
     }
 
-    private void verificarAutenticacaoEAtualizar() {
+    private void atualizarCabecalho() {
         FirebaseUser user = mAuth.getCurrentUser();
 
         if (user != null) {
-            // 1. Tentar obter nome do Firebase
-            String nomeExibicao = user.getDisplayName();
+            String email = user.getEmail();
 
-            // 2. Se o Firebase não tiver nome, VAMOS BUSCAR À BD LOCAL (SQLite)
-            if (nomeExibicao == null || nomeExibicao.isEmpty()) {
-                nomeExibicao = buscarNomeLocalmente(user.getEmail());
-            }
+            // 1. BUSCAR NOME À BASE DE DADOS LOCAL
+            // Usamos o método que criámos no DBHelper para o perfil
+            Cursor c = dbHelper.obterDadosUtilizadorPorEmail(email);
+            String nomeExibicao = "Utilizador";
 
-            // 3. Se mesmo assim for nulo, usa o email
-            if (nomeExibicao == null || nomeExibicao.isEmpty()) {
-                nomeExibicao = user.getEmail();
-            }
-
-            // 4. Define o texto (Limita o tamanho para não estragar o layout)
-            if (nomeExibicao != null && nomeExibicao.length() > 15) {
-                // Pega só o primeiro nome se for muito grande
-                nomeExibicao = nomeExibicao.split(" ")[0];
+            if (c != null && c.moveToFirst()) {
+                // Tenta pegar o nome guardado na coluna 'name'
+                String nomeBd = c.getString(c.getColumnIndexOrThrow(DBHelper.C_USER_NAME));
+                if (nomeBd != null && !nomeBd.isEmpty()) {
+                    nomeExibicao = nomeBd;
+                }
+                c.close();
             }
 
             tvNomeUtilizador.setText(nomeExibicao);
 
-            // Carregar Foto
-            carregarFotoPerfil();
+            // 2. BUSCAR FOTO ESPECÍFICA DESTE USER
+            // O nome do ficheiro tem de ser IGUAL ao que guardámos no PerfilUtilizadorActivity
+            String nomeFicheiro = "profile_" + email + ".png";
+
+            File imgFile = new File(getFilesDir(), nomeFicheiro);
+            if (imgFile.exists()) {
+                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                imgPerfilTopo.setImageBitmap(myBitmap);
+            } else {
+                // Se não existir foto para este email, mete o logótipo
+                imgPerfilTopo.setImageResource(R.drawable.ecotrack_logo);
+            }
 
         } else {
-            Toast.makeText(this, "Sessão inválida.", Toast.LENGTH_SHORT).show();
+            // Se não houver login, manda para o início
             startActivity(new Intent(this, MainActivity.class));
             finish();
-        }
-    }
-
-    // --- TRUQUE: Ler a BD diretamente aqui sem alterar o DBHelper ---
-    private String buscarNomeLocalmente(String email) {
-        String nomeEncontrado = "";
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = null;
-        try {
-            // Tenta encontrar pelo email do Firebase
-            String query = "SELECT " + DBHelper.C_USER_NAME + " FROM " + DBHelper.T_USERS +
-                    " WHERE " + DBHelper.C_USER_EMAIL + " = ?";
-
-            cursor = db.rawQuery(query, new String[]{email});
-
-            if (cursor != null && cursor.moveToFirst()) {
-                nomeEncontrado = cursor.getString(0);
-            } else {
-                // Se falhar pelo email, tenta pegar o último utilizador registado (fallback)
-                cursor = db.rawQuery("SELECT " + DBHelper.C_USER_NAME + " FROM " + DBHelper.T_USERS + " ORDER BY " + DBHelper.C_USER_ID + " DESC LIMIT 1", null);
-                if (cursor != null && cursor.moveToFirst()) {
-                    nomeEncontrado = cursor.getString(0);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (cursor != null) cursor.close();
-        }
-        return nomeEncontrado;
-    }
-
-    private void carregarFotoPerfil() {
-        File imgFile = new File(getFilesDir(), "profile_pic.png");
-        if (imgFile.exists()) {
-            Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-            imgPerfilTopo.setImageBitmap(myBitmap);
-        } else {
-            imgPerfilTopo.setImageResource(R.drawable.ecotrack_logo);
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        verificarAutenticacaoEAtualizar();
+        // Isto é fundamental!
+        // Quando voltas do Perfil para o Menu, este código corre e atualiza a foto/nome
+        atualizarCabecalho();
     }
 }

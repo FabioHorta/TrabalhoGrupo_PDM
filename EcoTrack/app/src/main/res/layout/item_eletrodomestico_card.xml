@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardContainer"
+    android:layout_width="0dp"
+    android:layout_height="175dp"
+    android:layout_columnWeight="1"
+    android:layout_margin="6dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="3dp"
+    app:cardBackgroundColor="#FFFFFF"
+    app:strokeColor="#E0E0E0"
+    app:strokeWidth="2dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/tvEmoji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚡"
+                android:textSize="38sp"
+                android:includeFontPadding="false"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/tvNome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Nome"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#1E4D42"
+                android:textAlignment="center"
+                android:gravity="center"
+                android:lines="2"
+                android:ellipsize="end"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:paddingTop="4dp">
+
+            <ImageButton
+                android:id="@+id/btnMinus"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/btn_round_minus"
+                android:src="@android:drawable/ic_input_delete"
+                android:padding="8dp"
+                app:tint="#D32F2F"
+                android:scaleType="fitCenter"
+                android:contentDescription="Diminuir"/>
+
+            <TextView
+                android:id="@+id/tvQtd"
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#1E4D42"
+                android:includeFontPadding="false"/>
+
+            <ImageButton
+                android:id="@+id/btnPlus"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/btn_round_plus"
+                android:src="@android:drawable/ic_input_add"
+                android:padding="8dp"
+                app:tint="#2E7D32"
+                android:scaleType="fitCenter"
+                android:contentDescription="Aumentar"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

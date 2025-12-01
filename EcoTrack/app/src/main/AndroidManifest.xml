@@ -15,65 +15,66 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.EcoTrack">
-
+        <activity
+            android:name=".Eletrodomesticos"
+            android:exported="false" />
+        <activity
+            android:name=".EletrodomesticosActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ListarCasas"
+            android:exported="false" />
+        <activity
+            android:name=".CaracterizacaoCasa"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".RegisterActivity"
             android:exported="false" />
-
         <activity
             android:name=".MenuPrincipal"
             android:exported="true" />
-
         <activity
             android:name=".PerfilUtilizador"
             android:exported="false" />
-
         <activity
             android:name=".CalculadoraCustos"
             android:exported="false" />
-
         <activity
             android:name=".ResumoLeituras"
             android:exported="false" />
-
         <activity
             android:name=".ApoioCliente"
             android:exported="false" />
-
         <activity
             android:name=".AlertasConsumo"
             android:exported="false" />
-
         <activity
             android:name=".LeiturasMensais"
             android:exported="false" />
-
         <activity
             android:name=".EstimativaConsumo"
             android:exported="false" />
-
         <activity
             android:name=".TipoEnergia"
             android:exported="false" />
-
-        <activity android:name=".AgendarAssistencia"
+        <activity
+            android:name=".AgendarAssistencia"
             android:exported="false" />
-
-        <activity android:name=".EnviarMensagem"
+        <activity
+            android:name=".EnviarMensagem"
             android:exported="false" />
-
-        <activity android:name=".Relatorios"
+        <activity
+            android:name=".Relatorios"
             android:exported="false" />
-
     </application>
 
 </manifest>

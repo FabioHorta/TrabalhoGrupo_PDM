@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/gradient_verde"
-    android:fillViewport="true"
-    tools:context=".PerfilUtilizador">
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -16,7 +14,6 @@
         android:padding="24dp">
 
         <TextView
-            android:id="@+id/tvTitulo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="O Meu Perfil"
@@ -44,15 +41,12 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground">
-
                 <ImageView
                     android:id="@+id/imgPerfil"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
-                    android:padding="0dp"
-                    android:src="@drawable/ecotrack_logo"
-                    android:contentDescription="Foto de perfil"/>
+                    android:src="@drawable/ecotrack_logo"/>
             </com.google.android.material.card.MaterialCardView>
 
             <TextView
@@ -68,7 +62,7 @@
                 android:id="@+id/tvEmail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="--"
+                android:text="email@exemplo.com"
                 android:textSize="14sp"
                 android:textColor="#E0F2F1"
                 android:layout_marginTop="4dp"/>
@@ -79,37 +73,30 @@
             android:layout_height="wrap_content"
             app:cardCornerRadius="20dp"
             app:cardElevation="2dp"
-            app:cardBackgroundColor="#FFFFFF"
             android:layout_marginBottom="20dp">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="20dp">
-
                 <TextView
-                    android:text="O meu tarifário"
-                    android:textColor="#1E4D42"
+                    android:text="Contrato de Energia"
                     android:textStyle="bold"
-                    android:textSize="16sp"
-                    android:layout_marginBottom="12dp"
+                    android:textColor="#1E4D42"
+                    android:layout_marginBottom="8dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical">
-
                     <com.google.android.material.textfield.TextInputLayout
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_weight="1"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
                         android:hint="Preço kWh (€)">
-
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etPrecoKwhPerfil"
                             android:layout_width="match_parent"
@@ -117,147 +104,86 @@
                             android:inputType="numberDecimal"
                             android:text="0.20"/>
                     </com.google.android.material.textfield.TextInputLayout>
-
                     <Button
                         android:id="@+id/btnGuardarPreco"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
                         android:text="Atualizar"
                         android:backgroundTint="@color/green"
                         android:textColor="#FFFFFF"
-                        android:layout_marginStart="12dp"
-                        app:cornerRadius="8dp"/>
+                        android:layout_marginStart="10dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <Button
+            android:id="@+id/btnGerirCasas"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:text="Gerir as Minhas Casas 🏠"
+            android:backgroundTint="#FF9800"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            app:cornerRadius="15dp"
+            app:icon="@android:drawable/ic_dialog_map"
+            app:iconGravity="textStart"
+            android:layout_marginBottom="24dp"/>
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="20dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="#FFFFFF"
             android:layout_marginBottom="24dp">
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:orientation="horizontal"
                 android:padding="20dp">
-
-                <TextView
-                    android:text="Último Período Registado"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/green"
-                    android:layout_marginBottom="16dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:baselineAligned="false">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
-
-                        <TextView
-                            android:text="⚡ Consumo"
-                            android:textSize="12sp"
-                            android:textColor="#757575"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
-
-                        <TextView
-                            android:id="@+id/tvConsumoStat"
-                            android:text="-- kWh"
-                            android:textSize="22sp"
-                            android:textStyle="bold"
-                            android:textColor="#1E4D42"
-                            android:layout_marginTop="4dp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="match_parent"
-                        android:background="#EEEEEE"
-                        android:layout_marginHorizontal="8dp"/>
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center">
-
-                        <TextView
-                            android:text="💶 Estimado"
-                            android:textSize="12sp"
-                            android:textColor="#757575"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
-
-                        <TextView
-                            android:id="@+id/tvPoupancaStat"
-                            android:text="€ --"
-                            android:textSize="22sp"
-                            android:textStyle="bold"
-                            android:textColor="#1E4D42"
-                            android:layout_marginTop="4dp"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
-                    </LinearLayout>
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView android:text="⚡ Consumo Global" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <TextView android:id="@+id/tvConsumoStat" android:text="-- kWh" android:textSize="20sp" android:textStyle="bold" android:textColor="#1E4D42" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                </LinearLayout>
+                <View android:layout_width="1dp" android:layout_height="match_parent" android:background="#EEEEEE" android:layout_marginHorizontal="8dp"/>
+                <LinearLayout
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView android:text="💶 Custo Estimado" android:textSize="12sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <TextView android:id="@+id/tvPoupancaStat" android:text="€ --" android:textSize="20sp" android:textStyle="bold" android:textColor="#1E4D42" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <LinearLayout
+        <Button
+            android:id="@+id/btnLogout"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Sair da Conta"
+            android:backgroundTint="@color/onMint"
+            android:layout_marginBottom="12dp"/>
+        <Button
+            android:id="@+id/btnEliminarConta"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Eliminar Conta"
+            android:backgroundTint="#FFEBEE"
+            android:textColor="#D32F2F"
+            android:layout_marginBottom="24dp"/>
+        <Button
+            android:id="@+id/btnVoltar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="10dp">
+            android:text="Voltar ao Menu"
+            android:backgroundTint="#FFFFFF"
+            android:textColor="@color/green"/>
 
-            <Button
-                android:id="@+id/btnLogout"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:text="Sair da Conta"
-                android:backgroundTint="@color/onMint"
-                android:textColor="@color/pastel_whitewarm"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                app:cornerRadius="12dp"
-                android:layout_marginBottom="12dp"/>
-
-            <Button
-                android:id="@+id/btnEliminarConta"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:text="Eliminar Conta"
-                android:backgroundTint="#FFEBEE"
-                android:textColor="#D32F2F"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                app:cornerRadius="12dp"
-                android:layout_marginBottom="24dp"/>
-
-            <Button
-                android:id="@+id/btnVoltar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Voltar ao Menu"
-                android:backgroundTint="#FFFFFF"
-                android:textColor="@color/green"
-                android:textStyle="bold"
-                app:cornerRadius="12dp"/>
-        </LinearLayout>
     </LinearLayout>
 </ScrollView>
