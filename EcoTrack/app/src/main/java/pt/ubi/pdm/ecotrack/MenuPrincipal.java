@@ -156,7 +156,7 @@ public class MenuPrincipal extends BaseActivity {
         // Último período (diferença entre últimas 2 leituras)
         double consumoUltimoPeriodo = dbHelper.calcularMediaConsumos(1);
         // Média de 6 períodos para comparação
-        double media6 = dbHelper.calcularMediaConsumos(6);
+        double media6 = (dbHelper.calcularMediaConsumos(7)) * ((double) 7 /6) - (consumoUltimoPeriodo/6);
 
         if (consumoUltimoPeriodo > 0) {
             tvConsumoResumo.setText(String.format(Locale.getDefault(),
@@ -172,10 +172,10 @@ public class MenuPrincipal extends BaseActivity {
         if (consumoUltimoPeriodo > 0 && media6 > 0) {
             double diffPercent = ((consumoUltimoPeriodo - media6) / media6) * 100.0;
             String texto;
-            if (diffPercent > 5) {
+            if (diffPercent > 0) {
                 texto = String.format(Locale.getDefault(),
                         "↑ %.1f%% acima da média dos últimos 6 períodos", diffPercent);
-            } else if (diffPercent < -5) {
+            } else if (diffPercent < 0) {
                 texto = String.format(Locale.getDefault(),
                         "↓ %.1f%% abaixo da média dos últimos 6 períodos", Math.abs(diffPercent));
             } else {
