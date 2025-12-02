@@ -123,7 +123,6 @@ public class PerfilUtilizador extends AppCompatActivity {
             startActivity(new Intent(this, MainActivity.class)); finish();
         });
 
-        // ... (Eliminar igual) ...
     }
 
     // --- IMAGENS ---

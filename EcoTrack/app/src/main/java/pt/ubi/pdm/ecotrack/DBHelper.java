@@ -13,7 +13,7 @@ import java.util.Map;
 public class DBHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "ecotrack.db";
-    private static final int DB_VERSION = 5;
+    private static final int DB_VERSION = 6;
 
     // Thresholds percentuais
     public static final double LIMITE_PERCENTUAL_SUP = 40.0;
@@ -27,6 +27,8 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String C_USER_NAME = "name";
     public static final String C_USER_PRECO_KWH = "preco_kwh";
     public static final String C_USER_TIPO = "tipo";
+    public static final String C_USER_PASSWORD_HASH = "password_hash";
+
     public static final String T_LEITURAS = "leituras";
     public static final String C_LEITURA_ID = "id";
     public static final String C_LEITURA_DATA = "data";
@@ -35,6 +37,9 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String C_LEITURA_PREV_ID = "prev_leitura_id";
     public static final String C_LEITURA_CONSUMO_PERIODO = "consumo_periodo";
     public static final String C_LEITURA_CREATED_AT_TS = "created_at_ts";
+    public static final String C_LEITURA_SYNC_STATUS = "sync_status";
+    // casa_id será uma coluna extra em T_LEITURAS (para leituras por casa)
+
     public static final String T_MEDIA_CONSUMOS = "media_consumos";
     public static final String C_MEDIA_NPERIODOS = "num_periodos";
     public static final String C_MEDIA_VALOR = "media_valor";
@@ -52,8 +57,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String C_CONSUMO_ANALISADO_LIMITE_INF = "limite_inferior";
     public static final String C_CONSUMO_ANALISADO_CREATED_AT_TS = "created_at_ts";
 
-
-    // --- TABELA CASAS (NOVA: CARACTERÍSTICAS + LOCALIZAÇÃO) ---
+    // --- TABELA CASAS ---
     public static final String T_CASAS = "casas";
     public static final String C_CASA_ID = "id";
     public static final String C_CASA_USER_EMAIL = "user_email";
@@ -68,15 +72,15 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String C_CASA_FREGUESIA = "freguesia";
     public static final String C_CASA_COD_POSTAL = "cod_postal";
 
-    // --- TABELA ELETRODOMÉSTICOS (Ligada à Casa) ---
+    // --- TABELA ELETRODOMÉSTICOS ---
     public static final String T_ELETRODOMESTICOS = "appliances";
     public static final String C_APP_ID = "id";
-    public static final String C_APP_CASA_ID = "casa_id"; // FK para a Casa
+    public static final String C_APP_CASA_ID = "casa_id";
     public static final String C_APP_NOME = "nome";
     public static final String C_APP_CATEGORIA = "categoria";
     public static final String C_APP_QUANTIDADE = "qtd";
 
-    // --- TABELA MENSAGENS CHAT (tipo WhatsApp) ---
+    // --- TABELA MENSAGENS CHAT ---
     public static final String T_MENSAGENS_CHAT = "mensagens_chat";
     public static final String C_MSG_ID = "id";
     public static final String C_MSG_REMETENTE = "remetente_email";
@@ -84,50 +88,25 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String C_MSG_TEXTO = "texto";
     public static final String C_MSG_TS = "timestamp";
 
-
-
-
     public DBHelper(Context ctx) {
         super(ctx, DB_NAME, null, DB_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        // USERS com password_hash e tipo
         db.execSQL("CREATE TABLE " + T_USERS + " (" +
                 C_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 C_USER_UID + " TEXT UNIQUE, " +
                 C_USER_EMAIL + " TEXT UNIQUE NOT NULL, " +
                 C_USER_NAME + " TEXT, " +
                 C_USER_PRECO_KWH + " REAL DEFAULT 0.20, " +
-                C_USER_TIPO + " TEXT DEFAULT 'cliente')"
+                C_USER_PASSWORD_HASH + " TEXT, " +
+                C_USER_TIPO + " TEXT DEFAULT 'cliente'" +
+                ")"
         );
-        db.execSQL("CREATE TABLE " + T_LEITURAS + " (" +
-                C_LEITURA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                C_LEITURA_DATA + " TEXT NOT NULL, " +
-                C_LEITURA_VALOR + " REAL NOT NULL, " +
-                C_LEITURA_IMAGEM_PATH + " TEXT, " +
-                C_LEITURA_PREV_ID + " INTEGER, " +
-                C_LEITURA_CONSUMO_PERIODO + " REAL, " +
-                C_LEITURA_CREATED_AT_TS + " INTEGER, " +
-                "FOREIGN KEY (" + C_LEITURA_PREV_ID + ") REFERENCES " + T_LEITURAS + "(" + C_LEITURA_ID + ") ON DELETE SET NULL" +
-                ")");
-        db.execSQL("CREATE TABLE " + T_MEDIA_CONSUMOS + " (" +
-                C_MEDIA_NPERIODOS + " INTEGER PRIMARY KEY, " +
-                C_MEDIA_VALOR + " REAL NOT NULL, " +
-                C_MEDIA_ATUALIZADA_EM + " TEXT)");
-        db.execSQL("CREATE TABLE " + T_CONSUMOS_ANALISADOS + " (" +
-                C_CONSUMO_ANALISADO_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                C_CONSUMO_ANALISADO_LEITURA_ID + " INTEGER NOT NULL, " +
-                C_CONSUMO_ANALISADO_VALOR + " REAL NOT NULL, " +
-                C_CONSUMO_ANALISADO_MEDIA_REF + " REAL NOT NULL, " +
-                C_CONSUMO_ANALISADO_NUM_PERIODOS + " INTEGER NOT NULL, " +
-                C_CONSUMO_ANALISADO_PERCENTAGEM + " REAL, " +
-                C_CONSUMO_ANALISADO_STATUS + " TEXT, " +
-                C_CONSUMO_ANALISADO_LIMITE_SUP + " REAL, " +
-                C_CONSUMO_ANALISADO_LIMITE_INF + " REAL, " +
-                C_CONSUMO_ANALISADO_CREATED_AT_TS + " INTEGER, " +
-                "FOREIGN KEY (" + C_CONSUMO_ANALISADO_LEITURA_ID + ") REFERENCES " + T_LEITURAS + "(" + C_LEITURA_ID + ") ON DELETE CASCADE" +
-                ")");
+
+        // CASAS
         db.execSQL("CREATE TABLE " + T_CASAS + " (" +
                 C_CASA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 C_CASA_USER_EMAIL + " TEXT NOT NULL, " +
@@ -140,37 +119,77 @@ public class DBHelper extends SQLiteOpenHelper {
                 C_CASA_DISTRITO + " TEXT, " +
                 C_CASA_CONCELHO + " TEXT, " +
                 C_CASA_FREGUESIA + " TEXT, " +
-                C_CASA_COD_POSTAL + " TEXT)");
+                C_CASA_COD_POSTAL + " TEXT" +
+                ")");
 
+        // LEITURAS (com casa_id e sync_status)
+        db.execSQL("CREATE TABLE " + T_LEITURAS + " (" +
+                C_LEITURA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                C_LEITURA_DATA + " TEXT NOT NULL, " +
+                C_LEITURA_VALOR + " REAL NOT NULL, " +
+                C_LEITURA_IMAGEM_PATH + " TEXT, " +
+                "casa_id INTEGER, " +
+                C_LEITURA_PREV_ID + " INTEGER, " +
+                C_LEITURA_CONSUMO_PERIODO + " REAL, " +
+                C_LEITURA_CREATED_AT_TS + " INTEGER, " +
+                C_LEITURA_SYNC_STATUS + " INTEGER DEFAULT 0, " +
+                "FOREIGN KEY (" + C_LEITURA_PREV_ID + ") REFERENCES " + T_LEITURAS + "(" + C_LEITURA_ID + ") ON DELETE SET NULL" +
+                ")");
+
+        // MEDIA_CONSUMOS
+        db.execSQL("CREATE TABLE " + T_MEDIA_CONSUMOS + " (" +
+                C_MEDIA_NPERIODOS + " INTEGER PRIMARY KEY, " +
+                C_MEDIA_VALOR + " REAL NOT NULL, " +
+                C_MEDIA_ATUALIZADA_EM + " TEXT" +
+                ")");
+
+        // CONSUMOS_ANALISADOS
+        db.execSQL("CREATE TABLE " + T_CONSUMOS_ANALISADOS + " (" +
+                C_CONSUMO_ANALISADO_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                C_CONSUMO_ANALISADO_LEITURA_ID + " INTEGER NOT NULL, " +
+                C_CONSUMO_ANALISADO_VALOR + " REAL NOT NULL, " +
+                C_CONSUMO_ANALISADO_MEDIA_REF + " REAL NOT NULL, " +
+                C_CONSUMO_ANALISADO_NUM_PERIODOS + " INTEGER NOT NULL, " +
+                C_CONSUMO_ANALISADO_PERCENTAGEM + " REAL, " +
+                C_CONSUMO_ANALISADO_STATUS + " TEXT, " +
+                C_CONSUMO_ANALISADO_LIMITE_SUP + " REAL, " +
+                C_CONSUMO_ANALISADO_LIMITE_INF + " REAL, " +
+                C_CONSUMO_ANALISADO_CREATED_AT_TS + " INTEGER, " +
+                "FOREIGN KEY (" + C_CONSUMO_ANALISADO_LEITURA_ID + ") REFERENCES " +
+                T_LEITURAS + "(" + C_LEITURA_ID + ") ON DELETE CASCADE" +
+                ")");
+
+        // ELETRODOMESTICOS
         db.execSQL("CREATE TABLE " + T_ELETRODOMESTICOS + " (" +
                 C_APP_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 C_APP_CASA_ID + " INTEGER NOT NULL, " +
                 C_APP_NOME + " TEXT, " +
                 C_APP_CATEGORIA + " TEXT, " +
                 C_APP_QUANTIDADE + " INTEGER, " +
-                "UNIQUE(" + C_APP_CASA_ID + ", " + C_APP_NOME + "), " + // Evita duplicados na mesma casa
-                "FOREIGN KEY (" + C_APP_CASA_ID + ") REFERENCES " + T_CASAS + "(" + C_CASA_ID + ") ON DELETE CASCADE)");
+                "UNIQUE(" + C_APP_CASA_ID + ", " + C_APP_NOME + "), " +
+                "FOREIGN KEY (" + C_APP_CASA_ID + ") REFERENCES " +
+                T_CASAS + "(" + C_CASA_ID + ") ON DELETE CASCADE" +
+                ")");
 
-
-
-        db.execSQL("CREATE INDEX IF NOT EXISTS idx_leituras_prev ON " + T_LEITURAS + "(" + C_LEITURA_PREV_ID + ")");
-        db.execSQL("CREATE INDEX IF NOT EXISTS idx_leituras_created_ts ON " + T_LEITURAS + "(" + C_LEITURA_CREATED_AT_TS + ")");
-        db.execSQL("CREATE INDEX IF NOT EXISTS idx_consumos_analisados_leitura ON " + T_CONSUMOS_ANALISADOS + "(" + C_CONSUMO_ANALISADO_LEITURA_ID + ")");
-        db.execSQL("CREATE INDEX IF NOT EXISTS idx_consumos_analisados_created ON " + T_CONSUMOS_ANALISADOS + "(" + C_CONSUMO_ANALISADO_CREATED_AT_TS + ")");
-        db.execSQL("CREATE INDEX IF NOT EXISTS idx_consumos_analisados_status ON " + T_CONSUMOS_ANALISADOS + "(" + C_CONSUMO_ANALISADO_STATUS + ")");
+        // MENSAGENS SUPORTE
         db.execSQL("CREATE TABLE IF NOT EXISTS mensagens_suporte (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "assunto TEXT," +
                 "mensagem TEXT," +
-                "data TEXT)");
+                "data TEXT" +
+                ")");
+
+        // ASSISTENCIAS
         db.execSQL("CREATE TABLE assistencias (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "data TEXT, " +
                 "hora TEXT, " +
                 "descricao TEXT, " +
                 "feedback TEXT, " +
-                "tecnico_email TEXT)");
+                "tecnico_email TEXT" +
+                ")");
 
+        // CHAT
         db.execSQL("CREATE TABLE " + T_MENSAGENS_CHAT + " (" +
                 C_MSG_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 C_MSG_REMETENTE + " TEXT NOT NULL, " +
@@ -179,6 +198,17 @@ public class DBHelper extends SQLiteOpenHelper {
                 C_MSG_TS + " INTEGER" +
                 ")");
 
+        // INDEXES
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_leituras_prev ON " +
+                T_LEITURAS + "(" + C_LEITURA_PREV_ID + ")");
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_leituras_created_ts ON " +
+                T_LEITURAS + "(" + C_LEITURA_CREATED_AT_TS + ")");
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_consumos_analisados_leitura ON " +
+                T_CONSUMOS_ANALISADOS + "(" + C_CONSUMO_ANALISADO_LEITURA_ID + ")");
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_consumos_analisados_created ON " +
+                T_CONSUMOS_ANALISADOS + "(" + C_CONSUMO_ANALISADO_CREATED_AT_TS + ")");
+        db.execSQL("CREATE INDEX IF NOT EXISTS idx_consumos_analisados_status ON " +
+                T_CONSUMOS_ANALISADOS + "(" + C_CONSUMO_ANALISADO_STATUS + ")");
     }
 
     @Override
@@ -203,24 +233,53 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     // ---------- UTILIZADORES ----------
-    public long saveOrUpdateUser(String firebaseUid, String email, String name) {
+
+    public void saveOrUpdateUser(String idServidor,
+                                 String email,
+                                 String name,
+                                 Double precoKwh,
+                                 String tipo,
+                                 String passwordHash) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
-        cv.put(C_USER_UID, firebaseUid);
+        cv.put(C_USER_UID, idServidor);
         cv.put(C_USER_EMAIL, email);
         cv.put(C_USER_NAME, name);
-        long existingId = getUserIdByUid(firebaseUid);
+        cv.put(C_USER_PRECO_KWH, precoKwh);
+        cv.put(C_USER_TIPO, tipo);
+        cv.put(C_USER_PASSWORD_HASH, passwordHash);
+
+        long existingId = -1;
+        Cursor c = db.query(
+                T_USERS,
+                new String[]{C_USER_ID},
+                C_USER_EMAIL + " = ?",
+                new String[]{email},
+                null, null, null
+        );
+        try {
+            if (c.moveToFirst()) {
+                existingId = c.getLong(0);
+            }
+        } finally {
+            c.close();
+        }
+
         if (existingId > 0) {
-            db.update(T_USERS, cv, C_USER_UID + "=?", new String[]{firebaseUid});
-            return existingId;
+            db.update(T_USERS, cv, C_USER_ID + "=?", new String[]{String.valueOf(existingId)});
         } else {
-            return db.insert(T_USERS, null, cv);
+            db.insert(T_USERS, null, cv);
         }
     }
 
     public long getUserIdByUid(String uid) {
-        Cursor c = getReadableDatabase().query(T_USERS, new String[]{C_USER_ID},
-                C_USER_UID + "=?", new String[]{uid}, null, null, null);
+        Cursor c = getReadableDatabase().query(
+                T_USERS,
+                new String[]{C_USER_ID},
+                C_USER_UID + "=?",
+                new String[]{uid},
+                null, null, null
+        );
         try {
             if (c.moveToFirst()) return c.getLong(0);
             return -1;
@@ -231,13 +290,15 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public String obterTipoUtilizadorPorEmail(String email) {
         Cursor c = getReadableDatabase().rawQuery(
-                "SELECT " + C_USER_TIPO + " FROM " + T_USERS + " WHERE " + C_USER_EMAIL + " = ?",
-                new String[]{email});
+                "SELECT " + C_USER_TIPO + " FROM " + T_USERS +
+                        " WHERE " + C_USER_EMAIL + " = ?",
+                new String[]{email}
+        );
         try {
             if (c.moveToFirst()) {
                 return c.getString(0);
             } else {
-                return "cliente"; // por omissão
+                return "cliente";
             }
         } finally {
             c.close();
@@ -251,12 +312,17 @@ public class DBHelper extends SQLiteOpenHelper {
         db.update(T_USERS, cv, C_USER_EMAIL + " = ?", new String[]{email});
     }
 
-    // Obtém todos os dados para preencher o ecrã
     public Cursor obterDadosUtilizadorPorEmail(String email) {
-        return getReadableDatabase().rawQuery("SELECT * FROM " + T_USERS + " WHERE " + C_USER_EMAIL + " = ?", new String[]{email});
+        return getReadableDatabase().rawQuery(
+                "SELECT * FROM " + T_USERS +
+                        " WHERE " + C_USER_EMAIL + " = ?",
+                new String[]{email}
+        );
     }
 
     // ---------- LEITURAS ----------
+
+    // Sem casa (modo antigo)
     public long inserirLeituraComFoto(String data, double valorKwh, String imagemPath) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
@@ -265,8 +331,12 @@ public class DBHelper extends SQLiteOpenHelper {
 
             long prevId = -1;
             double prevValor = -1;
-            Cursor c = db.rawQuery("SELECT " + C_LEITURA_ID + ", " + C_LEITURA_VALOR +
-                    " FROM " + T_LEITURAS + " ORDER BY " + C_LEITURA_ID + " DESC LIMIT 1", null);
+            Cursor c = db.rawQuery(
+                    "SELECT " + C_LEITURA_ID + ", " + C_LEITURA_VALOR +
+                            " FROM " + T_LEITURAS +
+                            " ORDER BY " + C_LEITURA_ID + " DESC LIMIT 1",
+                    null
+            );
             if (c.moveToFirst()) {
                 prevId = c.getLong(0);
                 prevValor = c.getDouble(1);
@@ -285,6 +355,7 @@ public class DBHelper extends SQLiteOpenHelper {
             if (prevId != -1) cv.put(C_LEITURA_PREV_ID, prevId);
             if (consumoPeriodo != null) cv.put(C_LEITURA_CONSUMO_PERIODO, consumoPeriodo);
             cv.put(C_LEITURA_CREATED_AT_TS, System.currentTimeMillis());
+            cv.put(C_LEITURA_SYNC_STATUS, 0);
 
             long rowId = db.insert(T_LEITURAS, null, cv);
 
@@ -300,6 +371,7 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
+    // Com casa_id
     public long inserirLeituraComFotoPorCasa(int casaId, String data, double valorKwh, String imagemPath) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
@@ -309,14 +381,13 @@ public class DBHelper extends SQLiteOpenHelper {
             long prevId = -1;
             double prevValor = -1;
 
-            // Obter última leitura DESTA CASA
             Cursor c = db.rawQuery(
                     "SELECT " + C_LEITURA_ID + ", " + C_LEITURA_VALOR +
                             " FROM " + T_LEITURAS +
-                            " WHERE casa_id = ? ORDER BY " + C_LEITURA_ID + " DESC LIMIT 1",
+                            " WHERE casa_id = ? " +
+                            " ORDER BY " + C_LEITURA_ID + " DESC LIMIT 1",
                     new String[]{String.valueOf(casaId)}
             );
-
             if (c.moveToFirst()) {
                 prevId = c.getLong(0);
                 prevValor = c.getDouble(1);
@@ -336,6 +407,7 @@ public class DBHelper extends SQLiteOpenHelper {
             if (prevId != -1) cv.put(C_LEITURA_PREV_ID, prevId);
             if (consumoPeriodo != null) cv.put(C_LEITURA_CONSUMO_PERIODO, consumoPeriodo);
             cv.put(C_LEITURA_CREATED_AT_TS, System.currentTimeMillis());
+            cv.put(C_LEITURA_SYNC_STATUS, 0);
 
             long rowId = db.insert(T_LEITURAS, null, cv);
 
@@ -346,16 +418,37 @@ public class DBHelper extends SQLiteOpenHelper {
 
             db.setTransactionSuccessful();
             return rowId;
-
         } finally {
             db.endTransaction();
         }
     }
 
-    public Cursor obterLeituras() {
-        return getReadableDatabase().query(T_LEITURAS, null, null, null, null, null,
-                C_LEITURA_ID + " DESC");
+    public Cursor obterLeiturasPorSincronizar() {
+        String where = C_LEITURA_SYNC_STATUS + " = ?";
+        String[] args = {"0"};
+        return getReadableDatabase().query(
+                T_LEITURAS,
+                null,
+                where,
+                args,
+                null,
+                null,
+                null
+        );
     }
+
+    public Cursor obterLeituras() {
+        return getReadableDatabase().query(
+                T_LEITURAS,
+                null,
+                null,
+                null,
+                null,
+                null,
+                C_LEITURA_ID + " DESC"
+        );
+    }
+
     public Cursor obterLeiturasPorCasa(int casaId) {
         return getReadableDatabase().rawQuery(
                 "SELECT * FROM " + T_LEITURAS +
@@ -363,6 +456,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 new String[]{String.valueOf(casaId)}
         );
     }
+
     public void apagarLeitura(long id) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
@@ -379,9 +473,11 @@ public class DBHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         try {
-            db.delete(T_LEITURAS,
+            db.delete(
+                    T_LEITURAS,
                     C_LEITURA_ID + "=? AND casa_id=?",
-                    new String[]{String.valueOf(leituraId), String.valueOf(casaId)});
+                    new String[]{String.valueOf(leituraId), String.valueOf(casaId)}
+            );
             recalcularEMediaPorCasa(db, new int[]{1, 3, 6}, casaId);
             db.setTransactionSuccessful();
         } finally {
@@ -390,7 +486,10 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public int contarLeituras() {
-        Cursor c = getReadableDatabase().rawQuery("SELECT COUNT(*) FROM " + T_LEITURAS, null);
+        Cursor c = getReadableDatabase().rawQuery(
+                "SELECT COUNT(*) FROM " + T_LEITURAS,
+                null
+        );
         try {
             if (c.moveToFirst()) return c.getInt(0);
             return 0;
@@ -413,6 +512,7 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     // ---------- MÉDIAS ----------
+
     public double calcularMediaConsumos(int numPeriodos) {
         return calcularMediaConsumosInterno(getReadableDatabase(), numPeriodos);
     }
@@ -420,16 +520,17 @@ public class DBHelper extends SQLiteOpenHelper {
     public double calcularMediaConsumosPorCasa(int numPeriodos, int casaId) {
         return calcularMediaConsumosInterno(getReadableDatabase(), numPeriodos, casaId);
     }
+
     private double calcularMediaConsumosInterno(SQLiteDatabase db, int numPeriodos) {
         if (numPeriodos <= 0) return 0.0;
 
         Cursor c = null;
         try {
-            // Pegar as últimas (numPeriodos + 1) leituras cumulativas (id DESC para consistência com UI)
             String sqlLeituras = "SELECT " + C_LEITURA_VALOR +
                     " FROM " + T_LEITURAS +
                     " ORDER BY " + C_LEITURA_ID + " DESC" +
                     " LIMIT " + (numPeriodos + 1);
+
             c = db.rawQuery(sqlLeituras, null);
             if (c == null || !c.moveToFirst()) {
                 if (c != null) c.close();
@@ -442,7 +543,6 @@ public class DBHelper extends SQLiteOpenHelper {
                 return 0.0;
             }
 
-            // Ler valores das leituras (mais recente primeiro)
             double[] leituras = new double[n];
             int idx = 0;
             do {
@@ -451,14 +551,13 @@ public class DBHelper extends SQLiteOpenHelper {
             c.close();
             c = null;
 
-            // Calcular consumos (diferenças) até numPeriodos
             double somaConsumos = 0.0;
             int contPeriodos = 0;
             for (int i = 0; i < leituras.length - 1 && contPeriodos < numPeriodos; i++) {
                 double atual = leituras[i];
                 double anterior = leituras[i + 1];
                 double consumo = atual - anterior;
-                if (consumo > 0) { // ignora zeros e negativos
+                if (consumo > 0) {
                     somaConsumos += consumo;
                     contPeriodos++;
                 }
@@ -479,10 +578,11 @@ public class DBHelper extends SQLiteOpenHelper {
         try {
             String sqlLeituras = "SELECT " + C_LEITURA_VALOR +
                     " FROM " + T_LEITURAS +
-                    " WHERE casa_id = ? ORDER BY " + C_LEITURA_ID + " DESC LIMIT " + (numPeriodos + 1);
+                    " WHERE casa_id = ? " +
+                    " ORDER BY " + C_LEITURA_ID + " DESC" +
+                    " LIMIT " + (numPeriodos + 1);
 
             c = db.rawQuery(sqlLeituras, new String[]{String.valueOf(casaId)});
-
             if (c == null || !c.moveToFirst()) {
                 if (c != null) c.close();
                 return 0.0;
@@ -494,7 +594,6 @@ public class DBHelper extends SQLiteOpenHelper {
                 return 0.0;
             }
 
-            // Ler valores
             double[] leituras = new double[n];
             int idx = 0;
             do {
@@ -503,7 +602,6 @@ public class DBHelper extends SQLiteOpenHelper {
             c.close();
             c = null;
 
-            // Calcular consumos
             double somaConsumos = 0.0;
             int contPeriodos = 0;
             for (int i = 0; i < leituras.length - 1 && contPeriodos < numPeriodos; i++) {
@@ -523,6 +621,7 @@ public class DBHelper extends SQLiteOpenHelper {
             if (c != null && !c.isClosed()) c.close();
         }
     }
+
     private void recalcularEMedia(SQLiteDatabase db, int[] periodos) {
         for (int n : periodos) {
             double media = calcularMediaConsumosInterno(db, n);
@@ -530,21 +629,30 @@ public class DBHelper extends SQLiteOpenHelper {
             cv.put(C_MEDIA_NPERIODOS, n);
             cv.put(C_MEDIA_VALOR, media);
             cv.put(C_MEDIA_ATUALIZADA_EM, Instant.now().toString());
-            db.insertWithOnConflict(T_MEDIA_CONSUMOS, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+            db.insertWithOnConflict(
+                    T_MEDIA_CONSUMOS,
+                    null,
+                    cv,
+                    SQLiteDatabase.CONFLICT_REPLACE
+            );
         }
     }
 
     private void recalcularEMediaPorCasa(SQLiteDatabase db, int[] periodos, int casaId) {
         for (int n : periodos) {
             double media = calcularMediaConsumosInterno(db, n, casaId);
-            // Guardar numa tabela separada, por exemplo: media_consumos_casa(casa_id, num_periodos, media_valor)
-            // Por simplicidade, podemos apenas reutilizar a existente com um prefixo ou ID único
+            // Aqui podias ter uma tabela separada de médias por casa,
+            // por agora só recalculamos (se quiseres posso depois criar essa tabela).
         }
     }
+
     public Map<Integer, Double> obterMediasArmazenadas() {
         Map<Integer, Double> medias = new HashMap<>();
-        Cursor c = getReadableDatabase().query(T_MEDIA_CONSUMOS,
-                new String[]{C_MEDIA_NPERIODOS, C_MEDIA_VALOR}, null, null, null, null, null);
+        Cursor c = getReadableDatabase().query(
+                T_MEDIA_CONSUMOS,
+                new String[]{C_MEDIA_NPERIODOS, C_MEDIA_VALOR},
+                null, null, null, null, null
+        );
         try {
             while (c.moveToNext()) {
                 medias.put(c.getInt(0), c.getDouble(1));
@@ -557,8 +665,11 @@ public class DBHelper extends SQLiteOpenHelper {
 
     private Map<Integer, Double> obterMediasArmazenadasInterno(SQLiteDatabase db) {
         Map<Integer, Double> medias = new HashMap<>();
-        Cursor c = db.query(T_MEDIA_CONSUMOS,
-                new String[]{C_MEDIA_NPERIODOS, C_MEDIA_VALOR}, null, null, null, null, null);
+        Cursor c = db.query(
+                T_MEDIA_CONSUMOS,
+                new String[]{C_MEDIA_NPERIODOS, C_MEDIA_VALOR},
+                null, null, null, null, null
+        );
         try {
             while (c.moveToNext()) {
                 medias.put(c.getInt(0), c.getDouble(1));
@@ -571,8 +682,11 @@ public class DBHelper extends SQLiteOpenHelper {
 
     // ---------- ANÁLISE DE CONSUMO ----------
 
-    private void criarRegistroConsumoAnalisado(SQLiteDatabase db, long leituraId,
-                                               double consumoValor, int numPeriodos, Double mediaRefParam) {
+    private void criarRegistroConsumoAnalisado(SQLiteDatabase db,
+                                               long leituraId,
+                                               double consumoValor,
+                                               int numPeriodos,
+                                               Double mediaRefParam) {
         Double mediaRef = mediaRefParam;
 
         if (mediaRef == null) {
@@ -608,19 +722,26 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public Cursor obterAnaliseConsumo(long leituraId) {
-        return getReadableDatabase().query(T_CONSUMOS_ANALISADOS, null,
+        return getReadableDatabase().query(
+                T_CONSUMOS_ANALISADOS,
+                null,
                 C_CONSUMO_ANALISADO_LEITURA_ID + "=?",
-                new String[]{String.valueOf(leituraId)}, null, null, null);
+                new String[]{String.valueOf(leituraId)},
+                null, null, null
+        );
     }
 
     public Cursor obterAnaliseConsumoPorCasa(long leituraId, int casaId) {
         return getReadableDatabase().rawQuery(
                 "SELECT ca.* FROM " + T_CONSUMOS_ANALISADOS + " ca " +
-                        "JOIN " + T_LEITURAS + " l ON ca." + C_CONSUMO_ANALISADO_LEITURA_ID + " = l." + C_LEITURA_ID + " " +
-                        "WHERE ca." + C_CONSUMO_ANALISADO_LEITURA_ID + " = ? AND l.casa_id = ?",
+                        "JOIN " + T_LEITURAS + " l ON ca." + C_CONSUMO_ANALISADO_LEITURA_ID +
+                        " = l." + C_LEITURA_ID +
+                        " WHERE ca." + C_CONSUMO_ANALISADO_LEITURA_ID + " = ? " +
+                        " AND l.casa_id = ?",
                 new String[]{String.valueOf(leituraId), String.valueOf(casaId)}
         );
     }
+
     public Cursor obterHistoricoConsumosAnalisados(String status) {
         String selection = status != null ? C_CONSUMO_ANALISADO_STATUS + "=?" : null;
         String[] selectionArgs = status != null ? new String[]{status} : null;
@@ -628,16 +749,23 @@ public class DBHelper extends SQLiteOpenHelper {
         return getReadableDatabase().query(
                 T_CONSUMOS_ANALISADOS + " ca JOIN " + T_LEITURAS + " l ON ca." +
                         C_CONSUMO_ANALISADO_LEITURA_ID + " = l." + C_LEITURA_ID,
-                new String[]{"ca.*", "l." + C_LEITURA_DATA + " as data_leitura",
-                        "l." + C_LEITURA_VALOR + " as valor_leitura"},
-                selection, selectionArgs, null, null,
-                "ca." + C_CONSUMO_ANALISADO_CREATED_AT_TS + " DESC");
+                new String[]{
+                        "ca.*",
+                        "l." + C_LEITURA_DATA + " as data_leitura",
+                        "l." + C_LEITURA_VALOR + " as valor_leitura"
+                },
+                selection,
+                selectionArgs,
+                null, null,
+                "ca." + C_CONSUMO_ANALISADO_CREATED_AT_TS + " DESC"
+        );
     }
 
     public Cursor obterHistoricoConsumosAnalisadosPorCasa(int casaId, String status) {
         String sql = "SELECT ca.* FROM " + T_CONSUMOS_ANALISADOS + " ca " +
-                "JOIN " + T_LEITURAS + " l ON ca." + C_CONSUMO_ANALISADO_LEITURA_ID + " = l." + C_LEITURA_ID + " " +
-                "WHERE l.casa_id = ?";
+                "JOIN " + T_LEITURAS + " l ON ca." + C_CONSUMO_ANALISADO_LEITURA_ID +
+                " = l." + C_LEITURA_ID +
+                " WHERE l.casa_id = ?";
 
         if (status != null && !status.isEmpty()) {
             sql += " AND ca." + C_CONSUMO_ANALISADO_STATUS + " = ?";
@@ -654,8 +782,12 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public double obterUltimaLeituraOuDefault(double defaultValor) {
-        Cursor c = getReadableDatabase().rawQuery("SELECT " + C_LEITURA_VALOR +
-                " FROM " + T_LEITURAS + " ORDER BY " + C_LEITURA_ID + " DESC LIMIT 1", null);
+        Cursor c = getReadableDatabase().rawQuery(
+                "SELECT " + C_LEITURA_VALOR +
+                        " FROM " + T_LEITURAS +
+                        " ORDER BY " + C_LEITURA_ID + " DESC LIMIT 1",
+                null
+        );
         double valor = defaultValor;
         if (c.moveToFirst()) {
             valor = c.getDouble(0);
@@ -668,24 +800,39 @@ public class DBHelper extends SQLiteOpenHelper {
         Cursor cursor = null;
         try {
             cursor = getReadableDatabase().rawQuery(
-                    "SELECT " + C_LEITURA_VALOR + " FROM " + T_LEITURAS +
+                    "SELECT " + C_LEITURA_VALOR +
+                            " FROM " + T_LEITURAS +
                             " WHERE casa_id = ? " +
                             " ORDER BY " + C_LEITURA_DATA + " DESC LIMIT 1",
                     new String[]{String.valueOf(casaId)}
             );
-
             if (cursor != null && cursor.moveToFirst()) {
                 return cursor.getDouble(0);
             }
         } finally {
-            if (cursor != null && !cursor.isClosed()) {
-                cursor.close();
-            }
+            if (cursor != null && !cursor.isClosed()) cursor.close();
         }
         return defaultValue;
     }
 
-    // Inserir mensagem
+    public double obterUltimaLeituraPorCasa(int casaId) {
+        Cursor c = getReadableDatabase().rawQuery(
+                "SELECT " + C_LEITURA_VALOR +
+                        " FROM " + T_LEITURAS +
+                        " WHERE casa_id = ? " +
+                        " ORDER BY " + C_LEITURA_ID + " DESC LIMIT 1",
+                new String[]{String.valueOf(casaId)}
+        );
+        double valor = 0;
+        if (c.moveToFirst()) {
+            valor = c.getDouble(0);
+        }
+        c.close();
+        return valor;
+    }
+
+    // ---------- SUPORTE ----------
+
     public boolean inserirMensagem(String assunto, String mensagem, String data) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
@@ -696,13 +843,16 @@ public class DBHelper extends SQLiteOpenHelper {
         return r != -1;
     }
 
-    // Listar mensagens
     public Cursor listarMensagens() {
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("SELECT * FROM mensagens_suporte ORDER BY id DESC", null);
+        return db.rawQuery(
+                "SELECT * FROM mensagens_suporte ORDER BY id DESC",
+                null
+        );
     }
 
-    // Inserir assistência técnica com técnico associado
+    // ---------- ASSISTENCIAS ----------
+
     public boolean inserirAssistencia(String data, String hora, String descricao, String tecnicoEmail) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
@@ -715,7 +865,6 @@ public class DBHelper extends SQLiteOpenHelper {
         return r != -1;
     }
 
-    // Verifica se já existe assistência NO MESMO SLOT para ESTE técnico
     public boolean existeAssistenciaNoSlot(String data, String hora, String tecnicoEmail) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = db.rawQuery(
@@ -726,17 +875,17 @@ public class DBHelper extends SQLiteOpenHelper {
         c.close();
         return existe;
     }
-    // Devolve todos os utilizadores que têm tipo = 'tecnico'
+
     public Cursor listarTecnicos() {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery(
-                "SELECT " + C_USER_EMAIL + " FROM " + T_USERS +
+                "SELECT " + C_USER_EMAIL +
+                        " FROM " + T_USERS +
                         " WHERE " + C_USER_TIPO + " = 'tecnico'",
                 null
         );
     }
 
-    // Assistências apenas de um técnico específico
     public Cursor listarAssistenciasDoTecnico(String tecnicoEmail) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery(
@@ -745,17 +894,28 @@ public class DBHelper extends SQLiteOpenHelper {
         );
     }
 
-
-
-    // Listar assistências + feedback
     public Cursor listarAssistencias() {
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("SELECT * FROM assistencias ORDER BY id DESC", null);
+        return db.rawQuery(
+                "SELECT * FROM assistencias ORDER BY id DESC",
+                null
+        );
     }
 
-    // --- MÉTODOS CASAS ---
-    public int guardarCasaCompleta(int id, String email, String nome, String tipo, String uso, int pessoas, String ano,
-                                   String morada, String distrito, String concelho, String freguesia, String codPostal) {
+    // ---------- CASAS ----------
+
+    public int guardarCasaCompleta(int id,
+                                   String email,
+                                   String nome,
+                                   String tipo,
+                                   String uso,
+                                   int pessoas,
+                                   String ano,
+                                   String morada,
+                                   String distrito,
+                                   String concelho,
+                                   String freguesia,
+                                   String codPostal) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(C_CASA_USER_EMAIL, email);
@@ -771,43 +931,62 @@ public class DBHelper extends SQLiteOpenHelper {
         cv.put(C_CASA_COD_POSTAL, codPostal);
 
         if (id == -1) {
-            // Inserir nova casa: db.insert devolve o ID da linha criada (long)
             return (int) db.insert(T_CASAS, null, cv);
         } else {
-            // Atualizar casa existente: devolvemos o ID que já tínhamos
             db.update(T_CASAS, cv, C_CASA_ID + "=?", new String[]{String.valueOf(id)});
             return id;
         }
     }
 
     public Cursor listarCasasDoUtilizador(String email) {
-        return getReadableDatabase().rawQuery("SELECT * FROM " + T_CASAS + " WHERE " + C_CASA_USER_EMAIL + " = ?", new String[]{email});
+        return getReadableDatabase().rawQuery(
+                "SELECT * FROM " + T_CASAS +
+                        " WHERE " + C_CASA_USER_EMAIL + " = ?",
+                new String[]{email}
+        );
     }
 
     public Cursor obterCasaPorId(int id) {
-        return getReadableDatabase().rawQuery("SELECT * FROM " + T_CASAS + " WHERE " + C_CASA_ID + " = ?", new String[]{String.valueOf(id)});
+        return getReadableDatabase().rawQuery(
+                "SELECT * FROM " + T_CASAS +
+                        " WHERE " + C_CASA_ID + " = ?",
+                new String[]{String.valueOf(id)}
+        );
     }
 
-    // --- MÉTODOS ELETRODOMÉSTICOS ---
-    public void atualizarEletrodomestico(int casaId, String nome, String categoria, int qtd) {
+    // ---------- ELETRODOMÉSTICOS ----------
+
+    public void atualizarEletrodomestico(int casaId,
+                                         String nome,
+                                         String categoria,
+                                         int qtd) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(C_APP_CASA_ID, casaId);
         cv.put(C_APP_NOME, nome);
         cv.put(C_APP_CATEGORIA, categoria);
         cv.put(C_APP_QUANTIDADE, qtd);
-        db.insertWithOnConflict(T_ELETRODOMESTICOS, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+        db.insertWithOnConflict(
+                T_ELETRODOMESTICOS,
+                null,
+                cv,
+                SQLiteDatabase.CONFLICT_REPLACE
+        );
     }
 
     public Cursor obterEletrodomesticosDaCasa(int casaId) {
-        return getReadableDatabase().rawQuery("SELECT * FROM " + T_ELETRODOMESTICOS + " WHERE " + C_APP_CASA_ID + " = ?", new String[]{String.valueOf(casaId)});
+        return getReadableDatabase().rawQuery(
+                "SELECT * FROM " + T_ELETRODOMESTICOS +
+                        " WHERE " + C_APP_CASA_ID + " = ?",
+                new String[]{String.valueOf(casaId)}
+        );
     }
 
     // ---------- CHAT UTILIZADOR <-> TÉCNICO ----------
 
-    // Inserir mensagem no chat
-// -------- CHAT: INSERIR MENSAGEM --------
-    public boolean inserirMensagemChat(String remetenteEmail, String destinatarioEmail, String texto) {
+    public boolean inserirMensagemChat(String remetenteEmail,
+                                       String destinatarioEmail,
+                                       String texto) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(C_MSG_REMETENTE, remetenteEmail);
@@ -818,51 +997,47 @@ public class DBHelper extends SQLiteOpenHelper {
         return r != -1;
     }
 
-
-    // -------- CHAT: TODAS AS MENSAGENS DESTE UTILIZADOR (CLIENTE) --------
     public Cursor listarMensagensDoUtilizador(String email) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery(
                 "SELECT * FROM " + T_MENSAGENS_CHAT +
-                        " WHERE " + C_MSG_REMETENTE + " = ? OR " + C_MSG_DESTINATARIO + " = ? " +
+                        " WHERE " + C_MSG_REMETENTE + " = ? " +
+                        " OR " + C_MSG_DESTINATARIO + " = ? " +
                         " ORDER BY " + C_MSG_TS + " ASC",
                 new String[]{email, email}
         );
     }
 
-
-    // -------- CHAT: CONVERSA ENTRE DUAS PESSOAS (CLIENTE <-> TÉCNICO) --------
     public Cursor listarMensagensEntre(String email1, String email2) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery(
                 "SELECT * FROM " + T_MENSAGENS_CHAT +
-                        " WHERE (" + C_MSG_REMETENTE + " = ? AND " + C_MSG_DESTINATARIO + " = ?) " +
-                        "    OR (" + C_MSG_REMETENTE + " = ? AND " + C_MSG_DESTINATARIO + " = ?) " +
+                        " WHERE (" + C_MSG_REMETENTE + " = ? AND " +
+                        C_MSG_DESTINATARIO + " = ?) " +
+                        " OR (" + C_MSG_REMETENTE + " = ? AND " +
+                        C_MSG_DESTINATARIO + " = ?) " +
                         " ORDER BY " + C_MSG_TS + " ASC",
                 new String[]{email1, email2, email2, email1}
         );
     }
 
-    // -------- CHAT: LISTA DE CLIENTES QUE FALARAM COM ESTE TÉCNICO --------
     public Cursor listarClientesDoTecnicoNoChat(String tecnicoEmail) {
         SQLiteDatabase db = this.getReadableDatabase();
-
-        // devolve os emails dos clientes distintos que tenham mensagens com este técnico
         return db.rawQuery(
                 "SELECT DISTINCT " +
-                        "CASE " +
-                        " WHEN " + C_MSG_REMETENTE + " = ? THEN " + C_MSG_DESTINATARIO +
+                        "CASE WHEN " + C_MSG_REMETENTE + " = ? THEN " +
+                        C_MSG_DESTINATARIO +
                         " ELSE " + C_MSG_REMETENTE +
                         " END AS cliente_email " +
                         "FROM " + T_MENSAGENS_CHAT +
-                        " WHERE " + C_MSG_REMETENTE + " = ? OR " + C_MSG_DESTINATARIO + " = ?",
+                        " WHERE " + C_MSG_REMETENTE + " = ? " +
+                        " OR " + C_MSG_DESTINATARIO + " = ?",
                 new String[]{tecnicoEmail, tecnicoEmail, tecnicoEmail}
         );
     }
 
-    /**
-     * Calcular alertas para uma casa específica
-     */
+    // ---------- ALERTAS & CUSTOS POR CASA ----------
+
     public double[] calcularAlertasPorCasa(int casaId) {
         double consumoUltimo = calcularMediaConsumosPorCasa(1, casaId);
         double media6 = calcularMediaConsumosPorCasa(6, casaId);
@@ -875,9 +1050,6 @@ public class DBHelper extends SQLiteOpenHelper {
         return new double[]{consumoUltimo, media6, diffPercent};
     }
 
-    /**
-     * Calcular estatísticas financeiras para uma casa
-     */
     public double[] calcularCustosPorCasa(int casaId, double precoKwh) {
         double consumoUltimo = calcularMediaConsumosPorCasa(1, casaId);
         double custoUltimo = consumoUltimo * precoKwh;
@@ -888,22 +1060,29 @@ public class DBHelper extends SQLiteOpenHelper {
         return new double[]{consumoUltimo, custoUltimo, media6, custoMedia};
     }
 
-    /**
-     * Obter última leitura de uma casa
-     */
-    public double obterUltimaLeituraPorCasa(int casaId) {
-        Cursor c = getReadableDatabase().rawQuery(
-                "SELECT " + C_LEITURA_VALOR + " FROM " + T_LEITURAS +
-                        " WHERE casa_id = ? ORDER BY " + C_LEITURA_ID + " DESC LIMIT 1",
-                new String[]{String.valueOf(casaId)}
-        );
-        double valor = 0;
-        if (c.moveToFirst()) {
-            valor = c.getDouble(0);
+    // ---------- SYNC LEITURAS ----------
+
+    public void marcarLeiturasComoSincronizadas(long[] ids) {
+        if (ids == null || ids.length == 0) return;
+
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put(C_LEITURA_SYNC_STATUS, 1);
+
+            for (long id : ids) {
+                db.update(
+                        T_LEITURAS,
+                        cv,
+                        C_LEITURA_ID + " = ?",
+                        new String[]{String.valueOf(id)}
+                );
+            }
+
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
         }
-        c.close();
-        return valor;
     }
-
-
 }

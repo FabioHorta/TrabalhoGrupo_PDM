@@ -14,7 +14,8 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/ecotrack_logo"
         android:supportsRtl="true"
-        android:theme="@style/Theme.EcoTrack">
+        android:theme="@style/Theme.EcoTrack"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".Eletrodomesticos"
             android:exported="false" />

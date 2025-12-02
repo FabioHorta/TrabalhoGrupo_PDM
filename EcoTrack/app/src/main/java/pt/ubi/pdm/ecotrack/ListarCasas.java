@@ -8,7 +8,6 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.firebase.auth.FirebaseAuth;
 import java.util.ArrayList;
 
 public class ListarCasas extends AppCompatActivity {
@@ -26,10 +25,16 @@ public class ListarCasas extends AppCompatActivity {
         setContentView(R.layout.activity_listar_casas);
 
         dbHelper = new DBHelper(this);
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
-        }
 
+        userEmail = getSharedPreferences("auth", MODE_PRIVATE)
+                .getString("user_email", null);
+
+        if (userEmail == null) {
+            Toast.makeText(this, "Sessão expirada. Faz login novamente.", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+            return;
+        }
         listCasas = findViewById(R.id.listCasas);
         btnAdicionar = findViewById(R.id.btnAdicionarCasa);
         btnVoltar = findViewById(R.id.btnVoltar);
@@ -56,6 +61,10 @@ public class ListarCasas extends AppCompatActivity {
         nomesCasas.clear();
         idsCasas.clear();
 
+        if (userEmail == null) {
+            return;
+        }
+
         Cursor c = dbHelper.listarCasasDoUtilizador(userEmail);
         if (c != null) {
             while (c.moveToNext()) {
@@ -67,7 +76,9 @@ public class ListarCasas extends AppCompatActivity {
             }
             c.close();
         }
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, nomesCasas);
+
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, nomesCasas);
         listCasas.setAdapter(adapter);
     }
 

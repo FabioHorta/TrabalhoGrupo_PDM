@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -20,8 +19,6 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.google.android.material.card.MaterialCardView;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,7 +45,6 @@ public class MenuPrincipal extends BaseActivity {
     private MaterialCardView cardAlertas, cardApoio;
 
     // Dados
-    private FirebaseAuth mAuth;
     private DBHelper dbHelper;
     private double precoKwhAtual = 0.20;
     private List<CasaItem> casas = new ArrayList<>();
@@ -57,12 +53,13 @@ public class MenuPrincipal extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
         setContentView(R.layout.activity_principal_menu);
-        mAuth = FirebaseAuth.getInstance();
+
         dbHelper = new DBHelper(this);
 
         initViews();
@@ -97,15 +94,20 @@ public class MenuPrincipal extends BaseActivity {
         cardApoio = findViewById(R.id.cardApoio);
     }
 
+    private String obterEmailSessao() {
+        return getSharedPreferences("auth", MODE_PRIVATE)
+                .getString("user_email", null);
+    }
+
     private void carregarListaCasas() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) {
+        String email = obterEmailSessao();
+        if (email == null) {
+            // sem sessão → volta ao login
             startActivity(new Intent(this, MainActivity.class));
             finish();
             return;
         }
 
-        String email = user.getEmail();
         casas.clear();
 
         Cursor c = dbHelper.listarCasasDoUtilizador(email);
@@ -139,8 +141,11 @@ public class MenuPrincipal extends BaseActivity {
             spinnerCasas.setVisibility(View.VISIBLE);
             tvSemCasas.setVisibility(View.GONE);
 
-            adapterCasas = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, casas);
+            adapterCasas = new ArrayAdapter<>(this,
+                    android.R.layout.simple_spinner_dropdown_item, casas);
             spinnerCasas.setAdapter(adapterCasas);
+
+            final String emailFinal = email;
 
             spinnerCasas.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
@@ -149,19 +154,27 @@ public class MenuPrincipal extends BaseActivity {
                     CasaSelecionada.getInstance().setSelecionada(
                             casaSelecionada.getId(),
                             casaSelecionada.getNome(),
-                            mAuth.getCurrentUser().getEmail()
+                            emailFinal
                     );
                     carregarResumoConsumo(casaSelecionada.getId());
                 }
 
                 @Override
-                public void onNothingSelected(AdapterView<?> parent) {}
+                public void onNothingSelected(AdapterView<?> parent) {
+                }
             });
 
             // Selecionar primeira casa por padrão
             if (!casas.isEmpty()) {
                 spinnerCasas.setSelection(0);
             }
+
+            // Reativar cards
+            cardMelhorEnergia.setEnabled(true);
+            cardLeituras.setEnabled(true);
+            cardEstimativas.setEnabled(true);
+            cardMapaGastos.setEnabled(true);
+            cardAlertas.setEnabled(true);
         }
     }
 
@@ -207,39 +220,43 @@ public class MenuPrincipal extends BaseActivity {
     }
 
     private void atualizarCabecalho() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            String email = user.getEmail();
-            String nomeExibicao = "Utilizador";
+        String email = obterEmailSessao();
 
-            Cursor c = dbHelper.obterDadosUtilizadorPorEmail(email);
-            if (c != null && c.moveToFirst()) {
-                String nomeBd = c.getString(c.getColumnIndexOrThrow(DBHelper.C_USER_NAME));
-                if (nomeBd != null && !nomeBd.isEmpty()) {
-                    nomeExibicao = nomeBd;
-                }
+        if (email == null) {
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+            return;
+        }
 
-                int idxPreco = c.getColumnIndex(DBHelper.C_USER_PRECO_KWH);
-                if (idxPreco != -1) {
-                    double preco = c.getDouble(idxPreco);
-                    if (preco > 0) {
-                        precoKwhAtual = preco;
-                    }
-                }
-                c.close();
+        String nomeExibicao = "Utilizador";
+
+        Cursor c = dbHelper.obterDadosUtilizadorPorEmail(email);
+        if (c != null && c.moveToFirst()) {
+            String nomeBd = c.getString(c.getColumnIndexOrThrow(DBHelper.C_USER_NAME));
+            if (nomeBd != null && !nomeBd.isEmpty()) {
+                nomeExibicao = nomeBd;
             }
 
-            tvNomeUtilizador.setText(nomeExibicao);
-
-            // Foto de perfil
-            String nomeFicheiro = "profile_" + email + ".png";
-            File imgFile = new File(getFilesDir(), nomeFicheiro);
-            if (imgFile.exists()) {
-                Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                imgPerfilTopo.setImageBitmap(myBitmap);
-            } else {
-                imgPerfilTopo.setImageResource(R.drawable.ecotrack_logo);
+            int idxPreco = c.getColumnIndex(DBHelper.C_USER_PRECO_KWH);
+            if (idxPreco != -1) {
+                double preco = c.getDouble(idxPreco);
+                if (preco > 0) {
+                    precoKwhAtual = preco;
+                }
             }
+            c.close();
+        }
+
+        tvNomeUtilizador.setText(nomeExibicao);
+
+        // Foto de perfil
+        String nomeFicheiro = "profile_" + email + ".png";
+        File imgFile = new File(getFilesDir(), nomeFicheiro);
+        if (imgFile.exists()) {
+            Bitmap myBitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+            imgPerfilTopo.setImageBitmap(myBitmap);
+        } else {
+            imgPerfilTopo.setImageResource(R.drawable.ecotrack_logo);
         }
     }
 
@@ -325,8 +342,8 @@ public class MenuPrincipal extends BaseActivity {
 
     // Classe interna para representar uma casa no spinner
     static class CasaItem {
-        private int id;
-        private String nome;
+        private final int id;
+        private final String nome;
 
         CasaItem(int id, String nome) {
             this.id = id;

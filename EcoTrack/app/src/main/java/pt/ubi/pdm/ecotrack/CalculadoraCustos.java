@@ -79,7 +79,6 @@ public class CalculadoraCustos extends BaseActivity {
     }
 
     private void carregarConsumoAtual() {
-        // ✅ CORRIGIDO: Usar dados ESPECÍFICOS DA CASA SELECIONADA
         double consumoMes = dbHelper.calcularMediaConsumosPorCasa(1, casaIdAtual);
         if (consumoMes > 0) {
             tvConsumoAtual.setText(String.format("%.1f kWh", consumoMes));

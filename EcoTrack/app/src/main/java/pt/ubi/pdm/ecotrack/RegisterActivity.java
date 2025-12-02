@@ -10,25 +10,32 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import pt.ubi.pdm.ecotrack.api.ApiClient;
+import pt.ubi.pdm.ecotrack.api.ApiService;
+import pt.ubi.pdm.ecotrack.models.RegisterRequest;
+import pt.ubi.pdm.ecotrack.models.UserResponse;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class RegisterActivity extends AppCompatActivity {
 
     private EditText etNomeCompleto, etEmail, etNif, etPassword, etConfirmacaoPassword;
     private Button btnCriarConta, btnJaTenhoConta;
 
-    private FirebaseAuth mAuth;
     private DBHelper dbHelper;
+    private ApiService apiService;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.layout);   // nome do teu XML
+        setContentView(R.layout.layout);   // mantém o teu XML aqui
 
-        // Firebase + SQLite
-        mAuth = FirebaseAuth.getInstance();
+        // BD local
         dbHelper = new DBHelper(this);
+
+        // API remota (MariaDB)
+        apiService = ApiClient.getRetrofit().create(ApiService.class);
 
         // Ligação às views
         etNomeCompleto = findViewById(R.id.NomeCompleto);
@@ -43,12 +50,12 @@ public class RegisterActivity extends AppCompatActivity {
         // Botão "Criar Conta"
         btnCriarConta.setOnClickListener(v -> tentarRegistar());
 
-        // Botão "Já tenho conta? Fazer login"
+        // Botão "Já tenho conta"
         btnJaTenhoConta.setOnClickListener(v -> {
-            // Volta ao ecrã de login
-            finish();   // se vieres do MainActivity, isto chega
-            // ou, se quiseres garantir:
-            // startActivity(new Intent(this, MainActivity.class));
+            // volta ao ecrã de login
+            finish();
+            // ou se tiveres um LoginActivity específico:
+            // startActivity(new Intent(this, LoginActivity.class));
         });
     }
 
@@ -85,34 +92,62 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // criar conta no Firebase
         btnCriarConta.setEnabled(false);
 
-        mAuth.createUserWithEmailAndPassword(email, pass)
-                .addOnCompleteListener(this, task -> {
-                    btnCriarConta.setEnabled(true);
+        // objeto de pedido para a API
+        RegisterRequest request = new RegisterRequest(
+                email,
+                pass,
+                nome,
+                nif,
+                0.20,
+                "cliente"
+        );
 
-                    if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        if (user != null) {
-                            String uid = user.getUid();
-                            String mail = user.getEmail() != null ? user.getEmail() : email;
+        apiService.register(request).enqueue(new Callback<UserResponse>() {
+            @Override
+            public void onResponse(Call<UserResponse> call, Response<UserResponse> response) {
+                btnCriarConta.setEnabled(true);
 
-                            // guarda utilizador no SQLite (nome + email + uid)
-                            dbHelper.saveOrUpdateUser(uid, mail, nome);
+                if (response.isSuccessful() && response.body() != null) {
+                    UserResponse user = response.body();
 
-                            Toast.makeText(this, "Conta criada com sucesso!", Toast.LENGTH_SHORT).show();
 
-                            // Vai para o login ou para o ecrã principal
-                            startActivity(new Intent(this, MainActivity.class));
-                            finish();
-                        }
-                    } else {
-                        Toast.makeText(this,
-                                "Erro ao criar conta: " +
-                                        (task.getException() != null ? task.getException().getMessage() : ""),
-                                Toast.LENGTH_LONG).show();
-                    }
-                });
+                    // criar hash offline para login sem internet
+                    String offlineHash = org.mindrot.jbcrypt.BCrypt.hashpw(
+                            pass,
+                            org.mindrot.jbcrypt.BCrypt.gensalt()
+                    );
+
+                // guardar utilizador na BD local já sincronizado com o servidor
+                    dbHelper.saveOrUpdateUser(
+                            String.valueOf(user.getId()),
+                            user.getEmail(),
+                            user.getName(),
+                            user.getPreco_kwh(),
+                            user.getTipo(),
+                            offlineHash
+                    );
+
+                    Toast.makeText(RegisterActivity.this, "Conta criada com sucesso!", Toast.LENGTH_SHORT).show();
+
+                    // ir para o ecrã principal (ou login, como preferires)
+                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                    finish();
+                } else {
+                    Toast.makeText(RegisterActivity.this,
+                            "Erro ao criar conta (email já registado ou dados inválidos).",
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<UserResponse> call, Throwable t) {
+                btnCriarConta.setEnabled(true);
+                Toast.makeText(RegisterActivity.this,
+                        "Erro de ligação ao servidor: " + t.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 }

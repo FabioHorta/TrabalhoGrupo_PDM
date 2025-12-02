@@ -14,10 +14,8 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-// IMPORTANTE:
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
-import com.google.firebase.auth.FirebaseAuth;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -30,6 +28,10 @@ import java.util.List;
 import java.util.Map;
 
 public class CaracterizacaoCasa extends AppCompatActivity {
+
+    private DBHelper dbHelper;
+    private String userEmail;
+    private int casaId = -1;
 
     private EditText etNomeCasa;
     private MaterialAutoCompleteTextView acDistrito, acCidade, acFreguesia;
@@ -53,26 +55,33 @@ public class CaracterizacaoCasa extends AppCompatActivity {
     private Map<String, List<String>> mapDistritoConcelhos = new HashMap<>();
     private Map<String, List<String>> mapConcelhoFreguesias = new HashMap<>();
 
-    DBHelper dbHelper;
-    String userEmail;
-    int casaId = -1;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_caracterizacao_casa);
 
         dbHelper = new DBHelper(this);
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            userEmail = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+
+        // Buscar email da sessão local
+        userEmail = getSharedPreferences("auth", MODE_PRIVATE)
+                .getString("user_email", null);
+
+        if (userEmail == null) {
+            Toast.makeText(this, "Sessão expirada. Faz login novamente.", Toast.LENGTH_SHORT).show();
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+            return;
         }
+
         casaId = getIntent().getIntExtra("casa_id", -1);
 
         carregarDadosPortugal();
         initViews();
         configurarDropdowns();
 
-        if (casaId != -1) carregarDadosExistentes(casaId);
+        if (casaId != -1) {
+            carregarDadosExistentes(casaId);
+        }
     }
 
     private void initViews() {
@@ -85,8 +94,10 @@ public class CaracterizacaoCasa extends AppCompatActivity {
 
         btnApt = findViewById(R.id.btnApartamento);
         btnMoradia = findViewById(R.id.btnMoradia);
-        iconApt = findViewById(R.id.iconApt); iconMoradia = findViewById(R.id.iconMoradia);
-        txtApt = findViewById(R.id.txtApt); txtMoradia = findViewById(R.id.txtMoradia);
+        iconApt = findViewById(R.id.iconApt);
+        iconMoradia = findViewById(R.id.iconMoradia);
+        txtApt = findViewById(R.id.txtApt);
+        txtMoradia = findViewById(R.id.txtMoradia);
 
         btnApt.setOnClickListener(v -> selectCustomTipo("Apartamento"));
         btnMoradia.setOnClickListener(v -> selectCustomTipo("Moradia"));
@@ -101,7 +112,7 @@ public class CaracterizacaoCasa extends AppCompatActivity {
         int[] idsPessoas = {R.id.btnP1, R.id.btnP2, R.id.btnP3, R.id.btnP4, R.id.btnP5};
         for (int i = 0; i < 5; i++) {
             btnPessoas[i] = findViewById(idsPessoas[i]);
-            int q=i+1;
+            int q = i + 1;
             btnPessoas[i].setOnClickListener(v -> selectPessoas(q));
         }
 
@@ -130,9 +141,23 @@ public class CaracterizacaoCasa extends AppCompatActivity {
         txtMoradia.setTextColor(!isApt ? Color.parseColor("#4CAF50") : Color.parseColor("#555555"));
     }
 
-    private void selectUso(String v, MaterialButton s, MaterialButton o) { selUso = v; highlight(s); reset(o); }
-    private void selectPessoas(int q) { selPessoas = q; for(MaterialButton b:btnPessoas) reset(b); highlight(btnPessoas[q-1]); }
-    private void selectAno(MaterialButton s) { selAno = s.getText().toString(); for(MaterialButton b:btnAnos) reset(b); highlight(s); }
+    private void selectUso(String v, MaterialButton s, MaterialButton o) {
+        selUso = v;
+        highlight(s);
+        reset(o);
+    }
+
+    private void selectPessoas(int q) {
+        selPessoas = q;
+        for (MaterialButton b : btnPessoas) reset(b);
+        highlight(btnPessoas[q - 1]);
+    }
+
+    private void selectAno(MaterialButton s) {
+        selAno = s.getText().toString();
+        for (MaterialButton b : btnAnos) reset(b);
+        highlight(s);
+    }
 
     // --- MUDAR A COR DO BOTÃO ---
     private void highlight(MaterialButton b) {
@@ -149,11 +174,31 @@ public class CaracterizacaoCasa extends AppCompatActivity {
 
     private void guardarEAvancar() {
         String nome = etNomeCasa.getText().toString();
+
         if (nome.isEmpty() || selTipo.isEmpty() || selUso.isEmpty() || selPessoas == 0) {
-            Toast.makeText(this, "Preencha todos os campos.", Toast.LENGTH_SHORT).show(); return;
+            Toast.makeText(this, "Preencha todos os campos.", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        int novoId = dbHelper.guardarCasaCompleta(casaId, userEmail, nome, selTipo, selUso, selPessoas, selAno, etMorada.getText().toString(), acDistrito.getText().toString(), acCidade.getText().toString(), acFreguesia.getText().toString(), etCodPostal.getText().toString());
+        if (userEmail == null) {
+            Toast.makeText(this, "Erro: utilizador não autenticado.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        int novoId = dbHelper.guardarCasaCompleta(
+                casaId,
+                userEmail,
+                nome,
+                selTipo,
+                selUso,
+                selPessoas,
+                selAno,
+                etMorada.getText().toString(),
+                acDistrito.getText().toString(),
+                acCidade.getText().toString(),
+                acFreguesia.getText().toString(),
+                etCodPostal.getText().toString()
+        );
 
         if (novoId != -1) {
             Intent i = new Intent(CaracterizacaoCasa.this, Eletrodomesticos.class);
@@ -166,13 +211,87 @@ public class CaracterizacaoCasa extends AppCompatActivity {
     }
 
     // --- JSON ---
-    private void carregarDadosPortugal() { try { InputStream is = getAssets().open("portugal_db.json"); int size = is.available(); byte[] buffer = new byte[size]; is.read(buffer); is.close(); String json = new String(buffer, "UTF-8"); JSONArray jsonArray = new JSONArray(json); String distritoAtual = "", concelhoAtual = ""; for (int i = 0; i < jsonArray.length(); i++) { JSONObject obj = jsonArray.getJSONObject(i); int level = obj.optInt("level", 0); String nome = obj.getString("name"); if (level == 1) { distritoAtual = nome; listaDistritos.add(nome); mapDistritoConcelhos.put(distritoAtual, new ArrayList<>()); } else if (level == 2) { concelhoAtual = nome; if (!distritoAtual.isEmpty()) mapDistritoConcelhos.get(distritoAtual).add(nome); mapConcelhoFreguesias.put(distritoAtual + "_" + concelhoAtual, new ArrayList<>()); } else if (level == 3) { if (!distritoAtual.isEmpty() && !concelhoAtual.isEmpty()) mapConcelhoFreguesias.get(distritoAtual + "_" + concelhoAtual).add(nome); } } Collections.sort(listaDistritos); } catch (Exception e) {} }
+    private void carregarDadosPortugal() {
+        try {
+            InputStream is = getAssets().open("portugal_db.json");
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+
+            String json = new String(buffer, "UTF-8");
+            JSONArray jsonArray = new JSONArray(json);
+
+            String distritoAtual = "";
+            String concelhoAtual = "";
+
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject obj = jsonArray.getJSONObject(i);
+                int level = obj.optInt("level", 0);
+                String nome = obj.getString("name");
+
+                if (level == 1) {
+                    distritoAtual = nome;
+                    listaDistritos.add(nome);
+                    mapDistritoConcelhos.put(distritoAtual, new ArrayList<>());
+                } else if (level == 2) {
+                    concelhoAtual = nome;
+                    if (!distritoAtual.isEmpty()) {
+                        mapDistritoConcelhos.get(distritoAtual).add(nome);
+                    }
+                    mapConcelhoFreguesias.put(distritoAtual + "_" + concelhoAtual, new ArrayList<>());
+                } else if (level == 3) {
+                    if (!distritoAtual.isEmpty() && !concelhoAtual.isEmpty()) {
+                        mapConcelhoFreguesias.get(distritoAtual + "_" + concelhoAtual).add(nome);
+                    }
+                }
+            }
+
+            Collections.sort(listaDistritos);
+        } catch (Exception e) {
+            // podes fazer log se quiseres
+        }
+    }
 
     private void configurarDropdowns() {
-        ArrayAdapter<String> adp = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, listaDistritos);
+        ArrayAdapter<String> adp = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                listaDistritos
+        );
         acDistrito.setAdapter(adp);
-        acDistrito.setOnItemClickListener((p, v, pos, id) -> { String d = adp.getItem(pos); acCidade.setText("", false); acFreguesia.setText("", false); List<String> l = mapDistritoConcelhos.get(d); if(l!=null){Collections.sort(l); acCidade.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, l));} });
-        acCidade.setOnItemClickListener((p, v, pos, id) -> { String d = acDistrito.getText().toString(); String c = p.getItemAtPosition(pos).toString(); acFreguesia.setText("", false); List<String> l = mapConcelhoFreguesias.get(d+"_"+c); if(l!=null){Collections.sort(l); acFreguesia.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, l));} });
+
+        acDistrito.setOnItemClickListener((p, v, pos, id) -> {
+            String d = adp.getItem(pos);
+            acCidade.setText("", false);
+            acFreguesia.setText("", false);
+
+            List<String> l = mapDistritoConcelhos.get(d);
+            if (l != null) {
+                Collections.sort(l);
+                acCidade.setAdapter(new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_dropdown_item_1line,
+                        l
+                ));
+            }
+        });
+
+        acCidade.setOnItemClickListener((p, v, pos, id) -> {
+            String d = acDistrito.getText().toString();
+            String c = p.getItemAtPosition(pos).toString();
+
+            acFreguesia.setText("", false);
+            List<String> l = mapConcelhoFreguesias.get(d + "_" + c);
+            if (l != null) {
+                Collections.sort(l);
+                acFreguesia.setAdapter(new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_dropdown_item_1line,
+                        l
+                ));
+            }
+        });
     }
 
     private void carregarDadosExistentes(int id) {
@@ -187,17 +306,34 @@ public class CaracterizacaoCasa extends AppCompatActivity {
             acFreguesia.setText(c.getString(c.getColumnIndexOrThrow(DBHelper.C_CASA_FREGUESIA)), false);
 
             String tipo = c.getString(c.getColumnIndexOrThrow(DBHelper.C_CASA_TIPO));
-            if ("Apartamento".equals(tipo)) selectCustomTipo("Apartamento"); else selectCustomTipo("Moradia");
+            if ("Apartamento".equals(tipo)) {
+                selectCustomTipo("Apartamento");
+            } else {
+                selectCustomTipo("Moradia");
+            }
 
             String uso = c.getString(c.getColumnIndexOrThrow(DBHelper.C_CASA_USO));
-            if ("Permanente".equals(uso)) btnPerm.performClick(); else btnSazonal.performClick();
+            if ("Permanente".equals(uso)) {
+                btnPerm.performClick();
+            } else {
+                btnSazonal.performClick();
+            }
 
             int p = c.getInt(c.getColumnIndexOrThrow(DBHelper.C_CASA_PESSOAS));
-            if (p >= 1 && p <= 5) selectPessoas(p);
+            if (p >= 1 && p <= 5) {
+                selectPessoas(p);
+            }
 
             String a = c.getString(c.getColumnIndexOrThrow(DBHelper.C_CASA_ANO));
-            selAno = a; for(MaterialButton b : btnAnos) if(b.getText().toString().equals(a)) highlight(b);
+            selAno = a;
+            for (MaterialButton b : btnAnos) {
+                if (b.getText().toString().equals(a)) {
+                    highlight(b);
+                }
+            }
         }
-        if (c != null) c.close();
+        if (c != null) {
+            c.close();
+        }
     }
 }
