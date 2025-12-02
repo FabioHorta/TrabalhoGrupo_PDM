@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/nav_home"
+        android:icon="@drawable/ic_home"
+        android:title="Início" />
+
+    <item
+        android:id="@+id/nav_leituras"
+        android:icon="@drawable/ic_leituras"
+        android:title="Leituras" />
+
+    <item
+        android:id="@+id/nav_simulador"
+        android:icon="@drawable/ic_simulador"
+        android:title="Simulador" />
+
+    <item
+        android:id="@+id/nav_alertas"
+        android:icon="@drawable/ic_alertas"
+        android:title="Alertas" />
+
+
+</menu>
