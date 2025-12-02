@@ -13,7 +13,7 @@ import java.util.Map;
 public class DBHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "ecotrack.db";
-    private static final int DB_VERSION = 3;
+    private static final int DB_VERSION = 5;
 
     // Thresholds percentuais
     public static final double LIMITE_PERCENTUAL_SUP = 40.0;
@@ -26,7 +26,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String C_USER_EMAIL = "email";
     public static final String C_USER_NAME = "name";
     public static final String C_USER_PRECO_KWH = "preco_kwh";
-
+    public static final String C_USER_TIPO = "tipo";
     public static final String T_LEITURAS = "leituras";
     public static final String C_LEITURA_ID = "id";
     public static final String C_LEITURA_DATA = "data";
@@ -76,6 +76,15 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String C_APP_CATEGORIA = "categoria";
     public static final String C_APP_QUANTIDADE = "qtd";
 
+    // --- TABELA MENSAGENS CHAT (tipo WhatsApp) ---
+    public static final String T_MENSAGENS_CHAT = "mensagens_chat";
+    public static final String C_MSG_ID = "id";
+    public static final String C_MSG_REMETENTE = "remetente_email";
+    public static final String C_MSG_DESTINATARIO = "destinatario_email";
+    public static final String C_MSG_TEXTO = "texto";
+    public static final String C_MSG_TS = "timestamp";
+
+
 
 
     public DBHelper(Context ctx) {
@@ -89,7 +98,9 @@ public class DBHelper extends SQLiteOpenHelper {
                 C_USER_UID + " TEXT UNIQUE, " +
                 C_USER_EMAIL + " TEXT UNIQUE NOT NULL, " +
                 C_USER_NAME + " TEXT, " +
-                C_USER_PRECO_KWH + " REAL DEFAULT 0.20)");
+                C_USER_PRECO_KWH + " REAL DEFAULT 0.20, " +
+                C_USER_TIPO + " TEXT DEFAULT 'cliente')"
+        );
         db.execSQL("CREATE TABLE " + T_LEITURAS + " (" +
                 C_LEITURA_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 C_LEITURA_DATA + " TEXT NOT NULL, " +
@@ -157,7 +168,17 @@ public class DBHelper extends SQLiteOpenHelper {
                 "data TEXT, " +
                 "hora TEXT, " +
                 "descricao TEXT, " +
-                "feedback TEXT)");
+                "feedback TEXT, " +
+                "tecnico_email TEXT)");
+
+        db.execSQL("CREATE TABLE " + T_MENSAGENS_CHAT + " (" +
+                C_MSG_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                C_MSG_REMETENTE + " TEXT NOT NULL, " +
+                C_MSG_DESTINATARIO + " TEXT NOT NULL, " +
+                C_MSG_TEXTO + " TEXT NOT NULL, " +
+                C_MSG_TS + " INTEGER" +
+                ")");
+
     }
 
     @Override
@@ -166,8 +187,12 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + T_LEITURAS);
         db.execSQL("DROP TABLE IF EXISTS " + T_MEDIA_CONSUMOS);
         db.execSQL("DROP TABLE IF EXISTS " + T_CONSUMOS_ANALISADOS);
+        db.execSQL("DROP TABLE IF EXISTS " + T_CASAS);
+        db.execSQL("DROP TABLE IF EXISTS " + T_ELETRODOMESTICOS);
         db.execSQL("DROP TABLE IF EXISTS mensagens_suporte");
         db.execSQL("DROP TABLE IF EXISTS assistencias");
+        db.execSQL("DROP TABLE IF EXISTS " + T_MENSAGENS_CHAT);
+
         onCreate(db);
     }
 
@@ -199,6 +224,21 @@ public class DBHelper extends SQLiteOpenHelper {
         try {
             if (c.moveToFirst()) return c.getLong(0);
             return -1;
+        } finally {
+            c.close();
+        }
+    }
+
+    public String obterTipoUtilizadorPorEmail(String email) {
+        Cursor c = getReadableDatabase().rawQuery(
+                "SELECT " + C_USER_TIPO + " FROM " + T_USERS + " WHERE " + C_USER_EMAIL + " = ?",
+                new String[]{email});
+        try {
+            if (c.moveToFirst()) {
+                return c.getString(0);
+            } else {
+                return "cliente"; // por omissão
+            }
         } finally {
             c.close();
         }
@@ -466,17 +506,50 @@ public class DBHelper extends SQLiteOpenHelper {
         return db.rawQuery("SELECT * FROM mensagens_suporte ORDER BY id DESC", null);
     }
 
-    // Inserir assistência técnica
-    public boolean inserirAssistencia(String data, String hora, String descricao) {
+    // Inserir assistência técnica com técnico associado
+    public boolean inserirAssistencia(String data, String hora, String descricao, String tecnicoEmail) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put("data", data);
         cv.put("hora", hora);
         cv.put("descricao", descricao);
         cv.put("feedback", "Pendente");
+        cv.put("tecnico_email", tecnicoEmail);
         long r = db.insert("assistencias", null, cv);
         return r != -1;
     }
+
+    // Verifica se já existe assistência NO MESMO SLOT para ESTE técnico
+    public boolean existeAssistenciaNoSlot(String data, String hora, String tecnicoEmail) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(
+                "SELECT id FROM assistencias WHERE data = ? AND hora = ? AND tecnico_email = ?",
+                new String[]{data, hora, tecnicoEmail}
+        );
+        boolean existe = c.moveToFirst();
+        c.close();
+        return existe;
+    }
+    // Devolve todos os utilizadores que têm tipo = 'tecnico'
+    public Cursor listarTecnicos() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery(
+                "SELECT " + C_USER_EMAIL + " FROM " + T_USERS +
+                        " WHERE " + C_USER_TIPO + " = 'tecnico'",
+                null
+        );
+    }
+
+    // Assistências apenas de um técnico específico
+    public Cursor listarAssistenciasDoTecnico(String tecnicoEmail) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery(
+                "SELECT * FROM assistencias WHERE tecnico_email = ? ORDER BY id DESC",
+                new String[]{tecnicoEmail}
+        );
+    }
+
+
 
     // Listar assistências + feedback
     public Cursor listarAssistencias() {
@@ -533,6 +606,64 @@ public class DBHelper extends SQLiteOpenHelper {
     public Cursor obterEletrodomesticosDaCasa(int casaId) {
         return getReadableDatabase().rawQuery("SELECT * FROM " + T_ELETRODOMESTICOS + " WHERE " + C_APP_CASA_ID + " = ?", new String[]{String.valueOf(casaId)});
     }
+
+    // ---------- CHAT UTILIZADOR <-> TÉCNICO ----------
+
+    // Inserir mensagem no chat
+// -------- CHAT: INSERIR MENSAGEM --------
+    public boolean inserirMensagemChat(String remetenteEmail, String destinatarioEmail, String texto) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(C_MSG_REMETENTE, remetenteEmail);
+        cv.put(C_MSG_DESTINATARIO, destinatarioEmail);
+        cv.put(C_MSG_TEXTO, texto);
+        cv.put(C_MSG_TS, System.currentTimeMillis());
+        long r = db.insert(T_MENSAGENS_CHAT, null, cv);
+        return r != -1;
+    }
+
+
+    // -------- CHAT: TODAS AS MENSAGENS DESTE UTILIZADOR (CLIENTE) --------
+    public Cursor listarMensagensDoUtilizador(String email) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery(
+                "SELECT * FROM " + T_MENSAGENS_CHAT +
+                        " WHERE " + C_MSG_REMETENTE + " = ? OR " + C_MSG_DESTINATARIO + " = ? " +
+                        " ORDER BY " + C_MSG_TS + " ASC",
+                new String[]{email, email}
+        );
+    }
+
+
+    // -------- CHAT: CONVERSA ENTRE DUAS PESSOAS (CLIENTE <-> TÉCNICO) --------
+    public Cursor listarMensagensEntre(String email1, String email2) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery(
+                "SELECT * FROM " + T_MENSAGENS_CHAT +
+                        " WHERE (" + C_MSG_REMETENTE + " = ? AND " + C_MSG_DESTINATARIO + " = ?) " +
+                        "    OR (" + C_MSG_REMETENTE + " = ? AND " + C_MSG_DESTINATARIO + " = ?) " +
+                        " ORDER BY " + C_MSG_TS + " ASC",
+                new String[]{email1, email2, email2, email1}
+        );
+    }
+
+    // -------- CHAT: LISTA DE CLIENTES QUE FALARAM COM ESTE TÉCNICO --------
+    public Cursor listarClientesDoTecnicoNoChat(String tecnicoEmail) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        // devolve os emails dos clientes distintos que tenham mensagens com este técnico
+        return db.rawQuery(
+                "SELECT DISTINCT " +
+                        "CASE " +
+                        " WHEN " + C_MSG_REMETENTE + " = ? THEN " + C_MSG_DESTINATARIO +
+                        " ELSE " + C_MSG_REMETENTE +
+                        " END AS cliente_email " +
+                        "FROM " + T_MENSAGENS_CHAT +
+                        " WHERE " + C_MSG_REMETENTE + " = ? OR " + C_MSG_DESTINATARIO + " = ?",
+                new String[]{tecnicoEmail, tecnicoEmail, tecnicoEmail}
+        );
+    }
+
 
 
 }

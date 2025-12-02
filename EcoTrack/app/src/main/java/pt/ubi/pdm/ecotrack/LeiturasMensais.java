@@ -20,7 +20,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class LeiturasMensais extends AppCompatActivity {
+public class LeiturasMensais extends BaseActivity {
+
 
     private TextView tvLeituraAnterior, tvResultado;
     private EditText etNovaLeitura;
@@ -65,7 +66,7 @@ public class LeiturasMensais extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_leituras_mensais);
-
+        setupBottomNav(R.id.nav_leituras);
         dbHelper = new DBHelper(this);
 
         ligarViews();
@@ -102,6 +103,9 @@ public class LeiturasMensais extends AppCompatActivity {
             } else {
                 tvLeituraAnterior.setText("Ainda não existem leituras anteriores.");
             }
+        }
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.nav_leituras);
         }
     }
 

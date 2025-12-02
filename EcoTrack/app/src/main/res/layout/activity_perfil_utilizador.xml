@@ -126,6 +126,7 @@
             android:textStyle="bold"
             android:textSize="16sp"
             app:cornerRadius="15dp"
+            app:icon="@android:drawable/ic_dialog_map"
             app:iconGravity="textStart"
             android:layout_marginBottom="24dp"/>
 

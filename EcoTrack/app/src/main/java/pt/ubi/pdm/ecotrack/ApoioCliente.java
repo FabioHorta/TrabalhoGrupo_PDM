@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class ApoioCliente extends AppCompatActivity {
 
-    Button btnAgendarAssistencia, btnEnviarMensagem, btnConsultarRelatorios;
+    Button btnAgendarAssistencia, btnEnviarMensagem, btnConsultarRelatorios,btnvoltar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,6 +18,7 @@ public class ApoioCliente extends AppCompatActivity {
         btnAgendarAssistencia = findViewById(R.id.btnAgendarAssistencia);
         btnEnviarMensagem = findViewById(R.id.btnEnviarMensagem);
         btnConsultarRelatorios = findViewById(R.id.btnConsultarRelatorios);
+        btnvoltar = findViewById(R.id.voltar);
 
         btnAgendarAssistencia.setOnClickListener(v -> {
             Intent intent = new Intent(ApoioCliente.this, AgendarAssistencia.class);
@@ -25,7 +26,7 @@ public class ApoioCliente extends AppCompatActivity {
         });
 
         btnEnviarMensagem.setOnClickListener(v -> {
-            Intent intent = new Intent(ApoioCliente.this, EnviarMensagem.class);
+            Intent intent = new Intent(ApoioCliente.this, ChatClienteActivity.class);
             startActivity(intent);
         });
 
@@ -33,5 +34,10 @@ public class ApoioCliente extends AppCompatActivity {
             Intent intent = new Intent(ApoioCliente.this, Relatorios.class);
             startActivity(intent);
         });
+        btnvoltar.setOnClickListener(v -> {
+            Intent intent = new Intent(ApoioCliente.this, MenuPrincipal.class);
+            startActivity(intent);
+        });
+
     }
 }

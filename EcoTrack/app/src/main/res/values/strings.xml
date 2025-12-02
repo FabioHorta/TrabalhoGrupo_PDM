@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">layout1.0</string>
+    <string name="app_name">EcoTrack</string>
+    <string name="tecnico">Técnico</string>
 </resources>

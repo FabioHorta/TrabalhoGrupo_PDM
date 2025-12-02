@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             fazerLoginFirebase(email, password);
+
         });
 
         // Clique em "Criar conta" (depois criamos uma RegisterActivity)
@@ -68,16 +69,26 @@ public class MainActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            // guardar no SQLite
                             String uid = user.getUid();
                             String mail = user.getEmail() != null ? user.getEmail() : email;
-                            String nome = user.getDisplayName(); // pode vir null, não faz mal
+                            String nome = user.getDisplayName();
 
+                            // guarda / atualiza no SQLite
                             dbHelper.saveOrUpdateUser(uid, mail, nome);
+
+                            String tipo = dbHelper.obterTipoUtilizadorPorEmail(mail);
 
                             Toast.makeText(this, "Login feito com sucesso!", Toast.LENGTH_SHORT).show();
 
-                            Intent i = new Intent(MainActivity.this, MenuPrincipal.class);
+                            Intent i;
+                            if ("tecnico".equalsIgnoreCase(tipo)) {
+                                // técnico → HomeTecnico
+                                i = new Intent(MainActivity.this, HomeTecnico.class);
+                            } else {
+                                // resto → MenuPrincipal (utilizador normal)
+                                i = new Intent(MainActivity.this, MenuPrincipal.class);
+                            }
+
                             startActivity(i);
                             finish();
                         }

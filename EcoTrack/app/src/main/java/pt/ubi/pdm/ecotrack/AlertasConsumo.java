@@ -1,223 +1,110 @@
 package pt.ubi.pdm.ecotrack;
 
 import android.content.Intent;
-import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
+public class AlertasConsumo extends BaseActivity {
 
-public class AlertasConsumo extends AppCompatActivity {
+    private ImageView ivIconeAlerta;
+    private TextView tvTituloAlerta, tvMensagemAlerta, tvDica1, tvDica2, tvDica3;
+    private Button btnAgendarAssistencia, btnVoltarMenu;
 
     private DBHelper dbHelper;
-
-    // Views
-    private TextView tvTituloAlerta, tvMensagemAlerta, tvTituloSugestoes;
-    private TextView tvDica1, tvDica2, tvDica3;
-    private ImageView ivIconeAlerta;
-    private LinearLayout layoutSugestoes;
-    private Button btnAgendar, btnVoltar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_alertas_consumo);
 
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
+
         dbHelper = new DBHelper(this);
 
-        initViews();
-        analisarConsumoManual();
+        ligarViews();
+        preencherAnalise();
+        configurarClicks();
+
+        // bottom bar: marcar o separador Alertas
+        setupBottomNav(R.id.nav_alertas);
     }
 
-    private void initViews() {
+    private void ligarViews() {
+        ivIconeAlerta = findViewById(R.id.ivIconeAlerta);
         tvTituloAlerta = findViewById(R.id.tvTituloAlerta);
         tvMensagemAlerta = findViewById(R.id.tvMensagemAlerta);
-        ivIconeAlerta = findViewById(R.id.ivIconeAlerta);
-
-        tvTituloSugestoes = findViewById(R.id.tvTituloSugestoes);
-        layoutSugestoes = findViewById(R.id.layoutSugestoes);
-
         tvDica1 = findViewById(R.id.tvDica1);
         tvDica2 = findViewById(R.id.tvDica2);
         tvDica3 = findViewById(R.id.tvDica3);
-
-        btnAgendar = findViewById(R.id.btnAgendarAssistencia);
-        btnVoltar = findViewById(R.id.btnVoltarMenu);
-
-        // Inicialmente esconder elementos que só aparecem com dados
-        layoutSugestoes.setVisibility(View.GONE);
-        tvTituloSugestoes.setVisibility(View.GONE);
-        btnAgendar.setVisibility(View.GONE);
-
-        btnAgendar.setOnClickListener(v -> {
-            Intent intent = new Intent(AlertasConsumo.this, ApoioCliente.class);
-            startActivity(intent);
-        });
-
-        btnVoltar.setOnClickListener(v -> finish());
+        btnAgendarAssistencia = findViewById(R.id.btnAgendarAssistencia);
     }
 
-    private void analisarConsumoManual() {
-        android.database.Cursor cursor = null;
-        try {
-            cursor = dbHelper.obterHistoricoConsumosAnalisados(null);
-            if (cursor == null || !cursor.moveToFirst()) {
-                configurarAlerta(
-                        "Sem Dados",
-                        "Ainda não existem análises de consumo. Insira leituras em 'Leituras Mensais'.",
-                        Color.GRAY,
-                        android.R.drawable.ic_menu_info_details
-                );
-                layoutSugestoes.setVisibility(View.GONE);
-                tvTituloSugestoes.setVisibility(View.GONE);
-                btnAgendar.setVisibility(View.GONE);
-                return;
-            }
+    private void configurarClicks() {
 
-            int idxStatus = cursor.getColumnIndex(DBHelper.C_CONSUMO_ANALISADO_STATUS);
-            int idxPercentagem = cursor.getColumnIndex(DBHelper.C_CONSUMO_ANALISADO_PERCENTAGEM);
-            int idxConsumo = cursor.getColumnIndex(DBHelper.C_CONSUMO_ANALISADO_VALOR);
-            int idxMediaRef = cursor.getColumnIndex(DBHelper.C_CONSUMO_ANALISADO_MEDIA_REF);
-            int idxDataLeitura = cursor.getColumnIndex("data_leitura");
-            int idxValorLeitura = cursor.getColumnIndex("valor_leitura");
+        btnAgendarAssistencia.setOnClickListener(v ->
+                startActivity(new Intent(AlertasConsumo.this, AgendarAssistencia.class)));
+    }
 
-            if (idxStatus == -1 || idxPercentagem == -1 || idxConsumo == -1 || idxMediaRef == -1) {
-                configurarAlerta(
-                        "Erro",
-                        "Dados incompletos na análise.",
-                        Color.RED,
-                        android.R.drawable.ic_dialog_alert
-                );
-                layoutSugestoes.setVisibility(View.GONE);
-                tvTituloSugestoes.setVisibility(View.GONE);
-                btnAgendar.setVisibility(View.GONE);
-                return;
-            }
+    private void preencherAnalise() {
+        double consumoUltimo = dbHelper.calcularMediaConsumos(1);
+        double media6 = dbHelper.calcularMediaConsumos(6);
 
-            String status = cursor.getString(idxStatus);
-            double percentagem = cursor.getDouble(idxPercentagem);
-            double consumoAtual = cursor.getDouble(idxConsumo);
-            double mediaRef = cursor.getDouble(idxMediaRef);
-            String dataLeitura = idxDataLeitura != -1 ? cursor.getString(idxDataLeitura) : "N/A";
-            double valorLeitura = idxValorLeitura != -1 ? cursor.getDouble(idxValorLeitura) : 0;
+        if (consumoUltimo <= 0 || media6 <= 0) {
+            tvTituloAlerta.setText("Ainda sem dados suficientes");
+            tvMensagemAlerta.setText("Regista leituras para ativar a análise inteligente.");
+            ivIconeAlerta.setColorFilter(0xFF1976D2, PorterDuff.Mode.SRC_IN);
 
-            // --- Decidir alerta com base no status ---
-            if ("ALTO".equals(status)) {
-                configurarAlerta(
-                        "🚨 ALERTA CRÍTICO!",
-                        String.format("Aumento de %.0f%%! Verifique possíveis fugas ou avarias.\n\n📅 Leitura: %s\n🔢 Valor: %.1f kWh",
-                                percentagem, dataLeitura, valorLeitura),
-                        Color.parseColor("#D32F2F"),
-                        android.R.drawable.ic_dialog_alert
-                );
-                mostrarDicas(
-                        "Faça um teste de fuga no quadro elétrico.",
-                        "Verifique cabos e ligações junto ao contador.",
-                        "Verifique se algum eletrodoméstico está a aquecer ou fazer ruído estranho."
-                );
-                btnAgendar.setVisibility(View.VISIBLE);
+            tvDica1.setText("Garante que registas pelo menos 2 leituras em momentos diferentes.");
+            tvDica2.setText("Tira foto do contador sempre com boa iluminação.");
+            tvDica3.setText("Assim que houver histórico suficiente, iremos alertar sobre consumos anormais.");
+            return;
+        }
 
-            } else if ("BAIXO".equals(status)) {
-                configurarAlerta(
-                        "✅ Excelente!",
-                        String.format("Poupança de %.1f%% em relação à média!\n\n📅 Leitura: %s\n🔢 Valor: %.1f kWh",
-                                Math.abs(percentagem), dataLeitura, valorLeitura),
-                        Color.parseColor("#388E3C"),
-                        android.R.drawable.ic_input_add
-                );
-                mostrarDicas(
-                        "Continue a monitorizar o seu consumo.",
-                        "Isole portas e janelas para manter o calor.",
-                        "Partilhe estas boas práticas com a família."
-                );
-                tvTituloSugestoes.setText("Dicas para manter:");
-                btnAgendar.setVisibility(View.GONE);
+        double diffPercent = ((consumoUltimo - media6) / media6) * 100.0;
 
-            } else { // NORMAL
-                if (percentagem >= 20.0) {
-                    configurarAlerta(
-                            "⚠️ Consumo Elevado",
-                            String.format("Gastou cerca de %.0f%% a mais que o habitual.\n\n📅 Leitura: %s\n🔢 Valor: %.1f kWh",
-                                    percentagem, dataLeitura, valorLeitura),
-                            Color.parseColor("#FF9800"),
-                            android.R.drawable.stat_notify_error
-                    );
-                    mostrarDicas(
-                            "Reduza o uso de aquecedores e ar condicionado.",
-                            "Evite deixar equipamentos em standby.",
-                            "Use máquinas de lavar nas horas de vazio."
-                    );
-                    btnAgendar.setVisibility(View.GONE);
+        if (diffPercent > DBHelper.LIMITE_PERCENTUAL_SUP) {
+            tvTituloAlerta.setText("Consumo acima do normal");
+            tvMensagemAlerta.setText(String.format(
+                    "O último período está cerca de %.1f%% acima da média dos últimos meses.",
+                    diffPercent
+            ));
+            ivIconeAlerta.setColorFilter(0xFFD32F2F, PorterDuff.Mode.SRC_IN);
 
-                } else if (percentagem > 0) {
-                    configurarAlerta(
-                            "📈 Ligeiro Aumento",
-                            String.format("O consumo subiu %.1f%% face à média.\n\n📅 Leitura: %s\n🔢 Valor: %.1f kWh",
-                                    percentagem, dataLeitura, valorLeitura),
-                            Color.parseColor("#FBC02D"),
-                            android.R.drawable.ic_menu_sort_by_size
-                    );
-                    mostrarDicas(
-                            "Substitua lâmpadas por LEDs.",
-                            "Tape as panelas ao cozinhar.",
-                            "Desligue carregadores da tomada."
-                    );
-                    btnAgendar.setVisibility(View.GONE);
+            tvDica1.setText("Verifica se algum equipamento ficou ligado mais tempo do que o habitual.");
+            tvDica2.setText("Confirma se não há avarias em aquecedores, ar condicionado ou termoacumulador.");
+            tvDica3.setText("Se a situação se mantiver, considera agendar uma assistência técnica.");
+        } else if (diffPercent < DBHelper.LIMITE_PERCENTUAL_INF) {
+            tvTituloAlerta.setText("Boa eficiência energética");
+            tvMensagemAlerta.setText(String.format(
+                    "O último período está cerca de %.1f%% abaixo da média. Continua assim!",
+                    Math.abs(diffPercent)
+            ));
+            ivIconeAlerta.setColorFilter(0xFF388E3C, PorterDuff.Mode.SRC_IN);
 
-                } else {
-                    configurarAlerta(
-                            "✅ Bom Trabalho!",
-                            String.format("Poupança de %.1f%% em relação à média!\n\n📅 Leitura: %s\n🔢 Valor: %.1f kWh",
-                                    Math.abs(percentagem), dataLeitura, valorLeitura),
-                            Color.parseColor("#388E3C"),
-                            android.R.drawable.ic_input_add
-                    );
-                    mostrarDicas(
-                            "Continue a monitorizar o seu consumo.",
-                            "Isole portas e janelas para manter o calor.",
-                            "Partilhe estas boas práticas com a família."
-                    );
-                    tvTituloSugestoes.setText("Dicas para manter:");
-                    btnAgendar.setVisibility(View.GONE);
-                }
-            }
+            tvDica1.setText("Mantém os hábitos que ajudaram a reduzir o consumo.");
+            tvDica2.setText("Podes comparar os períodos no histórico de leituras.");
+            tvDica3.setText("Explora o simulador para ver quanto podes poupar a longo prazo.");
+        } else {
+            tvTituloAlerta.setText("Consumo estável");
+            tvMensagemAlerta.setText("O último período está dentro da normalidade face à média.");
+            ivIconeAlerta.setColorFilter(0xFFFFA000, PorterDuff.Mode.SRC_IN);
 
-        } catch (android.database.sqlite.SQLiteException e) {
-            Toast.makeText(this, "Erro ao aceder à base de dados.", Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
-        } catch (RuntimeException e) {
-            Toast.makeText(this, "Erro ao processar os dados.", Toast.LENGTH_SHORT).show();
-            e.printStackTrace();
-        } finally {
-            if (cursor != null && !cursor.isClosed()) {
-                cursor.close();
-            }
+            tvDica1.setText("Continua a registar leituras regularmente para manter o controlo.");
+            tvDica2.setText("Analisa os períodos com maior consumo e tenta evitar picos.");
+            tvDica3.setText("Se notar alterações inesperadas, volta a consultar esta análise.");
         }
     }
 
-    // Define a estética dos alertas
-    private void configurarAlerta(String titulo, String msg, int cor, int iconRes) {
-        tvTituloAlerta.setText(titulo);
-        tvTituloAlerta.setTextColor(cor);
-        tvMensagemAlerta.setText(msg);
-        ivIconeAlerta.setImageResource(iconRes);
-        ivIconeAlerta.setColorFilter(cor);
-        tvTituloAlerta.setVisibility(View.VISIBLE);
-        tvMensagemAlerta.setVisibility(View.VISIBLE);
-        ivIconeAlerta.setVisibility(View.VISIBLE);
-    }
-
-    // Coloca as sugestões visíveis e define o texto das dicas
-    private void mostrarDicas(String d1, String d2, String d3) {
-        layoutSugestoes.setVisibility(View.VISIBLE);
-        tvTituloSugestoes.setVisibility(View.VISIBLE);
-        tvDica1.setText(d1);
-        tvDica2.setText(d2);
-        tvDica3.setText(d3);
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setSelectedItemId(R.id.nav_alertas);
+        }
     }
 }
