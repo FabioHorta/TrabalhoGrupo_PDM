@@ -1,61 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Cores Base -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Gradientes Verdes -->
     <color name="green_start">#6ED16E</color>
-    <color name="green_midlle">#87BD87</color>
+    <color name="green_middle">#87BD87</color>
     <color name="green_end">#43AB46</color>
     <color name="green">#033705</color>
 
+    <!-- Cores Principais -->
+    <color name="colorPrimary">#2E7D5B</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
+    <color name="colorSecondary">#52644F</color>
+    <color name="colorOnSecondary">#FFFFFF</color>
 
-        <!-- Fundo e texto -->
-        <color name="background_beige">#FFFDF8</color>
-        <color name="text_primary">#2E2E2E</color>
-        <color name="text_secondary">#7A7A7A</color>
+    <!-- Fundo e Superfícies -->
+    <color name="background_beige">#FFFDF8</color>
+    <color name="colorSurface">#FAF7F2</color>
+    <color name="colorCard">#FFFFFF</color>
+    <color name="cardSurface">#FFFFFF</color>
+    <color name="cardStroke">#E2DDCF</color>
 
-        <!-- Tons pastel -->
-        <color name="pastel_lightgreen">#D7E8C1</color>
-        <color name="pastel_mint">#C9E4CA</color>
-        <color name="pastel_beige">#F2E8CF</color>
-        <color name="pastel_olive">#BFD8B8</color>
-        <color name="pastel_softpink">#F6D7D7</color>
-        <color name="pastel_whitewarm">#FAF8F1</color>
+    <!-- Texto -->
+    <color name="text_primary">#2E2E2E</color>
+    <color name="text_secondary">#7A7A7A</color>
+    <color name="colorOnSurface">#3B3A37</color>
 
-        <!-- Verde folha/menta/sálvia -->
-        <color name="colorPrimary">#2E7D5B</color>        <!-- verde sálvia escuro -->
-        <color name="colorOnPrimary">#FFFFFF</color>
+    <!-- Outline e Divisores -->
+    <color name="colorOutline">#D8D2C8</color>
+    <color name="oliveDivider">#263028</color>
 
-        <color name="colorPrimaryContainer">#BFE3CF</color> <!-- menta clara -->
-        <color name="colorOnPrimaryContainer">#1A3B2C</color>
+    <!-- Tons Pastel -->
+    <color name="pastel_lightgreen">#D7E8C1</color>
+    <color name="pastel_mint">#C9E4CA</color>
+    <color name="pastel_beige">#F2E8CF</color>
+    <color name="pastel_olive">#BFD8B8</color>
+    <color name="pastel_softpink">#F6D7D7</color>
+    <color name="pastel_whitewarm">#FAF8F1</color>
 
-        <!-- Terrosos / neutros -->
-        <color name="colorSurface">#FAF7F2</color>       <!-- off-white/bege muito claro -->
-        <color name="colorCard">#FFFFFF</color>          <!-- branco para cards -->
-        <color name="colorOutline">#D8D2C8</color>       <!-- traço bege terroso claro -->
-        <color name="colorOnSurface">#3B3A37</color>     <!-- texto castanho-acinzentado -->
+    <!-- Menta e Azul -->
+    <color name="mint_start">#A8E6CF</color>
+    <color name="mint_middle">#7ADFD0</color>
+    <color name="blue_end">#5AB1F7</color>
+    <color name="mintPrimary">#9FD8C2</color>
 
-        <color name="mint_start">#A8E6CF</color>   <!-- Verde menta claro -->
-        <color name="mint_middle">#7ADFD0</color> <!-- Menta média -->
-        <color name="blue_end">#5AB1F7</color>    <!-- Azul suave -->
+    <!-- Oliva -->
+    <color name="oliveText">#3F4A3E</color>
+    <color name="oliveTextSoft">#6C7569</color>
+    <color name="oliveLight">#C9D8B6</color>
+    <color name="oliveOnLight">#FFFFFF</color>
 
-        <!-- Base -->
-        <color name="beigeSurface">#F7F2E9</color>      <!-- bege claro -->
-        <color name="cardSurface">#FFFFFFFF</color>     <!-- branco nos cards -->
-        <color name="cardStroke">#E2DDCF</color>        <!-- contorno terroso fino -->
+    <!-- Toggle/Seleção -->
+    <color name="toggleCheckedBg">#D9F0E7</color>
+    <color name="toggleUncheckedBg">#FFFFFFFF</color>
+    <color name="toggleCheckedText">#24483E</color>
+    <color name="toggleUncheckedText">#6C7569</color>
 
-        <!-- Verdes -->
-        <color name="mintPrimary">#9FD8C2</color>       <!-- verde menta suave -->
-        <color name="onMint">#173C33</color>
-        <color name="oliveText">#3F4A3E</color>         <!-- oliva suave p/ texto -->
-        <color name="oliveTextSoft">#6C7569</color>
+    <!-- Status e Estados -->
+    <color name="success">#4CAF50</color>
+    <color name="warning">#FFC107</color>
+    <color name="info">#2196F3</color>
+    <color name="colorError">#B3261E</color>
 
-        <!-- Estados de toggle/seleção -->
-        <color name="toggleCheckedBg">#D9F0E7</color>   <!-- menta muito clara -->
-        <color name="toggleUncheckedBg">#FFFFFFFF</color>
-        <color name="toggleCheckedText">#24483E</color>
-        <color name="toggleUncheckedText">#6C7569</color>
-        <color name="oliveLight">#C9D8B6</color>       <!-- oliva claro (botão adicionar) -->
-        <color name="oliveOnLight">#FFFFFF</color>
-        <color name="oliveDivider">#263028</color>
+    <!-- Contenedores -->
+    <color name="colorPrimaryContainer">#BFE3CF</color>
+    <color name="colorOnPrimaryContainer">#1A3B2C</color>
+    <color name="colorSecondaryContainer">#D5E8D7</color>
+    <color name="colorOnSecondaryContainer">#1F352F</color>
+    <color name="colorErrorContainer">#F9DEDC</color>
+    <color name="colorOnError">#FFFFFF</color>
+    <color name="colorOnErrorContainer">#410E0B</color>
+
+    <!-- Complementares -->
+    <color name="beigeSurface">#F7F2E9</color>
+    <color name="onMint">#173C33</color>
 
 </resources>
