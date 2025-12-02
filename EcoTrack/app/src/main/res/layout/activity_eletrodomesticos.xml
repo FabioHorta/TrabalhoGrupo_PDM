@@ -39,24 +39,95 @@
             android:textSize="20sp"
             android:layout_marginBottom="12dp"/>
 
-        <GridLayout
+        <!-- LINHA 1: Frigorífico e Combinado -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="2"
-            android:alignmentMode="alignMargins"
-            android:columnOrderPreserved="false">
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardFrigo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardCombinado"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
 
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardFrigo" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardCombinado" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardArca" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardForno" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardPlaca" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardMicro" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardMaqLoica" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardCafe" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardChaleira" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardRobot" />
-        </GridLayout>
+        <!-- LINHA 2: Arca e Forno -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardArca"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardForno"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <!-- LINHA 3: Placa e Micro -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardPlaca"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardMicro"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <!-- LINHA 4: Máq. Loiça e Café -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardMaqLoica"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardCafe"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <!-- LINHA 5: Chaleira e Robot -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardChaleira"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardRobot"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -65,19 +136,43 @@
             android:textColor="#1E4D42"
             android:textStyle="bold"
             android:textSize="20sp"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="12dp"/>
 
-        <GridLayout
+        <!-- LINHA 1: Máq. Roupa e Secar -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="2"
-            android:alignmentMode="alignMargins">
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardMaqRoupa"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardSecar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
 
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardMaqRoupa" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardSecar" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardFerro" />
-        </GridLayout>
+        <!-- LINHA 2: Ferro (vazio) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardFerro"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <View
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -86,24 +181,80 @@
             android:textColor="#1E4D42"
             android:textStyle="bold"
             android:textSize="20sp"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="12dp"/>
 
-        <GridLayout
+        <!-- LINHA 1: AC e Aquecedor -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="2"
-            android:alignmentMode="alignMargins">
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardAC"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardAquecedor"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
 
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardAC" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardAquecedor" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardRadiador" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardBombaCalor" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardLareira" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardPiso" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardDesumidificador" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardCaldeira" />
-        </GridLayout>
+        <!-- LINHA 2: Radiador e Bomba Calor -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardRadiador"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardBombaCalor"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <!-- LINHA 3: Lareira e Piso -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardLareira"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardPiso"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <!-- LINHA 4: Desumidificador e Caldeira -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardDesumidificador"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardCaldeira"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -112,35 +263,92 @@
             android:textColor="#1E4D42"
             android:textStyle="bold"
             android:textSize="20sp"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="12dp"/>
 
-        <GridLayout
+        <!-- LINHA 1: TV e PC -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="2"
-            android:alignmentMode="alignMargins">
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardTV"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardPC"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
 
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardTV" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardPC" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardConsola" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardEV" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardSolar" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardPiscina" />
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardRega" />
-        </GridLayout>
+        <!-- LINHA 2: Consola e EV -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardConsola"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardEV"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
 
-        <Button
+        <!-- LINHA 3: Solar e Piscina -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardSolar"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardPiscina"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <!-- LINHA 4: Rega (vazio) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardRega"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"/>
+            <View
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnConcluir"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Concluir Configuração"
-            android:backgroundTint="@color/green"
-            android:textColor="#FFFFFF"
+            android:layout_height="56dp"
+            android:text="✅ Concluir Configuração"
             android:textStyle="bold"
             android:textSize="16sp"
-            android:layout_marginTop="30dp"
-            app:cornerRadius="12dp"/>
+            android:layout_marginTop="24dp"
+            app:cornerRadius="12dp"
+            android:textColor="@android:color/white"
+            android:backgroundTint="@color/green"
+            style="@style/Widget.MaterialComponents.Button"/>
 
     </LinearLayout>
 </ScrollView>

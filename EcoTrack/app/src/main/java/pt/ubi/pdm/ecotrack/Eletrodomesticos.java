@@ -29,10 +29,10 @@ public class Eletrodomesticos extends AppCompatActivity {
         carregarDadosExistentes();
 
         // COZINHA
-        setupCard(R.id.cardFrigo, "🧊", "Frigorífico", "Cozinha");
-        setupCard(R.id.cardCombinado, "❄️🍱", "Frigorífico Combinado", "Cozinha");
+        setupCard(R.id.cardFrigo, "❄️", "Frigorífico", "Cozinha");
+        setupCard(R.id.cardCombinado, "❄️🧊", "Frigorífico Combinado", "Cozinha");
         setupCard(R.id.cardForno, "🥘", "Forno", "Cozinha");
-        setupCard(R.id.cardArca, "❄️", "Arca", "Cozinha");
+        setupCard(R.id.cardArca, "🧊", "Arca", "Cozinha");
         setupCard(R.id.cardPlaca, "🍳", "Placa", "Cozinha");
         setupCard(R.id.cardMicro, "🍿", "Microondas", "Cozinha");
         setupCard(R.id.cardFerro, "👕", "Ferro", "Cozinha");
