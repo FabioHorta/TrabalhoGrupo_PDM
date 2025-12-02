@@ -35,6 +35,8 @@ public class PerfilUtilizador extends AppCompatActivity {
     private String userEmailAtual = "";
     private double precoKwhAtual = 0.20;
 
+    private int casaIdAtual;
+
     private final ActivityResultLauncher<String> escolherImagemLauncher =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri != null) {
@@ -55,6 +57,7 @@ public class PerfilUtilizador extends AppCompatActivity {
         dbHelper = new DBHelper(this);
         if (mAuth.getCurrentUser() != null) userEmailAtual = mAuth.getCurrentUser().getEmail();
 
+        casaIdAtual = CasaSelecionada.getInstance().getCasaId();
         initViews();
         carregarDadosDaBD();
         carregarFotoExistente();
@@ -91,7 +94,7 @@ public class PerfilUtilizador extends AppCompatActivity {
     }
 
     private void calcularConsumoECusto() {
-        double consumoKwh = dbHelper.calcularMediaConsumos(1);
+        double consumoKwh = dbHelper.calcularMediaConsumosPorCasa(1, casaIdAtual);
         if (consumoKwh > 0) {
             tvConsumoStat.setText(String.format("%.0f kWh", consumoKwh));
             tvPoupancaStat.setText(String.format("€ %.2f", consumoKwh * precoKwhAtual));

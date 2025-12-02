@@ -300,17 +300,89 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
+    public long inserirLeituraComFotoPorCasa(int casaId, String data, double valorKwh, String imagemPath) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        try {
+            double mediaAntes = calcularMediaConsumosInterno(db, 6, casaId);
+
+            long prevId = -1;
+            double prevValor = -1;
+
+            // Obter última leitura DESTA CASA
+            Cursor c = db.rawQuery(
+                    "SELECT " + C_LEITURA_ID + ", " + C_LEITURA_VALOR +
+                            " FROM " + T_LEITURAS +
+                            " WHERE casa_id = ? ORDER BY " + C_LEITURA_ID + " DESC LIMIT 1",
+                    new String[]{String.valueOf(casaId)}
+            );
+
+            if (c.moveToFirst()) {
+                prevId = c.getLong(0);
+                prevValor = c.getDouble(1);
+            }
+            c.close();
+
+            Double consumoPeriodo = null;
+            if (prevId != -1 && valorKwh >= prevValor) {
+                consumoPeriodo = valorKwh - prevValor;
+            }
+
+            ContentValues cv = new ContentValues();
+            cv.put(C_LEITURA_DATA, data);
+            cv.put(C_LEITURA_VALOR, valorKwh);
+            cv.put(C_LEITURA_IMAGEM_PATH, imagemPath);
+            cv.put("casa_id", casaId);
+            if (prevId != -1) cv.put(C_LEITURA_PREV_ID, prevId);
+            if (consumoPeriodo != null) cv.put(C_LEITURA_CONSUMO_PERIODO, consumoPeriodo);
+            cv.put(C_LEITURA_CREATED_AT_TS, System.currentTimeMillis());
+
+            long rowId = db.insert(T_LEITURAS, null, cv);
+
+            if (rowId != -1 && consumoPeriodo != null) {
+                criarRegistroConsumoAnalisado(db, rowId, consumoPeriodo, 6, mediaAntes);
+                recalcularEMediaPorCasa(db, new int[]{1, 3, 6}, casaId);
+            }
+
+            db.setTransactionSuccessful();
+            return rowId;
+
+        } finally {
+            db.endTransaction();
+        }
+    }
+
     public Cursor obterLeituras() {
         return getReadableDatabase().query(T_LEITURAS, null, null, null, null, null,
                 C_LEITURA_ID + " DESC");
     }
-
+    public Cursor obterLeiturasPorCasa(int casaId) {
+        return getReadableDatabase().rawQuery(
+                "SELECT * FROM " + T_LEITURAS +
+                        " WHERE casa_id = ? ORDER BY " + C_LEITURA_ID + " DESC",
+                new String[]{String.valueOf(casaId)}
+        );
+    }
     public void apagarLeitura(long id) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         try {
             db.delete(T_LEITURAS, C_LEITURA_ID + "=?", new String[]{String.valueOf(id)});
             recalcularEMedia(db, new int[]{1, 3, 6});
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+    }
+
+    public void apagarLeituraPorCasa(long leituraId, int casaId) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.beginTransaction();
+        try {
+            db.delete(T_LEITURAS,
+                    C_LEITURA_ID + "=? AND casa_id=?",
+                    new String[]{String.valueOf(leituraId), String.valueOf(casaId)});
+            recalcularEMediaPorCasa(db, new int[]{1, 3, 6}, casaId);
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
@@ -327,11 +399,27 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
+    public int contarLeiturasPorCasa(int casaId) {
+        Cursor c = getReadableDatabase().rawQuery(
+                "SELECT COUNT(*) FROM " + T_LEITURAS + " WHERE casa_id = ?",
+                new String[]{String.valueOf(casaId)}
+        );
+        try {
+            if (c.moveToFirst()) return c.getInt(0);
+            return 0;
+        } finally {
+            c.close();
+        }
+    }
+
     // ---------- MÉDIAS ----------
     public double calcularMediaConsumos(int numPeriodos) {
         return calcularMediaConsumosInterno(getReadableDatabase(), numPeriodos);
     }
 
+    public double calcularMediaConsumosPorCasa(int numPeriodos, int casaId) {
+        return calcularMediaConsumosInterno(getReadableDatabase(), numPeriodos, casaId);
+    }
     private double calcularMediaConsumosInterno(SQLiteDatabase db, int numPeriodos) {
         if (numPeriodos <= 0) return 0.0;
 
@@ -383,6 +471,58 @@ public class DBHelper extends SQLiteOpenHelper {
             if (c != null && !c.isClosed()) c.close();
         }
     }
+
+    private double calcularMediaConsumosInterno(SQLiteDatabase db, int numPeriodos, int casaId) {
+        if (numPeriodos <= 0) return 0.0;
+
+        Cursor c = null;
+        try {
+            String sqlLeituras = "SELECT " + C_LEITURA_VALOR +
+                    " FROM " + T_LEITURAS +
+                    " WHERE casa_id = ? ORDER BY " + C_LEITURA_ID + " DESC LIMIT " + (numPeriodos + 1);
+
+            c = db.rawQuery(sqlLeituras, new String[]{String.valueOf(casaId)});
+
+            if (c == null || !c.moveToFirst()) {
+                if (c != null) c.close();
+                return 0.0;
+            }
+
+            int n = c.getCount();
+            if (n < 2) {
+                c.close();
+                return 0.0;
+            }
+
+            // Ler valores
+            double[] leituras = new double[n];
+            int idx = 0;
+            do {
+                leituras[idx++] = c.getDouble(0);
+            } while (c.moveToNext());
+            c.close();
+            c = null;
+
+            // Calcular consumos
+            double somaConsumos = 0.0;
+            int contPeriodos = 0;
+            for (int i = 0; i < leituras.length - 1 && contPeriodos < numPeriodos; i++) {
+                double atual = leituras[i];
+                double anterior = leituras[i + 1];
+                double consumo = atual - anterior;
+                if (consumo > 0) {
+                    somaConsumos += consumo;
+                    contPeriodos++;
+                }
+            }
+
+            if (contPeriodos == 0) return 0.0;
+            return somaConsumos / contPeriodos;
+
+        } finally {
+            if (c != null && !c.isClosed()) c.close();
+        }
+    }
     private void recalcularEMedia(SQLiteDatabase db, int[] periodos) {
         for (int n : periodos) {
             double media = calcularMediaConsumosInterno(db, n);
@@ -394,6 +534,13 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
+    private void recalcularEMediaPorCasa(SQLiteDatabase db, int[] periodos, int casaId) {
+        for (int n : periodos) {
+            double media = calcularMediaConsumosInterno(db, n, casaId);
+            // Guardar numa tabela separada, por exemplo: media_consumos_casa(casa_id, num_periodos, media_valor)
+            // Por simplicidade, podemos apenas reutilizar a existente com um prefixo ou ID único
+        }
+    }
     public Map<Integer, Double> obterMediasArmazenadas() {
         Map<Integer, Double> medias = new HashMap<>();
         Cursor c = getReadableDatabase().query(T_MEDIA_CONSUMOS,
@@ -466,6 +613,14 @@ public class DBHelper extends SQLiteOpenHelper {
                 new String[]{String.valueOf(leituraId)}, null, null, null);
     }
 
+    public Cursor obterAnaliseConsumoPorCasa(long leituraId, int casaId) {
+        return getReadableDatabase().rawQuery(
+                "SELECT ca.* FROM " + T_CONSUMOS_ANALISADOS + " ca " +
+                        "JOIN " + T_LEITURAS + " l ON ca." + C_CONSUMO_ANALISADO_LEITURA_ID + " = l." + C_LEITURA_ID + " " +
+                        "WHERE ca." + C_CONSUMO_ANALISADO_LEITURA_ID + " = ? AND l.casa_id = ?",
+                new String[]{String.valueOf(leituraId), String.valueOf(casaId)}
+        );
+    }
     public Cursor obterHistoricoConsumosAnalisados(String status) {
         String selection = status != null ? C_CONSUMO_ANALISADO_STATUS + "=?" : null;
         String[] selectionArgs = status != null ? new String[]{status} : null;
@@ -479,6 +634,25 @@ public class DBHelper extends SQLiteOpenHelper {
                 "ca." + C_CONSUMO_ANALISADO_CREATED_AT_TS + " DESC");
     }
 
+    public Cursor obterHistoricoConsumosAnalisadosPorCasa(int casaId, String status) {
+        String sql = "SELECT ca.* FROM " + T_CONSUMOS_ANALISADOS + " ca " +
+                "JOIN " + T_LEITURAS + " l ON ca." + C_CONSUMO_ANALISADO_LEITURA_ID + " = l." + C_LEITURA_ID + " " +
+                "WHERE l.casa_id = ?";
+
+        if (status != null && !status.isEmpty()) {
+            sql += " AND ca." + C_CONSUMO_ANALISADO_STATUS + " = ?";
+            return getReadableDatabase().rawQuery(
+                    sql + " ORDER BY ca." + C_CONSUMO_ANALISADO_CREATED_AT_TS + " DESC",
+                    new String[]{String.valueOf(casaId), status}
+            );
+        } else {
+            return getReadableDatabase().rawQuery(
+                    sql + " ORDER BY ca." + C_CONSUMO_ANALISADO_CREATED_AT_TS + " DESC",
+                    new String[]{String.valueOf(casaId)}
+            );
+        }
+    }
+
     public double obterUltimaLeituraOuDefault(double defaultValor) {
         Cursor c = getReadableDatabase().rawQuery("SELECT " + C_LEITURA_VALOR +
                 " FROM " + T_LEITURAS + " ORDER BY " + C_LEITURA_ID + " DESC LIMIT 1", null);
@@ -489,6 +663,28 @@ public class DBHelper extends SQLiteOpenHelper {
         c.close();
         return valor;
     }
+
+    public double obterUltimaLeituraOuDefaultPorCasa(int casaId, double defaultValue) {
+        Cursor cursor = null;
+        try {
+            cursor = getReadableDatabase().rawQuery(
+                    "SELECT " + C_LEITURA_VALOR + " FROM " + T_LEITURAS +
+                            " WHERE casa_id = ? " +
+                            " ORDER BY " + C_LEITURA_DATA + " DESC LIMIT 1",
+                    new String[]{String.valueOf(casaId)}
+            );
+
+            if (cursor != null && cursor.moveToFirst()) {
+                return cursor.getDouble(0);
+            }
+        } finally {
+            if (cursor != null && !cursor.isClosed()) {
+                cursor.close();
+            }
+        }
+        return defaultValue;
+    }
+
     // Inserir mensagem
     public boolean inserirMensagem(String assunto, String mensagem, String data) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -664,6 +860,50 @@ public class DBHelper extends SQLiteOpenHelper {
         );
     }
 
+    /**
+     * Calcular alertas para uma casa específica
+     */
+    public double[] calcularAlertasPorCasa(int casaId) {
+        double consumoUltimo = calcularMediaConsumosPorCasa(1, casaId);
+        double media6 = calcularMediaConsumosPorCasa(6, casaId);
+        double diffPercent = 0;
+
+        if (media6 > 0 && consumoUltimo > 0) {
+            diffPercent = ((consumoUltimo - media6) / media6) * 100.0;
+        }
+
+        return new double[]{consumoUltimo, media6, diffPercent};
+    }
+
+    /**
+     * Calcular estatísticas financeiras para uma casa
+     */
+    public double[] calcularCustosPorCasa(int casaId, double precoKwh) {
+        double consumoUltimo = calcularMediaConsumosPorCasa(1, casaId);
+        double custoUltimo = consumoUltimo * precoKwh;
+
+        double media6 = calcularMediaConsumosPorCasa(6, casaId);
+        double custoMedia = media6 * precoKwh;
+
+        return new double[]{consumoUltimo, custoUltimo, media6, custoMedia};
+    }
+
+    /**
+     * Obter última leitura de uma casa
+     */
+    public double obterUltimaLeituraPorCasa(int casaId) {
+        Cursor c = getReadableDatabase().rawQuery(
+                "SELECT " + C_LEITURA_VALOR + " FROM " + T_LEITURAS +
+                        " WHERE casa_id = ? ORDER BY " + C_LEITURA_ID + " DESC LIMIT 1",
+                new String[]{String.valueOf(casaId)}
+        );
+        double valor = 0;
+        if (c.moveToFirst()) {
+            valor = c.getDouble(0);
+        }
+        c.close();
+        return valor;
+    }
 
 
 }

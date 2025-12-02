@@ -78,6 +78,40 @@
 
             </RelativeLayout>
 
+            <!-- SPINNER PARA SELECIONAR CASAS -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:text="Seleciona uma casa"
+                    android:textStyle="bold"
+                    android:textColor="#1E4D42"
+                    android:textSize="14sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"/>
+
+                <Spinner
+                    android:id="@+id/spinnerCasas"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@android:drawable/editbox_background_normal"
+                    android:padding="12dp"/>
+
+                <TextView
+                    android:id="@+id/tvSemCasas"
+                    android:text="Nenhuma casa registada. Cria uma em Caracterização."
+                    android:textColor="#FF6B6B"
+                    android:textSize="12sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:visibility="gone"/>
+
+            </LinearLayout>
+
             <!-- CARTÃO RESUMO + GRÁFICO -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardResumo"

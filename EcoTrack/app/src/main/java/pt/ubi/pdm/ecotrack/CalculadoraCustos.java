@@ -6,15 +6,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class CalculadoraCustos extends BaseActivity {
 
-    private TextView tvConsumoAtual, tvResultadoEuros;
+    private TextView tvConsumoAtual, tvResultadoEuros, tvNomeCasaCalculadora;
     private EditText etPrecoKwh;
     private Button btnCalcular;
     private LinearLayout layoutResultado;
 
     private DBHelper dbHelper;
+    private int casaIdAtual;
+    private String casaNomeAtual;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,18 +30,21 @@ public class CalculadoraCustos extends BaseActivity {
 
         dbHelper = new DBHelper(this);
 
+        // Multi-casa
+        casaIdAtual = CasaSelecionada.getInstance().getCasaId();
+        casaNomeAtual = CasaSelecionada.getInstance().getCasaNome();
+
+        tvNomeCasaCalculadora = findViewById(R.id.tvNomeCasaCalculadora);
         tvConsumoAtual = findViewById(R.id.tvConsumoAtual);
         tvResultadoEuros = findViewById(R.id.tvResultadoEuros);
         etPrecoKwh = findViewById(R.id.etPrecoKwh);
         btnCalcular = findViewById(R.id.btnCalcular);
         layoutResultado = findViewById(R.id.layoutResultado);
 
-        double consumoMes = dbHelper.calcularMediaConsumos(1); // ou outro método que uses
-        if (consumoMes > 0) {
-            tvConsumoAtual.setText(String.format("%.1f kWh", consumoMes));
-        } else {
-            tvConsumoAtual.setText("-- kWh");
-        }
+        // Mostrar nome da casa
+        tvNomeCasaCalculadora.setText(casaNomeAtual);
+
+        carregarConsumoAtual();
 
         btnCalcular.setOnClickListener(v -> {
             String precoStr = etPrecoKwh.getText().toString().trim();
@@ -55,9 +61,11 @@ public class CalculadoraCustos extends BaseActivity {
                 return;
             }
 
+            double consumoMes = dbHelper.calcularMediaConsumosPorCasa(1, casaIdAtual);
             if (consumoMes <= 0) {
                 tvResultadoEuros.setText("€ 0,00");
                 layoutResultado.setVisibility(View.VISIBLE);
+                Toast.makeText(this, "Sem consumos registados para esta casa.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -70,9 +78,30 @@ public class CalculadoraCustos extends BaseActivity {
         setupBottomNav(R.id.nav_simulador);
     }
 
+    private void carregarConsumoAtual() {
+        // ✅ CORRIGIDO: Usar dados ESPECÍFICOS DA CASA SELECIONADA
+        double consumoMes = dbHelper.calcularMediaConsumosPorCasa(1, casaIdAtual);
+        if (consumoMes > 0) {
+            tvConsumoAtual.setText(String.format("%.1f kWh", consumoMes));
+        } else {
+            tvConsumoAtual.setText("-- kWh");
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Atualizar casa selecionada
+        casaIdAtual = CasaSelecionada.getInstance().getCasaId();
+        casaNomeAtual = CasaSelecionada.getInstance().getCasaNome();
+
+        if (tvNomeCasaCalculadora != null) {
+            tvNomeCasaCalculadora.setText(casaNomeAtual);
+        }
+
+        carregarConsumoAtual();
+
         if (bottomNavigationView != null) {
             bottomNavigationView.setSelectedItemId(R.id.nav_simulador);
         }

@@ -27,9 +27,13 @@ import java.io.InputStream;
 public class ResumoLeituras extends AppCompatActivity {
 
     private DBHelper dbHelper;
-    private TextView tvConsumoAtual, tvDataAtual;
+    private TextView tvNomeCasaResumo, tvConsumoAtual, tvDataAtual;
     private TableLayout tabelaHistorico;
     private Button btnVoltar;
+
+    // Multi-casa
+    private int casaIdAtual;
+    private String casaNomeAtual;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,10 +42,18 @@ public class ResumoLeituras extends AppCompatActivity {
 
         dbHelper = new DBHelper(this);
 
+        // Multi-casa
+        casaIdAtual = CasaSelecionada.getInstance().getCasaId();
+        casaNomeAtual = CasaSelecionada.getInstance().getCasaNome();
+
+        tvNomeCasaResumo = findViewById(R.id.tvNomeCasaResumo);
         tvConsumoAtual = findViewById(R.id.tvConsumoResumo);
         tvDataAtual = findViewById(R.id.tvDataResumo);
         tabelaHistorico = findViewById(R.id.tabelaHistorico);
         btnVoltar = findViewById(R.id.btnVoltarResumo);
+
+        // Mostrar nome da casa
+        tvNomeCasaResumo.setText(casaNomeAtual);
 
         carregarEcraCompleto();
 
@@ -56,6 +68,15 @@ public class ResumoLeituras extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Atualizar casa selecionada
+        casaIdAtual = CasaSelecionada.getInstance().getCasaId();
+        casaNomeAtual = CasaSelecionada.getInstance().getCasaNome();
+
+        if (tvNomeCasaResumo != null) {
+            tvNomeCasaResumo.setText(casaNomeAtual);
+        }
+
         carregarEcraCompleto(); // atualiza sempre que volta para esta tela
     }
 
@@ -65,7 +86,7 @@ public class ResumoLeituras extends AppCompatActivity {
     }
 
     private void carregarDadosUltimaLeitura() {
-        double ultima = dbHelper.obterUltimaLeituraOuDefault(0);
+        double ultima = dbHelper.obterUltimaLeituraOuDefaultPorCasa(casaIdAtual, 0);
         if (ultima > 0) {
             tvConsumoAtual.setText(String.format("%.1f kWh", ultima));
             tvDataAtual.setText("Última leitura registada");
@@ -78,7 +99,7 @@ public class ResumoLeituras extends AppCompatActivity {
     private void carregarHistoricoComImagens() {
         tabelaHistorico.removeAllViews();
 
-        try (Cursor cursor = dbHelper.obterLeituras()) {
+        try (Cursor cursor = dbHelper.obterLeiturasPorCasa(casaIdAtual)) {
             if (cursor != null && cursor.moveToFirst()) {
                 do {
                     long id = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.C_LEITURA_ID));
@@ -155,7 +176,7 @@ public class ResumoLeituras extends AppCompatActivity {
                     .setTitle("Apagar Leitura")
                     .setMessage("Tem a certeza que quer eliminar este registo?")
                     .setPositiveButton("Sim", (dialog, which) -> {
-                        dbHelper.apagarLeitura(id);
+                        dbHelper.apagarLeituraPorCasa(id, casaIdAtual);
                         if (pathImagem != null && !pathImagem.isEmpty()) {
                             try {
                                 File f = new File(pathImagem);

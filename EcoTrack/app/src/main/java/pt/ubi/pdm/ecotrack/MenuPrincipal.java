@@ -6,8 +6,14 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
@@ -19,6 +25,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class MenuPrincipal extends BaseActivity {
@@ -28,6 +35,10 @@ public class MenuPrincipal extends BaseActivity {
     private ImageView imgPerfilTopo;
     private TextView tvNomeUtilizador;
 
+    // Seletor de casas
+    private Spinner spinnerCasas;
+    private TextView tvSemCasas;
+
     // Resumo
     private TextView tvConsumoResumo, tvCustoResumo, tvComparacaoResumo;
     private PieChart pieResumo;
@@ -36,31 +47,28 @@ public class MenuPrincipal extends BaseActivity {
     private MaterialCardView cardMelhorEnergia, cardLeituras, cardEstimativas, cardMapaGastos;
     private MaterialCardView cardAlertas, cardApoio;
 
+    // Dados
     private FirebaseAuth mAuth;
     private DBHelper dbHelper;
-
-    private double precoKwhAtual = 0.20; // valor por defeito se não estiver na BD
+    private double precoKwhAtual = 0.20;
+    private List<CasaItem> casas = new ArrayList<>();
+    private ArrayAdapter<CasaItem> adapterCasas;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // esconder a barra do topo para ficar igual às outras
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
         setContentView(R.layout.activity_principal_menu);
-
         mAuth = FirebaseAuth.getInstance();
         dbHelper = new DBHelper(this);
 
         initViews();
         atualizarCabecalho();
-        carregarResumoConsumo();
+        carregarListaCasas();
         configurarClicks();
-
-        // ligar a bottom bar (item atual: home)
         setupBottomNav(R.id.nav_home);
     }
 
@@ -70,7 +78,11 @@ public class MenuPrincipal extends BaseActivity {
         imgPerfilTopo = findViewById(R.id.imgPerfilTopo);
         tvNomeUtilizador = findViewById(R.id.tvNomeUtilizador);
 
-        // Resumo + gráfico
+        // Seletor de casas
+        spinnerCasas = findViewById(R.id.spinnerCasas);
+        tvSemCasas = findViewById(R.id.tvSemCasas);
+
+        // Resumo
         tvConsumoResumo = findViewById(R.id.tvConsumoResumo);
         tvCustoResumo = findViewById(R.id.tvCustoResumo);
         tvComparacaoResumo = findViewById(R.id.tvComparacaoResumo);
@@ -85,45 +97,128 @@ public class MenuPrincipal extends BaseActivity {
         cardApoio = findViewById(R.id.cardApoio);
     }
 
+    private void carregarListaCasas() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
+            return;
+        }
+
+        String email = user.getEmail();
+        casas.clear();
+
+        Cursor c = dbHelper.listarCasasDoUtilizador(email);
+        if (c != null && c.moveToFirst()) {
+            do {
+                int id = c.getInt(c.getColumnIndexOrThrow(DBHelper.C_CASA_ID));
+                String nome = c.getString(c.getColumnIndexOrThrow(DBHelper.C_CASA_NOME));
+                casas.add(new CasaItem(id, nome));
+            } while (c.moveToNext());
+            c.close();
+        }
+
+        if (casas.isEmpty()) {
+            // Sem casas
+            spinnerCasas.setVisibility(View.GONE);
+            tvSemCasas.setVisibility(View.VISIBLE);
+            tvSemCasas.setText("Nenhuma casa registada. Cria uma primeira!");
+
+            // Esconder secções de dados
+            tvConsumoResumo.setText("Sem casa selecionada");
+            tvCustoResumo.setText("Cria uma casa para ver dados");
+            tvComparacaoResumo.setText("");
+            pieResumo.setVisibility(View.GONE);
+            cardMelhorEnergia.setEnabled(false);
+            cardLeituras.setEnabled(false);
+            cardEstimativas.setEnabled(false);
+            cardMapaGastos.setEnabled(false);
+            cardAlertas.setEnabled(false);
+        } else {
+            // Há casas
+            spinnerCasas.setVisibility(View.VISIBLE);
+            tvSemCasas.setVisibility(View.GONE);
+
+            adapterCasas = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, casas);
+            spinnerCasas.setAdapter(adapterCasas);
+
+            spinnerCasas.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    CasaItem casaSelecionada = casas.get(position);
+                    CasaSelecionada.getInstance().setSelecionada(
+                            casaSelecionada.getId(),
+                            casaSelecionada.getNome(),
+                            mAuth.getCurrentUser().getEmail()
+                    );
+                    carregarResumoConsumo(casaSelecionada.getId());
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {}
+            });
+
+            // Selecionar primeira casa por padrão
+            if (!casas.isEmpty()) {
+                spinnerCasas.setSelection(0);
+            }
+        }
+    }
+
     private void configurarClicks() {
         cardPerfilTopo.setOnClickListener(v ->
                 startActivity(new Intent(MenuPrincipal.this, PerfilUtilizador.class)));
 
-        cardMelhorEnergia.setOnClickListener(v ->
-                startActivity(new Intent(this, TipoEnergia.class)));
+        cardMelhorEnergia.setOnClickListener(v -> {
+            if (!verificarCasaSelecionada()) return;
+            startActivity(new Intent(this, TipoEnergia.class));
+        });
 
-        cardLeituras.setOnClickListener(v ->
-                startActivity(new Intent(this, LeiturasMensais.class)));
+        cardLeituras.setOnClickListener(v -> {
+            if (!verificarCasaSelecionada()) return;
+            startActivity(new Intent(this, LeiturasMensais.class));
+        });
 
-        cardEstimativas.setOnClickListener(v ->
-                startActivity(new Intent(this, EstimativaConsumo.class)));
+        cardEstimativas.setOnClickListener(v -> {
+            if (!verificarCasaSelecionada()) return;
+            startActivity(new Intent(this, EstimativaConsumo.class));
+        });
 
-        cardMapaGastos.setOnClickListener(v ->
-                startActivity(new Intent(this, MapaGastos.class)));
+        cardMapaGastos.setOnClickListener(v -> {
+            if (!verificarCasaSelecionada()) return;
+            startActivity(new Intent(this, MapaGastos.class));
+        });
 
-        cardAlertas.setOnClickListener(v ->
-                startActivity(new Intent(this, AlertasConsumo.class)));
+        cardAlertas.setOnClickListener(v -> {
+            if (!verificarCasaSelecionada()) return;
+            startActivity(new Intent(this, AlertasConsumo.class));
+        });
 
         cardApoio.setOnClickListener(v ->
                 startActivity(new Intent(this, ApoioCliente.class)));
     }
 
+    private boolean verificarCasaSelecionada() {
+        if (!CasaSelecionada.getInstance().temCasaSelecionada()) {
+            Toast.makeText(this, "Por favor, seleciona uma casa.", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
+    }
+
     private void atualizarCabecalho() {
         FirebaseUser user = mAuth.getCurrentUser();
-
         if (user != null) {
             String email = user.getEmail();
             String nomeExibicao = "Utilizador";
 
             Cursor c = dbHelper.obterDadosUtilizadorPorEmail(email);
             if (c != null && c.moveToFirst()) {
-                // Nome
                 String nomeBd = c.getString(c.getColumnIndexOrThrow(DBHelper.C_USER_NAME));
                 if (nomeBd != null && !nomeBd.isEmpty()) {
                     nomeExibicao = nomeBd;
                 }
 
-                // Preço kWh
                 int idxPreco = c.getColumnIndex(DBHelper.C_USER_PRECO_KWH);
                 if (idxPreco != -1) {
                     double preco = c.getDouble(idxPreco);
@@ -145,18 +240,13 @@ public class MenuPrincipal extends BaseActivity {
             } else {
                 imgPerfilTopo.setImageResource(R.drawable.ecotrack_logo);
             }
-
-        } else {
-            startActivity(new Intent(this, MainActivity.class));
-            finish();
         }
     }
 
-    private void carregarResumoConsumo() {
-        // Último período (diferença entre últimas 2 leituras)
-        double consumoUltimoPeriodo = dbHelper.calcularMediaConsumos(1);
-        // Média de 6 períodos para comparação
-        double media6 = (dbHelper.calcularMediaConsumos(7)) * ((double) 7 /6) - (consumoUltimoPeriodo/6);
+    private void carregarResumoConsumo(int casaId) {
+        // Usar dados ESPECÍFICOS DA CASA SELECIONADA
+        double consumoUltimoPeriodo = dbHelper.calcularMediaConsumosPorCasa(1, casaId);
+        double media6 = dbHelper.calcularMediaConsumosPorCasa(6, casaId);
 
         if (consumoUltimoPeriodo > 0) {
             tvConsumoResumo.setText(String.format(Locale.getDefault(),
@@ -191,7 +281,6 @@ public class MenuPrincipal extends BaseActivity {
 
     private void configurarGraficoResumo(double consumoPeriodo, double media6) {
         ArrayList<PieEntry> entradas = new ArrayList<>();
-
         if (consumoPeriodo <= 0 && media6 <= 0) {
             entradas.add(new PieEntry(1f, "Sem dados"));
         } else {
@@ -205,14 +294,13 @@ public class MenuPrincipal extends BaseActivity {
 
         PieDataSet dataSet = new PieDataSet(entradas, "");
         ArrayList<Integer> cores = new ArrayList<>();
-        cores.add(Color.parseColor("#4CAF50"));  // verde
-        cores.add(Color.parseColor("#80CBC4"));  // verde claro
+        cores.add(Color.parseColor("#4CAF50")); // verde
+        cores.add(Color.parseColor("#80CBC4")); // verde claro
         dataSet.setColors(cores);
         dataSet.setValueTextColor(Color.WHITE);
         dataSet.setValueTextSize(12f);
 
         PieData data = new PieData(dataSet);
-
         pieResumo.setData(data);
         pieResumo.getDescription().setEnabled(false);
         pieResumo.setCenterText("Consumo");
@@ -229,11 +317,33 @@ public class MenuPrincipal extends BaseActivity {
     protected void onResume() {
         super.onResume();
         atualizarCabecalho();
-        carregarResumoConsumo();
-
-        // garantir que o item "Início" fica selecionado
+        carregarListaCasas();
         if (bottomNavigationView != null) {
             bottomNavigationView.setSelectedItemId(R.id.nav_home);
+        }
+    }
+
+    // Classe interna para representar uma casa no spinner
+    static class CasaItem {
+        private int id;
+        private String nome;
+
+        CasaItem(int id, String nome) {
+            this.id = id;
+            this.nome = nome;
+        }
+
+        int getId() {
+            return id;
+        }
+
+        String getNome() {
+            return nome;
+        }
+
+        @Override
+        public String toString() {
+            return nome;
         }
     }
 }

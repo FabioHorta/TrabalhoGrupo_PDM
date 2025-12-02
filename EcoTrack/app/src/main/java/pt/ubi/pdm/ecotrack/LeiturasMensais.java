@@ -22,7 +22,7 @@ import java.io.IOException;
 
 public class LeiturasMensais extends BaseActivity {
 
-
+    private TextView tvNomeCasaLeituras;
     private TextView tvLeituraAnterior, tvResultado;
     private EditText etNovaLeitura;
     private Button btnEscolherImagem, btnCalcular, btnTirarFoto, btnGuardar, btnVoltar, btnVerHistorico;
@@ -32,6 +32,10 @@ public class LeiturasMensais extends BaseActivity {
 
     private DBHelper dbHelper;
     private Bitmap imagemAtualBitmap;
+
+    // Multi-casa
+    private int casaIdAtual;
+    private String casaNomeAtual;
 
     // Launchers
     private final ActivityResultLauncher<String> escolherImagemLauncher =
@@ -69,11 +73,16 @@ public class LeiturasMensais extends BaseActivity {
         setupBottomNav(R.id.nav_leituras);
         dbHelper = new DBHelper(this);
 
+        // Multi-casa
+        casaIdAtual = CasaSelecionada.getInstance().getCasaId();
+        casaNomeAtual = CasaSelecionada.getInstance().getCasaNome();
+
         ligarViews();
         configurarEventos();
     }
 
     private void ligarViews() {
+        tvNomeCasaLeituras = findViewById(R.id.tvNomeCasaLeituras);
         tvLeituraAnterior = findViewById(R.id.tvLeituraAnterior);
         etNovaLeitura = findViewById(R.id.etNovaLeitura);
         btnEscolherImagem = findViewById(R.id.btnEscolherImagem);
@@ -85,7 +94,10 @@ public class LeiturasMensais extends BaseActivity {
         btnTirarFoto = findViewById(R.id.btnTirarFoto);
         btnVerHistorico = findViewById(R.id.btnVerHistorico);
 
-        double leituraAnterior = dbHelper.obterUltimaLeituraOuDefault(0);
+        // Mostrar nome da casa
+        tvNomeCasaLeituras.setText(casaNomeAtual);
+
+        double leituraAnterior = dbHelper.obterUltimaLeituraOuDefaultPorCasa(casaIdAtual, 0);
         if (leituraAnterior > 0) {
             tvLeituraAnterior.setText("Leitura anterior do contador: " + leituraAnterior + " kWh");
         } else {
@@ -96,14 +108,24 @@ public class LeiturasMensais extends BaseActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Atualizar casa selecionada
+        casaIdAtual = CasaSelecionada.getInstance().getCasaId();
+        casaNomeAtual = CasaSelecionada.getInstance().getCasaNome();
+
+        if (tvNomeCasaLeituras != null) {
+            tvNomeCasaLeituras.setText(casaNomeAtual);
+        }
+
         if (tvLeituraAnterior != null) {
-            double leituraAnterior = dbHelper.obterUltimaLeituraOuDefault(0);
+            double leituraAnterior = dbHelper.obterUltimaLeituraOuDefaultPorCasa(casaIdAtual, 0);
             if (leituraAnterior > 0) {
                 tvLeituraAnterior.setText("Leitura anterior do contador: " + leituraAnterior + " kWh");
             } else {
                 tvLeituraAnterior.setText("Ainda não existem leituras anteriores.");
             }
         }
+
         if (bottomNavigationView != null) {
             bottomNavigationView.setSelectedItemId(R.id.nav_leituras);
         }
@@ -141,7 +163,7 @@ public class LeiturasMensais extends BaseActivity {
             return;
         }
 
-        double leituraAnterior = dbHelper.obterUltimaLeituraOuDefault(0);
+        double leituraAnterior = dbHelper.obterUltimaLeituraOuDefaultPorCasa(casaIdAtual, 0);
         if (leituraAnterior > 0 && leituraAtual < leituraAnterior) {
             Toast.makeText(this, "A nova leitura não pode ser inferior à leitura anterior do contador.", Toast.LENGTH_SHORT).show();
             return;
@@ -154,13 +176,13 @@ public class LeiturasMensais extends BaseActivity {
             tvResultado.setText(String.format("Leitura registada: %.1f kWh. Esta é a primeira leitura.", leituraAtual));
         }
 
-        int totalLeituras = dbHelper.contarLeituras();
+        int totalLeituras = dbHelper.contarLeiturasPorCasa(casaIdAtual);
         if (totalLeituras < 2) {
             Toast.makeText(this, "Serão necessárias pelo menos 2 leituras para análise.", Toast.LENGTH_LONG).show();
             return;
         }
 
-        double mediaConsumos = dbHelper.calcularMediaConsumos(6);
+        double mediaConsumos = dbHelper.calcularMediaConsumosPorCasa(6, casaIdAtual);
         if (mediaConsumos <= 0 || consumoPeriodo <= 0) {
             Toast.makeText(this, "Leitura registada. Serão necessárias mais leituras para analisar anomalias.", Toast.LENGTH_LONG).show();
             return;
@@ -201,7 +223,7 @@ public class LeiturasMensais extends BaseActivity {
             return;
         }
 
-        double leituraAnterior = dbHelper.obterUltimaLeituraOuDefault(0);
+        double leituraAnterior = dbHelper.obterUltimaLeituraOuDefaultPorCasa(casaIdAtual, 0);
         if (leituraAnterior > 0 && leituraValor < leituraAnterior) {
             Toast.makeText(this, "A nova leitura não pode ser inferior à leitura anterior.", Toast.LENGTH_SHORT).show();
             return;
@@ -213,17 +235,17 @@ public class LeiturasMensais extends BaseActivity {
         }
 
         String dataHoje = java.time.LocalDate.now().toString();
-        long id = dbHelper.inserirLeituraComFoto(dataHoje, leituraValor, imagemPath);
+        long id = dbHelper.inserirLeituraComFotoPorCasa( casaIdAtual,dataHoje, leituraValor, imagemPath );
 
         if (id > 0) {
-            double novaLeituraAnterior = dbHelper.obterUltimaLeituraOuDefault(0);
+            double novaLeituraAnterior = dbHelper.obterUltimaLeituraOuDefaultPorCasa(casaIdAtual, 0);
             if (novaLeituraAnterior > 0) {
                 tvLeituraAnterior.setText("Leitura anterior do contador: " + novaLeituraAnterior + " kWh");
             } else {
                 tvLeituraAnterior.setText("Ainda não existem leituras anteriores.");
             }
 
-            try (Cursor analise = dbHelper.obterAnaliseConsumo(id)) {
+            try (Cursor analise = dbHelper.obterAnaliseConsumoPorCasa(id, casaIdAtual)) {
                 if (analise != null && analise.moveToFirst()) {
                     double consumo = analise.getDouble(analise.getColumnIndexOrThrow(DBHelper.C_CONSUMO_ANALISADO_VALOR));
                     double mediaRef = analise.getDouble(analise.getColumnIndexOrThrow(DBHelper.C_CONSUMO_ANALISADO_MEDIA_REF));

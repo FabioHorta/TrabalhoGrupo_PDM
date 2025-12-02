@@ -7,40 +7,71 @@
     android:background="@drawable/gradient_verde"
     tools:context=".AlertasConsumo">
 
+    <!-- HEADER COM NOME DA CASA -->
+    <LinearLayout
+        android:id="@+id/headerCasaAlertas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#1E4D42">
+
+        <TextView
+            android:text="Análise Inteligente"
+            android:textSize="14sp"
+            android:textColor="#FFFFFF"
+            android:alpha="0.8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/tvNomeCasaAlertas"
+            android:text="Casa Avó"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="4dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
     <!-- CONTEÚDO SCROLLÁVEL -->
     <ScrollView
         android:id="@+id/scrollAlertas"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
-        android:layout_above="@+id/bottomNavigation">
+        android:layout_above="@+id/bottomNavigation"
+        android:layout_below="@+id/headerCasaAlertas">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="24dp"
-            android:gravity="center_horizontal">
+            android:gravity="center_horizontal"
+            android:background="#FAFAFA">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="ECOTRACK"
-                android:textSize="36sp"
+                android:textSize="28sp"
                 android:textStyle="bold"
                 android:textColor="@color/green"
-                android:layout_marginBottom="12dp"/>
+                android:layout_marginBottom="8dp"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Análise Inteligente"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="@color/green"
+                android:text="Alertas de Consumo"
+                android:textSize="16sp"
+                android:textColor="@color/onMint"
                 android:layout_marginBottom="24dp"
                 android:textAlignment="center"/>
 
+            <!-- CARD ALERTA PRINCIPAL -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -54,10 +85,10 @@
 
                 <ImageView
                     android:id="@+id/ivIconeAlerta"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:src="@android:drawable/ic_dialog_alert"
-                    android:layout_marginEnd="12dp"
+                    android:layout_marginEnd="16dp"
                     app:tint="#D32F2F" />
 
                 <LinearLayout
@@ -72,8 +103,9 @@
                         android:layout_height="wrap_content"
                         android:text="A carregar análise..."
                         android:textStyle="bold"
-                        android:textSize="18sp"
-                        android:textColor="#000000"/>
+                        android:textSize="16sp"
+                        android:textColor="#000000"
+                        android:layout_marginBottom="4dp"/>
 
                     <TextView
                         android:id="@+id/tvMensagemAlerta"
@@ -81,42 +113,45 @@
                         android:layout_height="wrap_content"
                         android:text="Por favor aguarde."
                         android:textColor="#555555"
-                        android:textSize="14sp" />
+                        android:textSize="13sp" />
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- TÍTULO SUGESTÕES -->
             <TextView
                 android:id="@+id/tvTituloSugestoes"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Sugestões Recomendadas:"
-                android:textColor="@color/onMint"
-                android:textSize="18sp"
+                android:textColor="#1E4D42"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp"/>
 
+            <!-- LAYOUT SUGESTÕES -->
             <LinearLayout
                 android:id="@+id/layoutSugestoes"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
+                <!-- DICA 1 -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:background="@android:drawable/dialog_holo_light_frame"
                     android:backgroundTint="#FFFFFF"
-                    android:padding="12dp"
+                    android:padding="14dp"
                     android:elevation="2dp"
                     android:layout_marginBottom="8dp"
                     android:gravity="center_vertical">
 
                     <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:src="@android:drawable/ic_menu_manage"
-                        android:layout_marginEnd="10dp"
+                        android:layout_marginEnd="12dp"
                         app:tint="#388E3C" />
 
                     <TextView
@@ -125,25 +160,27 @@
                         android:layout_height="wrap_content"
                         android:text="---"
                         android:textColor="#000000"
-                        android:textSize="14sp" />
+                        android:textSize="13sp"
+                        android:lineSpacingExtra="2dp"/>
                 </LinearLayout>
 
+                <!-- DICA 2 -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:background="@android:drawable/dialog_holo_light_frame"
                     android:backgroundTint="#FFFFFF"
-                    android:padding="12dp"
+                    android:padding="14dp"
                     android:elevation="2dp"
                     android:layout_marginBottom="8dp"
                     android:gravity="center_vertical">
 
                     <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:src="@android:drawable/ic_menu_search"
-                        android:layout_marginEnd="10dp"
+                        android:layout_marginEnd="12dp"
                         app:tint="#FF9800" />
 
                     <TextView
@@ -152,25 +189,27 @@
                         android:layout_height="wrap_content"
                         android:text="---"
                         android:textColor="#000000"
-                        android:textSize="14sp" />
+                        android:textSize="13sp"
+                        android:lineSpacingExtra="2dp"/>
                 </LinearLayout>
 
+                <!-- DICA 3 -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:background="@android:drawable/dialog_holo_light_frame"
                     android:backgroundTint="#FFFFFF"
-                    android:padding="12dp"
+                    android:padding="14dp"
                     android:elevation="2dp"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="20dp"
                     android:gravity="center_vertical">
 
                     <ImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
                         android:src="@android:drawable/ic_menu_help"
-                        android:layout_marginEnd="10dp"
+                        android:layout_marginEnd="12dp"
                         app:tint="#D32F2F" />
 
                     <TextView
@@ -179,9 +218,12 @@
                         android:layout_height="wrap_content"
                         android:text="---"
                         android:textColor="#000000"
-                        android:textSize="14sp" />
+                        android:textSize="13sp"
+                        android:lineSpacingExtra="2dp"/>
                 </LinearLayout>
             </LinearLayout>
+
+            <!-- BOTÃO ASSISTÊNCIA -->
             <Button
                 android:id="@+id/btnAgendarAssistencia"
                 android:layout_width="match_parent"
@@ -190,12 +232,14 @@
                 android:backgroundTint="@color/onMint"
                 android:textColor="@color/white"
                 android:textStyle="bold"
-                android:layout_marginBottom="16dp"/>
+                android:textSize="15sp"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp"/>
 
         </LinearLayout>
     </ScrollView>
 
-    <!-- BOTTOM NAV FIXA -->
+    <!-- BOTTOM NAVIGATION FIXA -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"

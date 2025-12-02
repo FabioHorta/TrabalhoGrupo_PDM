@@ -5,20 +5,51 @@
     android:layout_height="match_parent"
     android:background="@drawable/gradient_verde">
 
+    <!-- HEADER COM NOME DA CASA -->
+    <LinearLayout
+        android:id="@+id/headerCasaCalculadora"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:background="#1E4D42">
+
+        <TextView
+            android:text="Simulador de Custos"
+            android:textSize="14sp"
+            android:textColor="#FFFFFF"
+            android:alpha="0.8"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:id="@+id/tvNomeCasaCalculadora"
+            android:text="Casa Avó"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="4dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
     <!-- CONTEÚDO SCROLLÁVEL -->
     <ScrollView
         android:id="@+id/scrollSimulador"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
-        android:layout_above="@+id/bottomNavigation">
+        android:layout_above="@+id/bottomNavigation"
+        android:layout_below="@+id/headerCasaCalculadora">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="24dp"
-            android:gravity="center_horizontal">
+            android:gravity="center_horizontal"
+            android:background="#FAFAFA">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -37,6 +68,7 @@
                 android:textColor="@color/onMint"
                 android:layout_marginBottom="32dp"/>
 
+            <!-- CARD CONSUMO ATUAL -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -70,6 +102,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <!-- LABEL PREÇO -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -78,6 +111,7 @@
                 android:textStyle="bold"
                 android:layout_marginBottom="8dp"/>
 
+            <!-- INPUT PREÇO -->
             <EditText
                 android:id="@+id/etPrecoKwh"
                 android:layout_width="match_parent"
@@ -88,6 +122,7 @@
                 android:padding="12dp"
                 android:layout_marginBottom="24dp"/>
 
+            <!-- BOTÃO CALCULAR -->
             <Button
                 android:id="@+id/btnCalcular"
                 android:layout_width="match_parent"
@@ -96,8 +131,11 @@
                 android:backgroundTint="@color/green"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold"
+                android:textSize="16sp"
+                android:padding="14dp"
                 android:layout_marginBottom="24dp"/>
 
+            <!-- RESULTADO -->
             <LinearLayout
                 android:id="@+id/layoutResultado"
                 android:layout_width="match_parent"
@@ -137,6 +175,7 @@
         </LinearLayout>
     </ScrollView>
 
+    <!-- BOTTOM NAVIGATION -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"

@@ -12,8 +12,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class EstimativaConsumo extends AppCompatActivity {
 
-    private static final double PRECO_KWH = 0.40; // opção C indicada pelo utilizador
+    private static final double PRECO_KWH = 0.40;
 
+    private TextView tvNomeCasaEstimativa;
     private TextView tvAlerta;
     private TextView tvSugestao;
     private TextView tvConsumoAtual;
@@ -24,8 +25,8 @@ public class EstimativaConsumo extends AppCompatActivity {
     private Button btnVoltar;
 
     private DBHelper dbHelper;
-
-    // valor base (média real) para a estimativa
+    private int casaIdAtual;
+    private String casaNomeAtual;
     private double consumoBaseKwh = 0.0;
 
     @Override
@@ -35,12 +36,18 @@ public class EstimativaConsumo extends AppCompatActivity {
         setContentView(R.layout.activity_estimativa_consumo);
 
         dbHelper = new DBHelper(this);
+
+        // Multi-casa
+        casaIdAtual = CasaSelecionada.getInstance().getCasaId();
+        casaNomeAtual = CasaSelecionada.getInstance().getCasaNome();
+
         ligarViews();
         carregarDadosBase();
         configurarBotoes();
     }
 
     private void ligarViews() {
+        tvNomeCasaEstimativa = findViewById(R.id.tvNomeCasaEstimativa);
         tvAlerta = findViewById(R.id.tvAlerta);
         tvSugestao = findViewById(R.id.tvSugestao);
         tvConsumoAtual = findViewById(R.id.tvConsumoAtual);
@@ -49,13 +56,11 @@ public class EstimativaConsumo extends AppCompatActivity {
         etReducao = findViewById(R.id.etReducao);
         btnCalcular = findViewById(R.id.btnCalcular);
         btnVoltar = findViewById(R.id.btnVoltar);
+
+        // Mostrar nome da casa
+        tvNomeCasaEstimativa.setText(casaNomeAtual);
     }
 
-    /**
-     * Lê os dados reais da base de dados para:
-     *  - preencher o alerta (acima/abaixo da média)
-     *  - definir o consumo médio base para a estimativa
-     */
     private void carregarDadosBase() {
         Cursor cursor = null;
         double media6 = 0.0;
@@ -64,10 +69,8 @@ public class EstimativaConsumo extends AppCompatActivity {
         String status = null;
 
         try {
-            // média dos últimos 6 períodos (mesma lógica do resto da app)
-            media6 = dbHelper.calcularMediaConsumos(6);
+            media6 = dbHelper.calcularMediaConsumosPorCasa(6, casaIdAtual);
 
-            // último registo analisado (tabela consumos_analisados + leituras)
             cursor = dbHelper.obterHistoricoConsumosAnalisados(null);
             if (cursor != null && cursor.moveToFirst()) {
                 int idxConsumo = cursor.getColumnIndex(DBHelper.C_CONSUMO_ANALISADO_VALOR);
@@ -94,13 +97,9 @@ public class EstimativaConsumo extends AppCompatActivity {
             }
         }
 
-        // Consumo base:
-        //  1) média dos últimos 6 períodos (preferencial)
-        //  2) se não houver média, usa o consumo do último período analisado
         consumoBaseKwh = media6 > 0 ? media6 : consumoAtualPeriodo;
 
         if (consumoBaseKwh <= 0) {
-            // Não há dados suficientes
             tvAlerta.setText("Ainda não existem dados suficientes para análise de consumo.");
             tvSugestao.setText("Sugestão: regista pelo menos duas leituras em \"Leituras Mensais\" para ver alertas e estimativas.");
             tvConsumoAtual.setText("Consumo médio atual: -");
@@ -109,12 +108,10 @@ public class EstimativaConsumo extends AppCompatActivity {
             return;
         }
 
-        // Card de estimativa base
         double custoMedio = consumoBaseKwh * PRECO_KWH;
         tvConsumoAtual.setText(String.format("Consumo médio atual: %.1f kWh", consumoBaseKwh));
         tvCustoAtual.setText(String.format("Custo médio mensal: €%.2f", custoMedio));
 
-        // Card de alerta com base no status já calculado noutros fluxos
         if ("ALTO".equals(status)) {
             tvAlerta.setText(String.format(
                     "O consumo do último período está %.1f%% acima da média. Consumo médio: %.1f kWh.",
@@ -132,7 +129,6 @@ public class EstimativaConsumo extends AppCompatActivity {
             tvSugestao.setText("Sugestão: mantém estes hábitos eficientes. Verifica se há mais aparelhos em standby que possas desligar.");
 
         } else {
-            // NORMAL ou sem status definido
             tvAlerta.setText("O consumo recente está próximo da média habitual.");
             tvSugestao.setText("Sugestão: pequenas reduções em aquecimento, iluminação e standby podem gerar poupanças visíveis no próximo mês.");
         }
@@ -184,5 +180,15 @@ public class EstimativaConsumo extends AppCompatActivity {
         );
 
         tvResultado.setText(resultado);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        casaIdAtual = CasaSelecionada.getInstance().getCasaId();
+        casaNomeAtual = CasaSelecionada.getInstance().getCasaNome();
+
+        tvNomeCasaEstimativa.setText(casaNomeAtual);
     }
 }
