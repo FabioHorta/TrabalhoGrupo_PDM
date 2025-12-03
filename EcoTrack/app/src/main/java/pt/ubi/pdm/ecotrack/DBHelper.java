@@ -103,7 +103,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 C_USER_UID + " TEXT UNIQUE, " +
                 C_USER_EMAIL + " TEXT UNIQUE NOT NULL, " +
                 C_USER_NAME + " TEXT, " +
-                C_USER_PRECO_KWH + " REAL DEFAULT 0.20, " +
+                C_USER_PRECO_KWH + " REAL , " +
                 C_USER_PASSWORD_HASH + " TEXT, " +
                 C_USER_TIPO + " TEXT DEFAULT 'cliente'" +
                 ")"

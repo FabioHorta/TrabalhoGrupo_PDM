@@ -38,16 +38,8 @@
             android:textStyle="bold"
             android:textColor="#FFFFFF"
             android:layout_marginStart="16dp"
-            app:layout_constraintStart_toEndOf="@id/btnBackArrow"
+            app:layout_constraintStart_toEndOf="@id/voltar"
             app:layout_constraintTop_toTopOf="parent" />
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/ic_menu_help"
-            app:tint="#80FFFFFF"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_centerY="@id/tvTituloPagina" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

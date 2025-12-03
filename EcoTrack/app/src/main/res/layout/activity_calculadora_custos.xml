@@ -60,18 +60,6 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <!-- Ícone Euro/Calculadora à direita -->
-        <ImageView
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@android:drawable/ic_menu_edit"
-            app:layout_centerY="@id/tvNomeCasaCalculadora"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.976"
-            app:layout_constraintStart_toEndOf="@+id/tvNomeCasaCalculadora"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0"
-            app:tint="#80FFFFFF" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -239,7 +227,7 @@
                     android:id="@+id/tvResultadoEuros"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="€ 24,64"
+                    android:text="€ --"
                     android:textSize="36sp"
                     android:textStyle="bold"
                     android:textColor="#2E7D32"

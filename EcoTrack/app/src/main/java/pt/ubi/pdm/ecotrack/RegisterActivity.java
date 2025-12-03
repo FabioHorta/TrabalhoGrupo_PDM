@@ -10,6 +10,8 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.textfield.TextInputEditText;
+
 import pt.ubi.pdm.ecotrack.api.ApiClient;
 import pt.ubi.pdm.ecotrack.api.ApiService;
 import pt.ubi.pdm.ecotrack.models.RegisterRequest;
@@ -20,7 +22,7 @@ import retrofit2.Response;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private EditText etNomeCompleto, etEmail, etNif, etPassword, etConfirmacaoPassword;
+    private TextInputEditText etNomeCompleto, etEmail, etNif, etPassword, etConfirmacaoPassword;
     private Button btnCriarConta, btnJaTenhoConta;
 
     private DBHelper dbHelper;
@@ -38,11 +40,11 @@ public class RegisterActivity extends AppCompatActivity {
         apiService = ApiClient.getRetrofit().create(ApiService.class);
 
         // Ligação às views
-        etNomeCompleto = findViewById(R.id.NomeCompleto);
-        etEmail        = findViewById(R.id.NomedeUtilizador);
-        etNif          = findViewById(R.id.NIF);
-        etPassword     = findViewById(R.id.Password);
-        etConfirmacaoPassword = findViewById(R.id.ConfirmacaoPassword);
+        etNomeCompleto = findViewById(R.id.etNomeCompleto);
+        etEmail        = findViewById(R.id.etNomedeUtilizador);
+        etNif          = findViewById(R.id.etNIF);
+        etPassword     = findViewById(R.id.etPassword);
+        etConfirmacaoPassword = findViewById(R.id.etConfirmacaoPassword);
 
         btnCriarConta   = findViewById(R.id.botaodelogin);
         btnJaTenhoConta = findViewById(R.id.signUpPrompt);

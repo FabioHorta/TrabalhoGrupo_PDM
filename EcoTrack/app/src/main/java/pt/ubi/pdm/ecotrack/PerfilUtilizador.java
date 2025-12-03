@@ -33,7 +33,7 @@ public class PerfilUtilizador extends AppCompatActivity {
     private DBHelper dbHelper;
     private FirebaseAuth mAuth;
     private String userEmailAtual = "";
-    private double precoKwhAtual = 0.20;
+    private double precoKwhAtual;
 
     private int casaIdAtual;
 
