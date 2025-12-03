@@ -165,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
                             user.getTipo(),
                             offlineHash
                     );
+
                     // 3) guardar sessão
                     getSharedPreferences("auth", MODE_PRIVATE)
                             .edit()
@@ -189,21 +190,29 @@ public class MainActivity extends AppCompatActivity {
                     finish();
 
                 } else {
+                    // Falhou no servidor → tenta offline
                     Toast.makeText(MainActivity.this,
-                            "Credenciais inválidas ou erro no servidor.",
-                            Toast.LENGTH_LONG).show();
+                            "Erro no servidor. A tentar login offline...",
+                            Toast.LENGTH_SHORT).show();
+
+                    fazerLoginOffline(email, password);
                 }
             }
 
             @Override
             public void onFailure(Call<UserResponse> call, Throwable t) {
                 btnLogin.setEnabled(true);
+
+                // Sem conseguir falar com o servidor → tenta offline
                 Toast.makeText(MainActivity.this,
-                        "Erro de ligação ao servidor.",
-                        Toast.LENGTH_LONG).show();
+                        "Não foi possível contactar o servidor. A tentar login offline...",
+                        Toast.LENGTH_SHORT).show();
+
+                fazerLoginOffline(email, password);
             }
         });
     }
+
 
 
 }

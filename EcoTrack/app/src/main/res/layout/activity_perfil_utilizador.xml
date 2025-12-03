@@ -190,7 +190,6 @@
             android:textStyle="bold"
             android:layout_marginBottom="16dp"
             app:cornerRadius="12dp"
-            app:icon="@android:drawable/ic_dialog_map"
             app:iconGravity="textStart"
             android:textColor="@android:color/white"
             android:backgroundTint="@color/green"

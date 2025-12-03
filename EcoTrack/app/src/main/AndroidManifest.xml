@@ -17,6 +17,9 @@
         android:theme="@style/Theme.EcoTrack"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".ClasseConsumo"
+            android:exported="false" />
+        <activity
             android:name=".Eletrodomesticos"
             android:exported="false" />
         <activity
@@ -79,12 +82,15 @@
         <activity
             android:name=".HomeTecnico"
             android:exported="false" />
-        <activity android:name=".ChatClienteActivity"
-            android:exported="false"/>
-        <activity android:name=".ListaChatsTecnicoActivity"
-            android:exported="false"/>
-        <activity android:name=".ChatTecnicoActivity"
-            android:exported="false"/>
+        <activity
+            android:name=".ChatClienteActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ListaChatsTecnicoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ChatTecnicoActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

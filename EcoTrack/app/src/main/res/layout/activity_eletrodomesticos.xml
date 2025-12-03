@@ -295,7 +295,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"/>
-            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardEV"
+            <include layout="@layout/item_eletrodomestico_card" android:id="@+id/cardRouter"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"

@@ -1,70 +1,172 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center"
-    android:background="@drawable/gradient_verde">
+    android:background="@drawable/gradient_verde"
+    tools:context=".ApoioCliente">
 
-    <!-- Título -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Apoio ao Cliente"
-        android:textColor="@color/onMint"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="20dp"/>
-
-    <!-- Descrição -->
-    <TextView
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
-        android:text="O utilizador pode agendar assistência técnica, enviar mensagens, ou consultar relatórios."
-        android:textAlignment="center"
-        android:textColor="@color/onMint"
-        android:textSize="16sp" />
-
-    <!-- Botão 1: Agendar Assistência -->
-    <Button
-        android:id="@+id/btnAgendarAssistencia"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/headerApoio"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Agendar Assistência Técnica"
-        android:backgroundTint="#FFFFFF"
-        android:textColor="@color/green"
-        android:layout_marginBottom="20dp" />
+        android:paddingHorizontal="24dp"
+        android:paddingTop="48dp"
+        android:paddingBottom="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- Botão 2: Enviar Mensagem -->
-    <Button
-        android:id="@+id/btnEnviarMensagem"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Enviar Mensagem"
-        android:backgroundTint="#FFFFFF"
-        android:textColor="@color/green"
-        android:layout_marginBottom="20dp" />
+        <ImageView
+            android:id="@+id/voltar"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@android:drawable/ic_media_previous"
+            app:tint="#FFFFFF"
+            android:contentDescription="Voltar"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tvTituloPagina"
+            app:layout_constraintBottom_toBottomOf="@id/tvTituloPagina" />
 
-    <!-- Botão 3: Consultar Relatórios -->
-    <Button
-        android:id="@+id/btnConsultarRelatorios"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Consultar Relatórios"
-        android:backgroundTint="#FFFFFF"
-        android:textColor="@color/green"
-        android:layout_marginBottom="40dp" />
+        <TextView
+            android:id="@+id/tvTituloPagina"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Apoio ao Cliente"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:layout_marginStart="16dp"
+            app:layout_constraintStart_toEndOf="@id/btnBackArrow"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Voltar -->
-    <Button
-        android:id="@+id/voltar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Voltar"
-        android:onClick="onBackPressed"
-        android:backgroundTint="#FFFFFF"
-        android:textColor="@color/green" />
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_help"
+            app:tint="#80FFFFFF"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_centerY="@id/tvTituloPagina" />
 
-</LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/headerApoio"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:gravity="center_horizontal">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="6dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:src="@android:drawable/stat_sys_headset"
+                        app:tint="@color/onMint"
+                        android:layout_marginBottom="16dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Como podemos ajudar?"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/oliveText"
+                        android:layout_marginBottom="8dp"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Selecione uma das opções abaixo para agendar visitas, falar connosco ou ver o histórico."
+                        android:textAlignment="center"
+                        android:textColor="@color/oliveTextSoft"
+                        android:textSize="14sp"
+                        android:lineSpacingExtra="4dp"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAgendarAssistencia"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:text="Agendar Visita Técnica"
+                android:textAlignment="textStart"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                app:icon="@android:drawable/ic_menu_my_calendar"
+                app:iconGravity="textStart"
+                app:iconTint="#FFFFFF"
+                app:iconPadding="16dp"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@color/onMint"
+                android:layout_marginBottom="16dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEnviarMensagem"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:text="Enviar Mensagem"
+                android:textAlignment="textStart"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/onMint"
+                app:icon="@android:drawable/ic_dialog_email"
+                app:iconGravity="textStart"
+                app:iconTint="@color/onMint"
+                app:iconPadding="16dp"
+                app:cornerRadius="16dp"
+                app:backgroundTint="#F0F4C3"
+                android:layout_marginBottom="16dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnConsultarRelatorios"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="65dp"
+                android:text="Histórico de Relatórios"
+                android:textAlignment="textStart"
+                android:textSize="16sp"
+                android:textColor="#FFFFFF"
+                app:strokeColor="#FFFFFF"
+                app:strokeWidth="1dp"
+                app:icon="@android:drawable/ic_menu_sort_by_size"
+                app:iconGravity="textStart"
+                app:iconTint="#FFFFFF"
+                app:iconPadding="16dp"
+                app:cornerRadius="16dp"
+                app:backgroundTint="@android:color/transparent"
+                android:layout_marginBottom="30dp"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
