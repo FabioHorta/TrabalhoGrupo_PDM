@@ -263,7 +263,7 @@ public class MenuPrincipal extends BaseActivity {
     private void carregarResumoConsumo(int casaId) {
         // Usar dados ESPECÍFICOS DA CASA SELECIONADA
         double consumoUltimoPeriodo = dbHelper.calcularMediaConsumosPorCasa(1, casaId);
-        double media6 = dbHelper.calcularMediaConsumosPorCasa(6, casaId);
+        double media6 = (dbHelper.calcularMediaConsumos(7)) * ((double) 7 /6) - (consumoUltimoPeriodo/6);
 
         if (consumoUltimoPeriodo > 0) {
             tvConsumoResumo.setText(String.format(Locale.getDefault(),

@@ -60,7 +60,7 @@ public class AlertasConsumo extends BaseActivity {
     private void preencherAnalise() {
         // ✅ CORRIGIDO: Usar dados ESPECÍFICOS DA CASA SELECIONADA
         double consumoUltimo = dbHelper.calcularMediaConsumosPorCasa(1, casaIdAtual);
-        double media6 = dbHelper.calcularMediaConsumosPorCasa(6, casaIdAtual);
+        double media6 = (dbHelper.calcularMediaConsumos(7)) * ((double) 7 /6) - (consumoUltimo/6);
 
         if (consumoUltimo <= 0 || media6 <= 0) {
             tvTituloAlerta.setText("Ainda sem dados suficientes");
