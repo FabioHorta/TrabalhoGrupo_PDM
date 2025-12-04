@@ -1,51 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center"
     android:background="@drawable/gradient_verde">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Enviar Mensagem"
-        android:textColor="@color/onMint"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="20dp"/>
-
-    <EditText
-        android:id="@+id/etAssunto"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Assunto"
-        android:textColor="@color/onMint"
-        android:layout_marginBottom="16dp"/>
+        android:orientation="vertical"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="24dp"
+        android:paddingBottom="16dp">
 
-    <EditText
-        android:id="@+id/etMensagem"
-        android:layout_width="match_parent"
-        android:layout_height="140dp"
-        android:gravity="top"
-        android:hint="Escreve a tua mensagem…"
-        android:inputType="textMultiLine"
-        android:textColor="@color/onMint"
-        android:layout_marginBottom="16dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Novo Pedido"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp"/>
 
-    <Button
-        android:id="@+id/btnEnviar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Enviar"
-        android:backgroundTint="#FFFFFF"
-        android:textColor="@color/green"
-        android:layout_marginBottom="24dp"/>
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="#FFFFFF">
 
-    <ListView
-        android:id="@+id/listMensagens"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Assunto"
+                    app:startIconDrawable="@android:drawable/ic_menu_info_details"
+                    app:startIconTint="#1E4D42"
+                    app:boxStrokeColor="#1E4D42"
+                    app:hintTextColor="#1E4D42"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_marginBottom="12dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etAssunto"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textCapSentences"
+                        android:textColor="#000000"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Mensagem"
+                    app:startIconDrawable="@android:drawable/ic_menu_edit"
+                    app:startIconTint="#1E4D42"
+                    app:boxStrokeColor="#1E4D42"
+                    app:hintTextColor="#1E4D42"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_marginBottom="16dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etMensagem"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="textMultiLine|textCapSentences"
+                        android:minLines="3"
+                        android:gravity="top|start"
+                        android:textColor="#000000"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEnviar"
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:text="Enviar Mensagem"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"
+                    app:backgroundTint="#1E4D42"
+                    app:cornerRadius="8dp"/>
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:background="#F5F5F5"
+        android:elevation="4dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Histórico de Pedidos"
+            android:textColor="#666666"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:paddingStart="24dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp"/>
+
+        <ListView
+            android:id="@+id/listMensagens"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="8dp"
+            android:padding="16dp"
+            android:clipToPadding="false"
+            android:scrollbarStyle="outsideOverlay"/>
+
+    </LinearLayout>
 
 </LinearLayout>

@@ -1,23 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center"
     android:background="@drawable/gradient_verde">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Relatórios do Técnico"
-        android:textColor="@color/onMint"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="20dp"/>
-
-    <ListView
-        android:id="@+id/listRelatorios"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="24dp"
+        android:gravity="center_vertical">
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_menu_sort_by_size"
+            app:tint="#FFFFFF"
+            android:background="@drawable/bg_circle_white_alpha"
+            android:padding="10dp"
+            android:layout_marginEnd="16dp"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Intervenções Técnicas"
+                android:textColor="#CCFFFFFF"
+                android:textSize="14sp"
+                android:textAllCaps="true"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Relatórios"
+                android:textColor="#FFFFFF"
+                android:textSize="28sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="8dp"
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardCornerRadius="30dp"
+        app:cardElevation="0dp"
+        android:layout_marginBottom="-20dp"> <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="24dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:id="@+id/tvInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Consulte abaixo os detalhes das assistências realizadas:"
+            android:textColor="#666666"
+            android:textSize="14sp"
+            android:layout_marginBottom="12dp"
+            android:paddingStart="8dp"/>
+
+        <ListView
+            android:id="@+id/listRelatorios"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/tvInfo"
+            android:divider="@null"
+            android:dividerHeight="16dp"
+            android:padding="8dp"
+            android:clipToPadding="false"
+            android:scrollbarStyle="outsideOverlay"/>
+
+        <LinearLayout
+            android:id="@+id/layoutVazio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:alpha="0.3"
+            android:visibility="gone"> <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@android:drawable/ic_menu_report_image"
+            app:tint="#CCCCCC"
+            android:layout_marginBottom="8dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Sem relatórios disponíveis"
+                android:textSize="16sp"/>
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
 </LinearLayout>

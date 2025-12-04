@@ -40,8 +40,8 @@ public class MenuPrincipal extends BaseActivity {
     private TextView tvConsumoResumo, tvCustoResumo, tvComparacaoResumo;
     private PieChart pieResumo;
 
-    // Atalhos rápidos
-    private MaterialCardView cardMelhorEnergia, cardLeituras, cardEstimativas, cardMapaGastos;
+    // Atalhos rápidos (Nota: cardLeituras foi removido do XML)
+    private MaterialCardView cardMelhorEnergia, cardEstimativas, cardMapaGastos;
     private MaterialCardView cardAlertas, cardApoio;
 
     // Dados
@@ -66,6 +66,8 @@ public class MenuPrincipal extends BaseActivity {
         atualizarCabecalho();
         carregarListaCasas();
         configurarClicks();
+
+        // Bottom Nav (item atual: home)
         setupBottomNav(R.id.nav_home);
     }
 
@@ -85,11 +87,12 @@ public class MenuPrincipal extends BaseActivity {
         tvComparacaoResumo = findViewById(R.id.tvComparacaoResumo);
         pieResumo = findViewById(R.id.pieResumo);
 
-        // Cards rápidos
+        // Cards rápidos (Removido cardLeituras pois não existe no XML)
         cardMelhorEnergia = findViewById(R.id.cardMelhorEnergia);
-        cardLeituras = findViewById(R.id.cardLeituras);
         cardEstimativas = findViewById(R.id.cardEstimativas);
         cardMapaGastos = findViewById(R.id.cardMapaGastos);
+
+        // Secção inferior
         cardAlertas = findViewById(R.id.cardAlertas);
         cardApoio = findViewById(R.id.cardApoio);
     }
@@ -102,7 +105,6 @@ public class MenuPrincipal extends BaseActivity {
     private void carregarListaCasas() {
         String email = obterEmailSessao();
         if (email == null) {
-            // sem sessão → volta ao login
             startActivity(new Intent(this, MainActivity.class));
             finish();
             return;
@@ -131,8 +133,9 @@ public class MenuPrincipal extends BaseActivity {
             tvCustoResumo.setText("Cria uma casa para ver dados");
             tvComparacaoResumo.setText("");
             pieResumo.setVisibility(View.GONE);
+
+            // Desativar cards que dependem da casa
             cardMelhorEnergia.setEnabled(false);
-            cardLeituras.setEnabled(false);
             cardEstimativas.setEnabled(false);
             cardMapaGastos.setEnabled(false);
             cardAlertas.setEnabled(false);
@@ -151,11 +154,15 @@ public class MenuPrincipal extends BaseActivity {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     CasaItem casaSelecionada = casas.get(position);
+
+                    // Atualizar Singleton Global
                     CasaSelecionada.getInstance().setSelecionada(
                             casaSelecionada.getId(),
                             casaSelecionada.getNome(),
                             emailFinal
                     );
+
+                    // Atualizar Gráficos para ESTA casa
                     carregarResumoConsumo(casaSelecionada.getId());
                 }
 
@@ -164,14 +171,21 @@ public class MenuPrincipal extends BaseActivity {
                 }
             });
 
-            // Selecionar primeira casa por padrão
-            if (!casas.isEmpty()) {
+            // Tentar selecionar a casa que já estava no Singleton (se houver)
+            int casaAtualId = CasaSelecionada.getInstance().getCasaId();
+            if (casaAtualId != -1) {
+                for (int i = 0; i < casas.size(); i++) {
+                    if (casas.get(i).getId() == casaAtualId) {
+                        spinnerCasas.setSelection(i);
+                        break;
+                    }
+                }
+            } else if (!casas.isEmpty()) {
                 spinnerCasas.setSelection(0);
             }
 
             // Reativar cards
             cardMelhorEnergia.setEnabled(true);
-            cardLeituras.setEnabled(true);
             cardEstimativas.setEnabled(true);
             cardMapaGastos.setEnabled(true);
             cardAlertas.setEnabled(true);
@@ -183,28 +197,21 @@ public class MenuPrincipal extends BaseActivity {
                 startActivity(new Intent(MenuPrincipal.this, PerfilUtilizador.class)));
 
         cardMelhorEnergia.setOnClickListener(v -> {
-            if (!verificarCasaSelecionada()) return;
-            startActivity(new Intent(this, TipoEnergia.class));
+             startActivity(new Intent(this, TipoEnergia.class));
         });
 
-        cardLeituras.setOnClickListener(v -> {
-            if (!verificarCasaSelecionada()) return;
-            startActivity(new Intent(this, LeiturasMensais.class));
-        });
+        // Nota: As leituras agora são acessíveis pela BottomBar, não pelo card
 
         cardEstimativas.setOnClickListener(v -> {
-            if (!verificarCasaSelecionada()) return;
-            startActivity(new Intent(this, EstimativaConsumo.class));
+            if (verificarCasaSelecionada()) startActivity(new Intent(this, EstimativaConsumo.class));
         });
 
         cardMapaGastos.setOnClickListener(v -> {
-            if (!verificarCasaSelecionada()) return;
-            startActivity(new Intent(this, MapaGastos.class));
+            if (verificarCasaSelecionada()) startActivity(new Intent(this, MapaGastos.class));
         });
 
         cardAlertas.setOnClickListener(v -> {
-            if (!verificarCasaSelecionada()) return;
-            startActivity(new Intent(this, AlertasConsumo.class));
+            if (verificarCasaSelecionada()) startActivity(new Intent(this, AlertasConsumo.class));
         });
 
         cardApoio.setOnClickListener(v ->
@@ -261,9 +268,18 @@ public class MenuPrincipal extends BaseActivity {
     }
 
     private void carregarResumoConsumo(int casaId) {
-        // Usar dados ESPECÍFICOS DA CASA SELECIONADA
+        pieResumo.setVisibility(View.VISIBLE);
+
+        // 1. Calcular consumo do último período para ESTA CASA
         double consumoUltimoPeriodo = dbHelper.calcularMediaConsumosPorCasa(1, casaId);
-        double media6 = (dbHelper.calcularMediaConsumos(7)) * ((double) 7 /6) - (consumoUltimoPeriodo/6);
+
+        // 2. Calcular a média histórica (últimos 6 períodos) para ESTA CASA
+        // Nota: Assumindo que tens este método no DBHelper. Se não, usa o genérico filtrando por casaId
+        double mediaGeral7 = dbHelper.calcularMediaConsumosPorCasa(7, casaId);
+
+        // Matemática para isolar os últimos 6 períodos excluindo o atual (aproximação)
+        double media6 = (mediaGeral7 * 7.0 / 6.0) - (consumoUltimoPeriodo / 6.0);
+        if (media6 < 0) media6 = 0; // Proteção contra valores negativos
 
         if (consumoUltimoPeriodo > 0) {
             tvConsumoResumo.setText(String.format(Locale.getDefault(),
@@ -273,7 +289,7 @@ public class MenuPrincipal extends BaseActivity {
                     "≈ € %.2f neste período", custoEstimado));
         } else {
             tvConsumoResumo.setText("Sem leituras suficientes");
-            tvCustoResumo.setText("Adiciona leituras em \"Leituras\"");
+            tvCustoResumo.setText("Adiciona leituras para ver dados");
         }
 
         if (consumoUltimoPeriodo > 0 && media6 > 0) {
@@ -281,16 +297,19 @@ public class MenuPrincipal extends BaseActivity {
             String texto;
             if (diffPercent > 0) {
                 texto = String.format(Locale.getDefault(),
-                        "↑ %.1f%% acima da média dos últimos 6 períodos", diffPercent);
+                        "↑ %.1f%% acima da média", diffPercent);
+                tvComparacaoResumo.setTextColor(Color.parseColor("#D32F2F")); // Vermelho
             } else if (diffPercent < 0) {
                 texto = String.format(Locale.getDefault(),
-                        "↓ %.1f%% abaixo da média dos últimos 6 períodos", Math.abs(diffPercent));
+                        "↓ %.1f%% abaixo da média", Math.abs(diffPercent));
+                tvComparacaoResumo.setTextColor(Color.parseColor("#388E3C")); // Verde
             } else {
-                texto = "Em linha com a média dos últimos 6 períodos";
+                texto = "Em linha com a média";
+                tvComparacaoResumo.setTextColor(Color.parseColor("#78909C")); // Cinza
             }
             tvComparacaoResumo.setText(texto);
         } else {
-            tvComparacaoResumo.setText("Ainda sem média histórica suficiente.");
+            tvComparacaoResumo.setText("Ainda sem histórico suficiente.");
         }
 
         configurarGraficoResumo(consumoUltimoPeriodo, media6);
@@ -302,29 +321,34 @@ public class MenuPrincipal extends BaseActivity {
             entradas.add(new PieEntry(1f, "Sem dados"));
         } else {
             if (consumoPeriodo > 0) {
-                entradas.add(new PieEntry((float) consumoPeriodo, "Último período"));
+                entradas.add(new PieEntry((float) consumoPeriodo, "Atual"));
             }
             if (media6 > 0) {
-                entradas.add(new PieEntry((float) media6, "Média 6 períodos"));
+                entradas.add(new PieEntry((float) media6, "Média"));
             }
         }
 
         PieDataSet dataSet = new PieDataSet(entradas, "");
         ArrayList<Integer> cores = new ArrayList<>();
         cores.add(Color.parseColor("#4CAF50")); // verde
-        cores.add(Color.parseColor("#80CBC4")); // verde claro
+        cores.add(Color.parseColor("#B2DFDB")); // verde muito claro
         dataSet.setColors(cores);
         dataSet.setValueTextColor(Color.WHITE);
         dataSet.setValueTextSize(12f);
 
+        // Remove descrição de cada fatia se forem "Sem dados"
+        if (consumoPeriodo <= 0 && media6 <= 0) {
+            dataSet.setDrawValues(false);
+        }
+
         PieData data = new PieData(dataSet);
         pieResumo.setData(data);
         pieResumo.getDescription().setEnabled(false);
-        pieResumo.setCenterText("Consumo");
+        pieResumo.setCenterText("kWh");
         pieResumo.setCenterTextSize(14f);
-        pieResumo.setHoleRadius(60f);
-        pieResumo.setTransparentCircleRadius(65f);
-        pieResumo.getLegend().setEnabled(true);
+        pieResumo.setHoleRadius(50f);
+        pieResumo.setTransparentCircleRadius(55f);
+        pieResumo.getLegend().setEnabled(false); // Esconde a legenda para ficar mais limpo
         pieResumo.setEntryLabelColor(Color.WHITE);
         pieResumo.animateY(800);
         pieResumo.invalidate();
@@ -334,13 +358,14 @@ public class MenuPrincipal extends BaseActivity {
     protected void onResume() {
         super.onResume();
         atualizarCabecalho();
-        carregarListaCasas();
+        carregarListaCasas(); // Recarrega casas caso tenhas adicionado uma nova
+
         if (bottomNavigationView != null) {
             bottomNavigationView.setSelectedItemId(R.id.nav_home);
         }
     }
 
-    // Classe interna para representar uma casa no spinner
+    // Classe interna para o Spinner
     static class CasaItem {
         private final int id;
         private final String nome;
@@ -350,17 +375,10 @@ public class MenuPrincipal extends BaseActivity {
             this.nome = nome;
         }
 
-        int getId() {
-            return id;
-        }
-
-        String getNome() {
-            return nome;
-        }
+        int getId() { return id; }
+        String getNome() { return nome; }
 
         @Override
-        public String toString() {
-            return nome;
-        }
+        public String toString() { return nome; }
     }
 }

@@ -81,7 +81,7 @@ public class CalculadoraCustos extends BaseActivity {
     private void carregarConsumoAtual() {
         double consumoMes = dbHelper.calcularMediaConsumosPorCasa(1, casaIdAtual);
         if (consumoMes > 0) {
-            tvConsumoAtual.setText(String.format("%.1f kWh", consumoMes));
+            tvConsumoAtual.setText(String.format("%.1f", consumoMes));
         } else {
             tvConsumoAtual.setText("-- kWh");
         }

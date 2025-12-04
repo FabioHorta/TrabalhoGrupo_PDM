@@ -1,57 +1,138 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center"
+    android:fillViewport="true"
     android:background="@drawable/gradient_verde">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Agendar Assistência Técnica"
-        android:textColor="@color/onMint"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="20dp"/>
-
-    <EditText
-        android:id="@+id/etData"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Escolher data"
-        android:focusable="false"
-        android:clickable="true"
-        android:textColor="@color/onMint"
-        android:layout_marginBottom="16dp" />
+        android:gravity="center"
+        android:padding="24dp"
+        android:orientation="vertical">
 
-    <EditText
-        android:id="@+id/etHora"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Escolher hora"
-        android:focusable="false"
-        android:clickable="true"
-        android:textColor="@color/onMint"
-        android:layout_marginBottom="16dp" />
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@android:drawable/ic_menu_agenda"
+            app:tint="#FFFFFF"
+            android:layout_marginBottom="16dp"
+            android:contentDescription="Ícone Calendário" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nova Assistência"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="24dp"/>
 
-    <EditText
-        android:id="@+id/etDescricao"
-        android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:hint="Descreve o problema"
-        android:gravity="top"
-        android:textColor="@color/onMint"
-        android:inputType="textMultiLine"
-        android:layout_marginBottom="20dp"/>
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="8dp"
+            android:backgroundTint="#FFFFFF">
 
-    <Button
-        android:id="@+id/btnAgendar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Agendar"
-        android:backgroundTint="#FFFFFF"
-        android:textColor="@color/green"/>
-</LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Preenche os detalhes"
+                    android:textColor="#1E4D42"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="16dp"/>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilData"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Data da Visita"
+                    app:startIconDrawable="@android:drawable/ic_menu_my_calendar"
+                    app:startIconTint="#1E4D42"
+                    app:boxStrokeColor="#1E4D42"
+                    app:hintTextColor="#1E4D42"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etData"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:inputType="none"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <Space android:layout_width="match_parent" android:layout_height="16dp"/>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilHora"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Hora Preferencial"
+                    app:startIconDrawable="@android:drawable/ic_menu_recent_history"
+                    app:startIconTint="#1E4D42"
+                    app:boxStrokeColor="#1E4D42"
+                    app:hintTextColor="#1E4D42"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etHora"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:focusable="false"
+                        android:clickable="true"
+                        android:inputType="none"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <Space android:layout_width="match_parent" android:layout_height="16dp"/>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilDescricao"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Descrição do Problema"
+                    app:startIconDrawable="@android:drawable/ic_menu_edit"
+                    app:startIconTint="#1E4D42"
+                    app:boxStrokeColor="#1E4D42"
+                    app:hintTextColor="#1E4D42"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etDescricao"
+                        android:layout_width="match_parent"
+                        android:layout_height="120dp"
+                        android:gravity="top|start"
+                        android:inputType="textMultiLine"
+                        android:minLines="3"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <Space android:layout_width="match_parent" android:layout_height="24dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAgendar"
+                    android:layout_width="match_parent"
+                    android:layout_height="60dp"
+                    android:text="Confirmar Agendamento"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#FFFFFF"
+                    app:backgroundTint="#1E4D42"
+                    app:cornerRadius="12dp"
+                    android:elevation="4dp"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+</ScrollView>

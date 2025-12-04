@@ -13,7 +13,6 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.widget.NestedScrollView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -33,7 +32,7 @@ public class ClasseConsumo extends AppCompatActivity {
             0xFFFFD700,  // D - Ouro
             0xFFFFA500,  // E - Laranja
             0xFFFF6347,  // F - Laranja Vermelho
-            0xFFDC143C   // G - Vermelho Criado
+            0xFFDC143C   // G - Vermelho
     };
 
     private String[] classeLetras = {"A", "B", "C", "D", "E", "F", "G"};
@@ -43,120 +42,120 @@ public class ClasseConsumo extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_classe_consumo);
 
-        Log.d("CLASSCONSUMO", "=== onCreate INICIADO ===");
-
         try {
-            // ✅ RECEBER casa_id DO INTENT
+            // Receber ID da casa (criada ou editada anteriormente)
             casaId = getIntent().getIntExtra("casa_id", -1);
-            Log.d("CLASSCONSUMO", "casaId recebido: " + casaId);
 
             if (casaId == -1) {
                 Toast.makeText(this, "Erro: Casa não encontrada!", Toast.LENGTH_SHORT).show();
-                Log.e("CLASSCONSUMO", "casaId = -1, a terminar");
                 finish();
                 return;
             }
 
             dbHelper = new DBHelper(this);
-            Log.d("CLASSCONSUMO", "DBHelper criado com sucesso");
 
-            // Encontrar views
+            // Views
             containerClasseConsumo = findViewById(R.id.containerClasseConsumo);
             btnProximo = findViewById(R.id.btnProximoClasse);
             btnVoltar = findViewById(R.id.btnVoltarClasse);
 
-            if (containerClasseConsumo == null) {
-                Toast.makeText(this, "Erro: containerClasseConsumo não encontrado!", Toast.LENGTH_SHORT).show();
-                Log.e("CLASSCONSUMO", "containerClasseConsumo = null");
-                finish();
-                return;
-            }
-
-            Log.d("CLASSCONSUMO", "Views encontradas com sucesso");
-
-            // ✅ CARREGAR ELETROS SELECIONADOS DA BD
+            // Carregar a lista
             carregarEletrodomesticosSelecionados();
 
-            // ✅ BOTÃO PRÓXIMO - IR PARA MAPA DE GASTOS
+            // --- BOTÃO PRÓXIMO (CORREÇÃO AQUI) ---
             btnProximo.setOnClickListener(v -> {
-                Log.d("CLASSCONSUMO", "Botão PRÓXIMO clicado");
-                Toast.makeText(this, "Classes guardadas! Seguindo para Mapa de Gastos...", Toast.LENGTH_SHORT).show();
+                // 1. Obter email do utilizador (SharedPreferences)
+                String userEmail = getSharedPreferences("auth", MODE_PRIVATE)
+                        .getString("user_email", "");
 
+                // 2. Buscar nome da casa à BD para atualizar o Singleton
+                String nomeCasa = "Casa Nova";
+                Cursor c = dbHelper.obterCasaPorId(casaId);
+                if (c != null && c.moveToFirst()) {
+                    nomeCasa = c.getString(c.getColumnIndexOrThrow(DBHelper.C_CASA_NOME));
+                    c.close();
+                }
+
+                // 3. ATUALIZAR O SINGLETON GLOBAL
+                // Isto garante que o MapaGastos sabe que ESTA é a casa ativa
+                CasaSelecionada.getInstance().setSelecionada(casaId, nomeCasa, userEmail);
+
+                Toast.makeText(this, "Classes guardadas!", Toast.LENGTH_SHORT).show();
+
+                // 4. Abrir Mapa de Gastos
                 Intent intent = new Intent(ClasseConsumo.this, MapaGastos.class);
+                // Não é estritamente necessário o putExtra porque usamos o Singleton,
+                // mas não faz mal deixar.
                 intent.putExtra("casa_id", casaId);
                 startActivity(intent);
                 finish();
             });
 
-            // ✅ BOTÃO VOLTAR
-            btnVoltar.setOnClickListener(v -> {
-                Log.d("CLASSCONSUMO", "Botão VOLTAR clicado");
-                finish();
-            });
-
-            Log.d("CLASSCONSUMO", "=== onCreate COMPLETO ===");
+            btnVoltar.setOnClickListener(v -> finish());
 
         } catch (Exception e) {
-            Log.e("CLASSCONSUMO", "ERRO em onCreate: " + e.getMessage());
             e.printStackTrace();
             Toast.makeText(this, "Erro: " + e.getMessage(), Toast.LENGTH_LONG).show();
             finish();
         }
     }
 
-    // Em ClasseConsumo.java
-
     private void carregarEletrodomesticosSelecionados() {
-        containerClasseConsumo.removeAllViews(); // Limpa antes de adicionar
+        containerClasseConsumo.removeAllViews(); // Limpar antes de adicionar
 
-        Cursor cursor = dbHelper.obterEletrodomesticosDaCasa(casaId);
+        try {
+            Cursor cursor = dbHelper.obterEletrodomesticosDaCasa(casaId);
 
-        // --- BLOCO DE DEBUG VISUAL ---
-        if (cursor == null || cursor.getCount() == 0) {
-            TextView tvVazio = new TextView(this);
-            tvVazio.setText("⚠️ Nenhum eletrodoméstico encontrado na BD para a Casa ID: " + casaId + "\n\nVolte atrás e adicione equipamentos.");
-            tvVazio.setTextColor(0xFFFF0000); // Vermelho
-            tvVazio.setTextSize(18);
-            tvVazio.setPadding(20, 20, 20, 20);
-            containerClasseConsumo.addView(tvVazio);
+            if (cursor == null || cursor.getCount() == 0) {
+                TextView tvVazio = new TextView(this);
+                tvVazio.setText("Nenhum eletrodoméstico encontrado.");
+                tvVazio.setPadding(20, 20, 20, 20);
+                containerClasseConsumo.addView(tvVazio);
+                if(cursor != null) cursor.close();
+                return;
+            }
 
-            if(cursor != null) cursor.close();
-            return;
+            // Mapa para numerar os aparelhos (ex: TV #1, TV #2)
+            Map<String, Integer> contadores = new HashMap<>();
+
+            while (cursor.moveToNext()) {
+                int id = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.C_APP_ID));
+                String nome = cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.C_APP_NOME));
+                String categoria = cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.C_APP_CATEGORIA));
+                String classeGuardada = cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.C_APP_CLASSE));
+
+                // Incrementar contador para este tipo de aparelho
+                int count = contadores.getOrDefault(nome, 0) + 1;
+                contadores.put(nome, count);
+
+                String tituloExibicao = nome + " #" + count;
+
+                // Criar o card
+                adicionarCardClasseConsumo(id, tituloExibicao, categoria, classeGuardada);
+            }
+            cursor.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        // -----------------------------
-
-        Map<String, Integer> contadores = new HashMap<>();
-
-        while (cursor.moveToNext()) {
-            // ... (o resto do código que te mandei antes) ...
-            int id = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.C_APP_ID));
-            String nome = cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.C_APP_NOME));
-            String categoria = cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.C_APP_CATEGORIA));
-            String classe = cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.C_APP_CLASSE));
-
-            int count = contadores.getOrDefault(nome, 0) + 1;
-            contadores.put(nome, count);
-
-            adicionarCardClasseConsumo(id, nome + " #" + count, categoria, classe);
-        }
-        cursor.close();
     }
+
     private void adicionarCardClasseConsumo(int eletroId, String tituloExibicao, String categoria, String classeGuardada) {
         try {
-            // ===== CARD PRINCIPAL =====
+            // Card Principal
             LinearLayout card = new LinearLayout(this);
             card.setOrientation(LinearLayout.VERTICAL);
-            card.setPadding(24, 24, 24, 24);
+            card.setPadding(32, 24, 32, 24);
             card.setBackgroundColor(0xFFFFFFFF);
-            // Margem entre cartões
+
             LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
             );
-            cardParams.setMargins(0, 0, 0, 24); // Espaço em baixo
+            cardParams.setMargins(0, 0, 0, 24); // Margem inferior
             card.setLayoutParams(cardParams);
 
-            // ===== TÍTULO (Ex: 📦 Frigorífico #1) =====
+            // Título
             TextView tvTitulo = new TextView(this);
             tvTitulo.setText("📦 " + tituloExibicao);
             tvTitulo.setTextSize(16);
@@ -165,37 +164,29 @@ public class ClasseConsumo extends AppCompatActivity {
             tvTitulo.setPadding(0, 0, 0, 16);
             card.addView(tvTitulo);
 
-            // ===== RADIOGROUP COM CLASSES A-G =====
+            // RadioGroup para as Classes A-G
             RadioGroup radioGroup = new RadioGroup(this);
             radioGroup.setOrientation(RadioGroup.HORIZONTAL);
 
-            // Layout params para o grupo
             LinearLayout.LayoutParams rgParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
             );
             radioGroup.setLayoutParams(rgParams);
 
-            // ===== CRIAR RADIOBUTTONS A-G =====
-            String[] letras = {"A", "B", "C", "D", "E", "F", "G"};
-            // Cores correspondentes (Verde -> Vermelho)
-            int[] cores = {
-                    0xFF00A86B, 0xFF3CB371, 0xFFCDDC39, 0xFFFFD700,
-                    0xFFFFA500, 0xFFFF6347, 0xFFDC143C
-            };
-
-            for (int i = 0; i < letras.length; i++) {
+            // Criar botões A-G
+            for (int i = 0; i < classeLetras.length; i++) {
                 RadioButton rb = new RadioButton(this);
-                rb.setText(letras[i]);
+                rb.setText(classeLetras[i]);
                 rb.setTextSize(14);
-                rb.setTextColor(cores[i]);
+                rb.setTextColor(coresClasses[i]);
 
-                // Define a cor da "bolinha" do rádio (API 21+)
+                // Cor da "bolinha"
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    rb.setButtonTintList(ColorStateList.valueOf(cores[i]));
+                    rb.setButtonTintList(ColorStateList.valueOf(coresClasses[i]));
                 }
 
-                // Distribuir espaço igualmente
+                // Layout params para distribuir uniformemente
                 LinearLayout.LayoutParams rbParams = new LinearLayout.LayoutParams(
                         0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f
                 );
@@ -203,34 +194,27 @@ public class ClasseConsumo extends AppCompatActivity {
 
                 radioGroup.addView(rb);
 
-                // Verificar se esta é a classe que já estava guardada na BD
-                if (classeGuardada != null && classeGuardada.equals(letras[i])) {
+                // Pré-selecionar se já existir na BD
+                if (classeGuardada != null && classeGuardada.equals(classeLetras[i])) {
                     rb.setChecked(true);
                 }
             }
 
-            // Se não houver classe guardada, podes querer selecionar "F" ou deixar vazio
-            if (classeGuardada == null) {
-                // Opcional: ((RadioButton) radioGroup.getChildAt(5)).setChecked(true);
-            }
-
-            // Listener para guardar logo que o utilizador clica
+            // Listener para guardar automaticamente
             radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-                RadioButton rb = findViewById(checkedId);
+                RadioButton rb = card.findViewById(checkedId);
                 if (rb != null) {
                     String classeSelecionada = rb.getText().toString();
-                    // Atualiza na BD usando o ID único da linha
+                    // Atualiza a linha específica na BD
                     dbHelper.atualizarClasseConsumoEletrodomestico(eletroId, classeSelecionada);
                 }
             });
 
             card.addView(radioGroup);
-
-            // Adicionar ao layout principal
             containerClasseConsumo.addView(card);
 
         } catch (Exception e) {
-            Log.e("CLASSCONSUMO", "Erro ao criar card: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

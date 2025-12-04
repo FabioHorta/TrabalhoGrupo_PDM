@@ -1,5 +1,7 @@
 package pt.ubi.pdm.ecotrack;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
@@ -9,9 +11,6 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,14 +31,18 @@ public class ChatClienteActivity extends AppCompatActivity {
 
         db = new DBHelper(this);
 
-        // email do utilizador autenticado
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null || user.getEmail() == null) {
-            Toast.makeText(this, "Utilizador não autenticado.", Toast.LENGTH_SHORT).show();
+        // --- MUDANÇA: USAR MEMÓRIA LOCAL (SharedPreferences) EM VEZ DE FIREBASE ---
+        SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
+        emailCliente = prefs.getString("user_email", null);
+
+        if (emailCliente == null) {
+            Toast.makeText(this, "Sessão expirada. Por favor faz login.", Toast.LENGTH_SHORT).show();
+            // Redireciona para o Login se não houver utilizador guardado
+            startActivity(new Intent(this, MainActivity.class));
             finish();
             return;
         }
-        emailCliente = user.getEmail();
+        // --------------------------------------------------------------------------
 
         listMensagens = findViewById(R.id.listMensagensCliente);
         etMensagem = findViewById(R.id.etMensagemCliente);
@@ -83,7 +86,11 @@ public class ChatClienteActivity extends AppCompatActivity {
                 linhas
         );
         listMensagens.setAdapter(adp);
-        listMensagens.setSelection(linhas.size() - 1);
+
+        // Rolar para o fim da lista se houver mensagens
+        if (!linhas.isEmpty()) {
+            listMensagens.setSelection(linhas.size() - 1);
+        }
     }
 
     private void enviarMensagem() {
@@ -93,7 +100,7 @@ public class ChatClienteActivity extends AppCompatActivity {
             return;
         }
 
-        // buscar todos os técnicos
+        // Buscar todos os técnicos
         Cursor cTec = db.listarTecnicos();
         if (cTec == null || !cTec.moveToFirst()) {
             Toast.makeText(this, "Não existem técnicos registados.", Toast.LENGTH_SHORT).show();
@@ -104,6 +111,7 @@ public class ChatClienteActivity extends AppCompatActivity {
         int idxEmail = cTec.getColumnIndexOrThrow(DBHelper.C_USER_EMAIL);
         boolean algumInserido = false;
 
+        // Enviar para todos os técnicos (simulação de ticket de suporte)
         do {
             String emailTec = cTec.getString(idxEmail);
             boolean ok = db.inserirMensagemChat(emailCliente, emailTec, texto);

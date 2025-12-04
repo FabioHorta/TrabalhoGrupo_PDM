@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:background="@drawable/gradient_verde">
 
-    <!-- CONTEÚDO PRINCIPAL COM SCROLL -->
     <ScrollView
         android:id="@+id/scrollContent"
         android:layout_width="match_parent"
@@ -19,7 +18,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!-- CABEÇALHO PERFIL -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -78,7 +76,6 @@
 
             </RelativeLayout>
 
-            <!-- SPINNER PARA SELECIONAR CASAS -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -112,7 +109,6 @@
 
             </LinearLayout>
 
-            <!-- CARTÃO RESUMO + GRÁFICO -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardResumo"
                 android:layout_width="match_parent"
@@ -174,7 +170,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ATALHOS RÁPIDOS EM CARDS PEQUENOS -->
             <TextView
                 android:text="Ações rápidas"
                 android:textStyle="bold"
@@ -195,7 +190,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
 
-                    <!-- Melhor Energia -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardMelhorEnergia"
                         android:layout_width="140dp"
@@ -232,44 +226,6 @@
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Leituras -->
-                    <com.google.android.material.card.MaterialCardView
-                        android:id="@+id/cardLeituras"
-                        android:layout_width="140dp"
-                        android:layout_height="120dp"
-                        android:layout_marginEnd="8dp"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="3dp"
-                        app:cardBackgroundColor="@android:color/white"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?attr/selectableItemBackground">
-
-                        <LinearLayout
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:padding="12dp"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-                            <TextView
-                                android:text="📄"
-                                android:textSize="26sp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"/>
-
-                            <TextView
-                                android:text="Leituras"
-                                android:gravity="center"
-                                android:textSize="13sp"
-                                android:textColor="#1E4D42"
-                                android:layout_marginTop="8dp"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"/>
-                        </LinearLayout>
-                    </com.google.android.material.card.MaterialCardView>
-
-                    <!-- Estimativas -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardEstimativas"
                         android:layout_width="140dp"
@@ -306,7 +262,6 @@
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Mapa de gastos -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardMapaGastos"
                         android:layout_width="140dp"
@@ -346,7 +301,6 @@
                 </LinearLayout>
             </HorizontalScrollView>
 
-            <!-- SECÇÃO APOIO / ALERTAS -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -455,7 +409,6 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- BOTTOM NAVIGATION -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"

@@ -247,7 +247,6 @@ public class DBHelper extends SQLiteOpenHelper {
         cv.put(C_USER_UID, idServidor);
         cv.put(C_USER_EMAIL, email);
         cv.put(C_USER_NAME, name);
-        cv.put(C_USER_PRECO_KWH, precoKwh);
         cv.put(C_USER_TIPO, tipo);
         cv.put(C_USER_PASSWORD_HASH, passwordHash);
 
@@ -270,6 +269,8 @@ public class DBHelper extends SQLiteOpenHelper {
         if (existingId > 0) {
             db.update(T_USERS, cv, C_USER_ID + "=?", new String[]{String.valueOf(existingId)});
         } else {
+            double precoInicial = (precoKwh != null && precoKwh > 0) ? precoKwh : 0.20;
+            cv.put(C_USER_PRECO_KWH, precoInicial);
             db.insert(T_USERS, null, cv);
         }
     }
@@ -307,11 +308,16 @@ public class DBHelper extends SQLiteOpenHelper {
         }
     }
 
-    public void atualizarPrecoUtilizador(String email, double preco) {
+    // No ficheiro DBHelper.java
+
+    public int atualizarPrecoUtilizador(String email, double preco) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(C_USER_PRECO_KWH, preco);
-        db.update(T_USERS, cv, C_USER_EMAIL + " = ?", new String[]{email});
+
+        // O método update devolve o número de linhas afetadas
+        // Se devolver 0, significa que não encontrou o email para atualizar
+        return db.update(T_USERS, cv, C_USER_EMAIL + " = ?", new String[]{email});
     }
 
     public Cursor obterDadosUtilizadorPorEmail(String email) {
@@ -678,7 +684,7 @@ public class DBHelper extends SQLiteOpenHelper {
                     "SELECT " + C_LEITURA_VALOR +
                             " FROM " + T_LEITURAS +
                             " WHERE casa_id = ? " +
-                            " ORDER BY " + C_LEITURA_DATA + " DESC LIMIT 1",
+                            " ORDER BY " + C_LEITURA_ID + " DESC LIMIT 1",
                     new String[]{String.valueOf(casaId)}
             );
             if (cursor != null && cursor.moveToFirst()) {

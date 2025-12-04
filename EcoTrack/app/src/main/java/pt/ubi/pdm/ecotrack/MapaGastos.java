@@ -7,7 +7,6 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -20,8 +19,6 @@ import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.formatter.PercentFormatter;
-import com.github.mikephil.charting.utils.ColorTemplate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,8 +33,13 @@ public class MapaGastos extends AppCompatActivity {
     private TextView tvSugestao, tvNomeCasaMapa;
 
     private DBHelper dbHelper;
+
+    // --- ALTERAÇÃO 1: Variáveis para guardar o estado da casa ---
     private int casaId;
-    private double precoKwhUsuario = 0.22;
+    private String casaNome;
+    // -----------------------------------------------------------
+
+    private double precoKwhUsuario = 0.20;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,17 +47,26 @@ public class MapaGastos extends AppCompatActivity {
         setContentView(R.layout.activity_mapa_gastos);
 
         dbHelper = new DBHelper(this);
-        casaId = getIntent().getIntExtra("casa_id", -1);
+
+        // --- ALTERAÇÃO 2: Usar o Singleton em vez do Intent ---
+        // Isto garante que apanha a casa que selecionaste no Spinner do Menu
+        casaId = CasaSelecionada.getInstance().getCasaId();
+        casaNome = CasaSelecionada.getInstance().getCasaNome();
 
         if (casaId == -1) {
-            Toast.makeText(this, "Erro: Casa não identificada!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Erro: Nenhuma casa selecionada!", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
+        // -----------------------------------------------------
 
         initViews();
-        carregarNomeDaCasa();
-        carregarDadosReais(); // Agora carrega por APARELHO
+
+        // Preencher logo o nome
+        tvNomeCasaMapa.setText(casaNome);
+
+        carregarDadosUsuario(); // Para saber o preço do kWh
+        carregarDadosReais();
         configurarBotoes();
     }
 
@@ -69,35 +80,45 @@ public class MapaGastos extends AppCompatActivity {
         tvNomeCasaMapa = findViewById(R.id.tvNomeCasaMapa);
     }
 
+    // --- ALTERAÇÃO 3: Adicionar onResume ---
+    // Se saíres e voltares, garante que os dados estão atualizados
+    @Override
+    protected void onResume() {
+        super.onResume();
+        casaId = CasaSelecionada.getInstance().getCasaId();
+        casaNome = CasaSelecionada.getInstance().getCasaNome();
+
+        if(tvNomeCasaMapa != null) {
+            tvNomeCasaMapa.setText(casaNome);
+        }
+
+        // Recarregar dados caso tenhas mudado algo noutro ecrã
+        carregarDadosReais();
+    }
+    // ----------------------------------------
+
     private void configurarBotoes() {
-        View.OnClickListener voltarListener = v -> finish();
-        btnVoltarMenu.setOnClickListener(voltarListener);
-        btnBackArrow.setOnClickListener(voltarListener);
+        btnBackArrow.setOnClickListener(v -> finish()); // Apenas fecha a atividade atual
+
+        btnVoltarMenu.setOnClickListener(v -> {
+            Intent intent = new Intent(MapaGastos.this, MenuPrincipal.class);
+            // Limpa a pilha para não ficar tudo encavalitado
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            startActivity(intent);
+            finish();
+        });
 
         btnSimular.setOnClickListener(v -> {
             Intent intent = new Intent(MapaGastos.this, EstimativaConsumo.class);
-            intent.putExtra("casa_id", casaId);
             startActivity(intent);
         });
     }
 
-    private void carregarNomeDaCasa() {
-        try {
-            Cursor c = dbHelper.obterCasaPorId(casaId);
-            if (c != null && c.moveToFirst()) {
-                String nomeCasa = c.getString(c.getColumnIndexOrThrow(DBHelper.C_CASA_NOME));
-                tvNomeCasaMapa.setText(nomeCasa);
+    private void carregarDadosUsuario() {
+        // Tenta buscar o preço do utilizador atual (via Singleton ou DB)
+        String email = CasaSelecionada.getInstance().getUserEmail();
+        if(email == null || email.isEmpty()) return;
 
-                String emailDono = c.getString(c.getColumnIndexOrThrow(DBHelper.C_CASA_USER_EMAIL));
-                carregarPrecoUsuario(emailDono);
-                c.close();
-            }
-        } catch (Exception e) {
-            Log.e("MAPA", "Erro: " + e.getMessage());
-        }
-    }
-
-    private void carregarPrecoUsuario(String email) {
         try {
             Cursor cUser = dbHelper.obterDadosUtilizadorPorEmail(email);
             if (cUser != null && cUser.moveToFirst()) {
@@ -108,17 +129,18 @@ public class MapaGastos extends AppCompatActivity {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // --- LÓGICA PRINCIPAL ALTERADA ---
     private void carregarDadosReais() {
         Cursor cursor = dbHelper.obterEletrodomesticosDaCasa(casaId);
 
         if (cursor == null || cursor.getCount() == 0) {
-            pieChart.setNoDataText("Adicione eletrodomésticos para ver os gastos.");
-            pieChart.setNoDataTextColor(Color.WHITE);
+            pieChart.clear(); // Limpa gráfico antigo
+            pieChart.setNoDataText("Sem eletrodomésticos registados.");
+            pieChart.setNoDataTextColor(Color.DKGRAY);
+            layoutListaCategorias.removeAllViews(); // Limpa a lista
+            tvSugestao.setText("Adicione eletrodomésticos em 'Caracterização' para ver a análise.");
             return;
         }
 
-        // Mapa para somar consumo por NOME DO APARELHO (e não categoria)
         Map<String, Double> consumoPorAparelho = new HashMap<>();
         double consumoTotalTotal = 0.0;
 
@@ -126,10 +148,9 @@ public class MapaGastos extends AppCompatActivity {
             String nome = cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.C_APP_NOME));
             String classe = cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.C_APP_CLASSE));
 
-            // Consumo Mensal direto do CSV/Classe Auxiliar
+            // Consumo Mensal estimado
             double consumoMensal = DadosEnergeticos.getConsumoMensal(nome, classe);
 
-            // Somar ao mapa usando o NOME como chave (ex: "Frigorífico", "TV")
             double atual = consumoPorAparelho.getOrDefault(nome, 0.0);
             consumoPorAparelho.put(nome, atual + consumoMensal);
 
@@ -140,6 +161,9 @@ public class MapaGastos extends AppCompatActivity {
         if (consumoTotalTotal > 0) {
             atualizarGrafico(consumoPorAparelho, consumoTotalTotal);
             atualizarListaCustos(consumoPorAparelho);
+        } else {
+            pieChart.clear();
+            tvSugestao.setText("Consumo calculado é zero. Verifique as classes energéticas.");
         }
     }
 
@@ -155,50 +179,33 @@ public class MapaGastos extends AppCompatActivity {
 
         PieDataSet dataSet = new PieDataSet(entradas, "");
 
-        // --- DEFINIR CORES MANUAIS E BEM DIFERENTES ---
         ArrayList<Integer> cores = new ArrayList<>();
-
-        // Paleta de Alto Contraste (Cores Vivas e Distintas)
-        cores.add(Color.parseColor("#E53935")); // Vermelho Vivo
-        cores.add(Color.parseColor("#1E88E5")); // Azul Forte
-        cores.add(Color.parseColor("#43A047")); // Verde
-        cores.add(Color.parseColor("#FDD835")); // Amarelo (Escuro para ver em fundo branco)
-        cores.add(Color.parseColor("#8E24AA")); // Roxo
-        cores.add(Color.parseColor("#FB8C00")); // Laranja
-        cores.add(Color.parseColor("#00ACC1")); // Ciano
-        cores.add(Color.parseColor("#D81B60")); // Rosa Choque
-        cores.add(Color.parseColor("#3949AB")); // Índigo
-        cores.add(Color.parseColor("#6D4C41")); // Castanho
-        cores.add(Color.parseColor("#C0CA33")); // Lima
-        cores.add(Color.parseColor("#546E7A")); // Cinza Azulado
+        // Cores vivas para o gráfico
+        cores.add(Color.parseColor("#E53935"));
+        cores.add(Color.parseColor("#1E88E5"));
+        cores.add(Color.parseColor("#43A047"));
+        cores.add(Color.parseColor("#FDD835"));
+        cores.add(Color.parseColor("#8E24AA"));
+        cores.add(Color.parseColor("#FB8C00"));
+        cores.add(Color.parseColor("#00ACC1"));
 
         dataSet.setColors(cores);
-        // --------------------------------------------------
-
-        // Manter o gráfico "limpo" (sem texto dentro)
-        dataSet.setDrawValues(false);
+        dataSet.setDrawValues(false); // Sem texto dentro das fatias (mais limpo)
 
         PieData data = new PieData(dataSet);
         pieChart.setData(data);
-
-        // Esconder labels de dentro do gráfico
         pieChart.setDrawEntryLabels(false);
-
-        // Estética
         pieChart.getDescription().setEnabled(false);
-        pieChart.setCenterText("Total\nMensal");
-        pieChart.setCenterTextColor(Color.DKGRAY);
+        pieChart.setCenterText("Total\n" + String.format("%.0f kWh", total));
         pieChart.setCenterTextSize(14f);
-        pieChart.setHoleRadius(45f);
-        pieChart.setTransparentCircleRadius(50f);
+        pieChart.setHoleRadius(50f);
+        pieChart.setTransparentCircleRadius(55f);
 
-        // Legenda (Necessária para saber quem é quem)
+        // Legenda
         pieChart.getLegend().setEnabled(true);
-        pieChart.getLegend().setTextColor(Color.WHITE);
         pieChart.getLegend().setWordWrapEnabled(true);
-        pieChart.getLegend().setTextSize(12f);
 
-        pieChart.animateY(1000);
+        pieChart.animateY(800);
         pieChart.invalidate();
     }
 
@@ -208,8 +215,6 @@ public class MapaGastos extends AppCompatActivity {
         String maiorGastoNome = "";
         double maxVal = 0;
 
-        // Ordenar seria ideal, mas HashMap não garante ordem.
-        // Vamos iterar e encontrar o maior para a dica.
         for (Map.Entry<String, Double> entry : dados.entrySet()) {
             String nomeAparelho = entry.getKey();
             double kwhMensal = entry.getValue();
@@ -223,7 +228,9 @@ public class MapaGastos extends AppCompatActivity {
             criarItemLista(nomeAparelho, custoEstimado, kwhMensal);
         }
 
-        tvSugestao.setText("💡 Dica: O seu maior gasto mensal é com " + maiorGastoNome + ".");
+        if (!maiorGastoNome.isEmpty()) {
+            tvSugestao.setText("💡 Dica: O seu maior consumidor é " + maiorGastoNome + ". Tente otimizar o seu uso.");
+        }
     }
 
     private void criarItemLista(String nome, double custo, double kwh) {
@@ -231,36 +238,18 @@ public class MapaGastos extends AppCompatActivity {
         item.setOrientation(LinearLayout.HORIZONTAL);
         item.setPadding(30, 30, 30, 30);
         item.setBackgroundResource(android.R.drawable.dialog_holo_light_frame);
-        item.setBackgroundTintList(getColorStateList(R.color.white));
 
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 0, 0, 20);
+        params.setMargins(0, 0, 0, 16);
         item.setLayoutParams(params);
         item.setGravity(Gravity.CENTER_VERTICAL);
-        item.setElevation(6f);
 
-        // Ícone Inteligente baseado no nome
+        // Ícone simples
         ImageView icon = new ImageView(this);
-        int iconRes = android.R.drawable.ic_menu_help;
-        int color = Color.GRAY;
-
-        String n = nome.toLowerCase();
-        if (n.contains("frig") || n.contains("arca")) {
-            iconRes = android.R.drawable.ic_menu_manage; color = Color.parseColor("#00BCD4"); // Ciano
-        } else if (n.contains("tv") || n.contains("televisao") || n.contains("pc")) {
-            iconRes = android.R.drawable.ic_menu_gallery; color = Color.parseColor("#7E57C2"); // Roxo
-        } else if (n.contains("aqueci") || n.contains("ar cond") || n.contains("lareira")) {
-            iconRes = android.R.drawable.ic_menu_directions; color = Color.parseColor("#FF7043"); // Laranja
-        } else if (n.contains("lavar") || n.contains("loica") || n.contains("roupa")) {
-            iconRes = android.R.drawable.ic_menu_compass; color = Color.parseColor("#42A5F5"); // Azul
-        } else if (n.contains("solar") || n.contains("paineis")) {
-            iconRes = android.R.drawable.ic_menu_day; color = Color.parseColor("#FFCA28"); // Amarelo
-        }
-
-        icon.setImageResource(iconRes);
-        icon.setColorFilter(color);
-        icon.setLayoutParams(new LinearLayout.LayoutParams(80, 80));
+        icon.setImageResource(android.R.drawable.ic_menu_info_details);
+        icon.setColorFilter(Color.parseColor("#1E4D42"));
+        icon.setLayoutParams(new LinearLayout.LayoutParams(60, 60));
 
         // Texto
         LinearLayout textLayout = new LinearLayout(this);
@@ -270,13 +259,11 @@ public class MapaGastos extends AppCompatActivity {
 
         TextView tvTitulo = new TextView(this);
         tvTitulo.setText(nome);
-        tvTitulo.setTextSize(16f);
         tvTitulo.setTypeface(null, Typeface.BOLD);
         tvTitulo.setTextColor(Color.BLACK);
 
         TextView tvKwh = new TextView(this);
         tvKwh.setText(String.format("%.1f kWh/mês", kwh));
-        tvKwh.setTextSize(12f);
         tvKwh.setTextColor(Color.DKGRAY);
 
         textLayout.addView(tvTitulo);
@@ -285,9 +272,8 @@ public class MapaGastos extends AppCompatActivity {
         // Preço
         TextView tvPreco = new TextView(this);
         tvPreco.setText(String.format("€ %.2f", custo));
-        tvPreco.setTextSize(16f);
         tvPreco.setTypeface(null, Typeface.BOLD);
-        tvPreco.setTextColor(Color.parseColor("#388E3C")); // Verde Dinheiro
+        tvPreco.setTextColor(Color.parseColor("#388E3C"));
 
         item.addView(icon);
         item.addView(textLayout);
