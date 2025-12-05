@@ -18,41 +18,28 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageView
-            android:id="@+id/btnBackArrow"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@android:drawable/ic_media_previous"
-            app:tint="#FFFFFF"
-            android:contentDescription="Voltar"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/tvNomeCasaAlertas"
-            app:layout_constraintBottom_toBottomOf="@id/tvNomeCasaAlertas" />
-
         <TextView
             android:id="@+id/tvLabelCategoria"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ANÁLISE INTELIGENTE"
-            android:textSize="12sp"
-            android:textColor="#CCFFFFFF"
-            android:letterSpacing="0.1"
-            android:textStyle="bold"
             android:layout_marginBottom="4dp"
-            android:layout_marginStart="16dp"
-            app:layout_constraintStart_toEndOf="@id/btnBackArrow"
-            app:layout_constraintBottom_toTopOf="@id/tvNomeCasaAlertas" />
+            android:letterSpacing="0.1"
+            android:text="ANÁLISE INTELIGENTE"
+            android:textColor="#CCFFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@id/tvNomeCasaAlertas"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <TextView
             android:id="@+id/tvNomeCasaAlertas"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Casa Avó"
+            android:textColor="@color/green"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            android:layout_marginStart="16dp"
-            app:layout_constraintStart_toEndOf="@id/btnBackArrow"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -82,7 +69,7 @@
                 android:text="Diagnóstico Atual"
                 android:textSize="22sp"
                 android:textStyle="bold"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/green"
                 android:layout_marginBottom="4dp"/>
 
             <TextView
@@ -90,7 +77,7 @@
                 android:layout_height="wrap_content"
                 android:text="Verifique os alertas e sugestões para otimizar a sua energia."
                 android:textSize="14sp"
-                android:textColor="#E0F2F1"
+                android:textColor="@color/green"
                 android:layout_marginBottom="24dp"/>
 
             <com.google.android.material.card.MaterialCardView

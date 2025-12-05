@@ -17,6 +17,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.navigation.NavigationBarView;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -25,7 +27,7 @@ public class LeiturasMensais extends BaseActivity {
     private TextView tvNomeCasaLeituras;
     private TextView tvLeituraAnterior, tvResultado;
     private EditText etNovaLeitura;
-    private Button btnEscolherImagem, btnCalcular, btnTirarFoto, btnGuardar, btnVoltar, btnVerHistorico;
+    private Button btnEscolherImagem, btnCalcular, btnTirarFoto, btnGuardar, btnVerHistorico;
     private ImageView imgContador;
 
     private Uri imagemSelecionadaUri;
@@ -43,7 +45,7 @@ public class LeiturasMensais extends BaseActivity {
                 if (uri != null) {
                     imagemSelecionadaUri = uri;
                     try {
-                        Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                        Bitmap bitmap = carregarImagemReduzida(uri);
                         imgContador.setImageBitmap(bitmap);
                         imagemAtualBitmap = bitmap;
                     } catch (IOException e) {
@@ -73,6 +75,10 @@ public class LeiturasMensais extends BaseActivity {
         setupBottomNav(R.id.nav_leituras);
         dbHelper = new DBHelper(this);
 
+        // Configurar a label visibility para mostrar TODOS os labels
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setLabelVisibilityMode(NavigationBarView.LABEL_VISIBILITY_LABELED);
+        }
         // Multi-casa
         casaIdAtual = CasaSelecionada.getInstance().getCasaId();
         casaNomeAtual = CasaSelecionada.getInstance().getCasaNome();
@@ -90,7 +96,6 @@ public class LeiturasMensais extends BaseActivity {
         btnCalcular = findViewById(R.id.btnCalcular);
         tvResultado = findViewById(R.id.tvResultado);
         btnGuardar = findViewById(R.id.btnGuardar);
-        btnVoltar = findViewById(R.id.btnVoltar);
         btnTirarFoto = findViewById(R.id.btnTirarFoto);
         btnVerHistorico = findViewById(R.id.btnVerHistorico);
 
@@ -127,6 +132,7 @@ public class LeiturasMensais extends BaseActivity {
         }
 
         if (bottomNavigationView != null) {
+            bottomNavigationView.setLabelVisibilityMode(NavigationBarView.LABEL_VISIBILITY_LABELED);
             bottomNavigationView.setSelectedItemId(R.id.nav_leituras);
         }
     }
@@ -135,7 +141,6 @@ public class LeiturasMensais extends BaseActivity {
         btnEscolherImagem.setOnClickListener(v -> escolherImagemLauncher.launch("image/*"));
         btnCalcular.setOnClickListener(v -> calcularConsumo());
         btnGuardar.setOnClickListener(v -> guardarLeituraComImagem());
-        btnVoltar.setOnClickListener(v -> finish());
         btnTirarFoto.setOnClickListener(v -> abrirCamera());
         btnVerHistorico.setOnClickListener(v -> {
             Intent intent = new Intent(LeiturasMensais.this, ResumoLeituras.class);
@@ -295,5 +300,33 @@ public class LeiturasMensais extends BaseActivity {
         } else {
             Toast.makeText(this, "Não foi possível abrir a câmara.", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    // Método para carregar imagem reduzida e evitar OutOfMemory
+    private Bitmap carregarImagemReduzida(Uri uri) throws IOException {
+        java.io.InputStream input = getContentResolver().openInputStream(uri);
+
+        // 1. Apenas ler dimensões (sem carregar a imagem)
+        android.graphics.BitmapFactory.Options options = new android.graphics.BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        android.graphics.BitmapFactory.decodeStream(input, null, options);
+        input.close();
+
+        // 2. Calcular fator de redução (para caber em ~1024x1024)
+        int maxSize = 1024;
+        int scale = 1;
+        while ((options.outWidth / scale) / 2 >= maxSize && (options.outHeight / scale) / 2 >= maxSize) {
+            scale *= 2;
+        }
+
+        // 3. Carregar imagem real com a redução aplicada
+        options.inJustDecodeBounds = false;
+        options.inSampleSize = scale;
+
+        input = getContentResolver().openInputStream(uri); // Reabrir stream
+        Bitmap bitmap = android.graphics.BitmapFactory.decodeStream(input, null, options);
+        input.close();
+
+        return bitmap;
     }
 }

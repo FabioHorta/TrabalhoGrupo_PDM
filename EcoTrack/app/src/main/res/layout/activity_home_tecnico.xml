@@ -53,7 +53,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Painel do Técnico"
-                        android:textColor="#CCFFFFFF"
+                        android:textColor="@color/green"
                         android:textSize="14sp"
                         android:textStyle="bold"
                         android:textAllCaps="true"/>
@@ -63,7 +63,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Bem-vindo"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/green"
                         android:textSize="20sp"
                         android:textStyle="bold"
                         android:maxLines="1"
@@ -75,7 +75,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Agenda Prioritária"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/green"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:layout_marginBottom="12dp"/>
