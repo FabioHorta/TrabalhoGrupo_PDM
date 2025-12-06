@@ -41,7 +41,8 @@ public abstract class BaseActivityTecnico extends AppCompatActivity {
             } else if (id == R.id.menu_mensagens_tecnico) {
                 intent = new Intent(this, ListaChatsTecnicoActivity.class);
             } else if (id == R.id.menu_perfil_tecnico) {
-                intent = new Intent(this, PerfilUtilizador.class);
+                startActivity(new Intent(this, PerfilTecnicoActivity.class));
+                return true;
             }
 
             if (intent != null) {

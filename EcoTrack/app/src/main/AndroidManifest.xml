@@ -91,6 +91,9 @@
         <activity
             android:name=".ChatTecnicoActivity"
             android:exported="false" />
+        <activity
+            android:name=".PerfilTecnicoActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

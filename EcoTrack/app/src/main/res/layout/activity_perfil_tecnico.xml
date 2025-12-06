@@ -6,7 +6,7 @@
     android:orientation="vertical"
     android:background="@drawable/gradient_verde">
 
-    <!-- CABEÇALHO -->
+    <!-- Cabeçalho -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -17,11 +17,10 @@
         <ImageView
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@android:drawable/ic_dialog_email"
-            app:tint="@color/green"
+            android:src="@drawable/ic_perfil"
             android:background="@drawable/bg_circle_white_alpha"
             android:padding="10dp"
-            android:layout_marginEnd="16dp"/>
+            android:layout_marginEnd="16dp" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -31,84 +30,101 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Caixa de Entrada"
+                android:text="Perfil"
                 android:textColor="@color/green"
                 android:textSize="14sp"
                 android:textAllCaps="true"
-                android:textStyle="bold"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Clientes Ativos"
+                android:text="Técnico"
                 android:textColor="@color/green"
                 android:textSize="24sp"
-                android:textStyle="bold"/>
+                android:textStyle="bold" />
         </LinearLayout>
 
     </LinearLayout>
 
-    <!-- CARD PRINCIPAL -->
+    <!-- Cartão com os dados do técnico -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:layout_marginTop="8dp"
-        app:cardBackgroundColor="#FFFFFF"
+        app:cardBackgroundColor="@android:color/white"
         app:cardCornerRadius="24dp"
         app:cardElevation="0dp"
         android:layout_marginBottom="-16dp">
 
-        <RelativeLayout
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingTop="16dp"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp">
+            android:padding="24dp">
 
             <LinearLayout
-                android:id="@+id/layoutVazio"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_centerInParent="true"
-                android:gravity="center"
-                android:alpha="0.3">
-
-                <ImageView
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:src="@drawable/ic_menu_dich_mute"
-                    app:tint="#CCCCCC"
-                    android:layout_marginBottom="8dp"/>
+                android:orientation="vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Nenhuma conversa iniciada"
-                    android:textSize="16sp"/>
+                    android:text="Email"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp" />
+
+                <TextView
+                    android:id="@+id/tvEmailTecnico"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:background="@drawable/bg_input_readonly"
+                    android:textColor="@android:color/black" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nome"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="4dp" />
+
+                <EditText
+                    android:id="@+id/etNomeTecnico"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_input"
+                    android:padding="10dp"
+                    android:hint="Nome do técnico" />
+
+                <Space
+                    android:layout_width="match_parent"
+                    android:layout_height="24dp" />
+
+                <Button
+                    android:id="@+id/btnGuardarPerfilTecnico"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Guardar alterações" />
+
             </LinearLayout>
 
-            <ListView
-                android:id="@+id/listClientesChat"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:divider="@null"
-                android:dividerHeight="16dp"
-                android:padding="8dp"
-                android:clipToPadding="false"
-                android:scrollbarStyle="outsideOverlay"
-                android:drawSelectorOnTop="true"/>
-        </RelativeLayout>
+        </ScrollView>
 
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Bottom navigation do técnico -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavTecnico"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:layout_gravity="bottom"
-        android:background="@color/white"
+        android:background="@android:color/white"
         app:itemIconTint="@color/green"
         app:itemTextColor="@color/green"
         app:labelVisibilityMode="labeled"

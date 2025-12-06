@@ -1,36 +1,63 @@
 package pt.ubi.pdm.ecotrack;
 
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
-
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import android.widget.Toast;
 
 public class HomeTecnico extends BaseActivityTecnico {
 
     private TextView tvProximaTitulo, tvProximaNome, tvProximaDataHora, tvProximaMoradaOuEstado;
     private TextView tvResumoAssistencias, tvResumoMensagens;
     private DBHelper db;
-    private FirebaseAuth mAuth;
+
+    private String emailTecnico;   // <== agora guardamos aqui
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_tecnico);
-
+        SyncUtils.syncTudoAsync(this);
         db = new DBHelper(this);
-        mAuth = FirebaseAuth.getInstance();
 
         // Cabeçalho
         ImageView imgAvatar = findViewById(R.id.imgAvatarTecnico);
         TextView tvBemVindo = findViewById(R.id.tvBemVindoTecnico);
 
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null && user.getEmail() != null) {
-            tvBemVindo.setText("Bem-vindo, " + user.getEmail());
+        // 1) Obter email do técnico autenticado a partir das SharedPreferences
+        SharedPreferences sp = getSharedPreferences("auth", MODE_PRIVATE);
+        emailTecnico = sp.getString("user_email", null);
+
+        if (emailTecnico == null) {
+            Toast.makeText(this, "Técnico não autenticado.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
         }
+
+        // 2) Confirmar (se quiseres) que é mesmo técnico na BD local
+        String tipo = db.obterTipoUtilizadorPorEmail(emailTecnico);
+        if (!"tecnico".equalsIgnoreCase(tipo)) {
+            Toast.makeText(this, "Esta área é apenas para técnicos.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        // 3) Mostrar nome ou email no cabeçalho
+        String nomeMostrar = emailTecnico;
+        Cursor cUser = db.obterDadosUtilizadorPorEmail(emailTecnico);
+        if (cUser != null) {
+            int idxNome = cUser.getColumnIndex(DBHelper.C_USER_NAME);
+            if (idxNome >= 0 && cUser.moveToFirst()) {
+                String nome = cUser.getString(idxNome);
+                if (nome != null && !nome.isEmpty()) {
+                    nomeMostrar = nome;
+                }
+            }
+            cUser.close();
+        }
+        tvBemVindo.setText("Bem-vindo, " + nomeMostrar);
 
         // Card "Próxima visita"
         tvProximaTitulo = findViewById(R.id.tvProximaVisitaTitulo);
@@ -50,8 +77,8 @@ public class HomeTecnico extends BaseActivityTecnico {
     }
 
     private void carregarProximaVisita() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null || user.getEmail() == null) {
+        // Se por algum motivo o email não estiver definido, evita NPEs
+        if (emailTecnico == null) {
             tvProximaTitulo.setText("Próxima visita");
             tvProximaNome.setText("Sessão não autenticada");
             tvProximaDataHora.setText("");
@@ -59,9 +86,7 @@ public class HomeTecnico extends BaseActivityTecnico {
             return;
         }
 
-        String tecnicoEmail = user.getEmail();
-
-        Cursor c = db.listarAssistenciasDoTecnico(tecnicoEmail);
+        Cursor c = db.listarAssistenciasDoTecnico(emailTecnico);
         if (c == null) {
             tvProximaTitulo.setText("Próxima visita");
             tvProximaNome.setText("Sem visitas agendadas");
@@ -129,26 +154,24 @@ public class HomeTecnico extends BaseActivityTecnico {
     }
 
     private void carregarResumo() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null || user.getEmail() == null) {
+        if (emailTecnico == null) {
             tvResumoAssistencias.setText("Assistências agendadas: -");
-            tvResumoMensagens.setText("Mensagens recebidas: -");
+            tvResumoMensagens.setText("Clientes com conversa: -");
             return;
         }
 
-        String tecnicoEmail = user.getEmail();
-
-        Cursor cAssist = db.listarAssistenciasDoTecnico(tecnicoEmail);
+        // Assistências deste técnico
+        Cursor cAssist = db.listarAssistenciasDoTecnico(emailTecnico);
         int totalAssist = (cAssist != null) ? cAssist.getCount() : 0;
         if (cAssist != null) cAssist.close();
 
-        // Para já, mensagens continuam globais (todas)
-        Cursor cMsg = db.listarMensagens();
-        int totalMsg = (cMsg != null) ? cMsg.getCount() : 0;
-        if (cMsg != null) cMsg.close();
+        // Nº de clientes com quem o técnico tem chat (mesma lógica da lista de clientes)
+        Cursor cClientes = db.listarClientesDoTecnicoNoChat(emailTecnico);
+        int totalClientes = (cClientes != null) ? cClientes.getCount() : 0;
+        if (cClientes != null) cClientes.close();
 
         tvResumoAssistencias.setText("Assistências agendadas: " + totalAssist);
-        tvResumoMensagens.setText("Mensagens recebidas: " + totalMsg);
+        tvResumoMensagens.setText("Clientes com conversa: " + totalClientes);
     }
 
     @Override

@@ -3,7 +3,10 @@ package pt.ubi.pdm.ecotrack.api;
 import java.util.List;
 
 import pt.ubi.pdm.ecotrack.models.GoogleLoginRequest;
+import pt.ubi.pdm.ecotrack.models.MensagemChatSync;
+import pt.ubi.pdm.ecotrack.models.MensagemSuporteSync;
 import pt.ubi.pdm.ecotrack.models.RegisterRequest;
+import pt.ubi.pdm.ecotrack.models.Tecnico;
 import pt.ubi.pdm.ecotrack.models.UploadLeituraImagemRequest;
 import pt.ubi.pdm.ecotrack.models.UserResponse;
 import pt.ubi.pdm.ecotrack.models.LoginRequest;
@@ -55,5 +58,19 @@ public interface ApiService {
 
     @POST("/leituras/upload-bitmap")
     Call<Void> uploadLeituraBitmap(@Body UploadLeituraImagemRequest body);
+
+    @POST("/mensagens_suporte/sync")
+    Call<Void> syncMensagensSuporte(@Body List<MensagemSuporteSync> mensagens);
+
+    @POST("/mensagens_chat/sync")
+    Call<Void> syncMensagensChat(@Body List<MensagemChatSync> mensagens);
+
+    @GET("/mensagens_chat/by-email")
+    Call<List<MensagemChatSync>> getMensagensChatByEmail(@Query("email") String email);
+
+
+    @GET("/tecnicos/all")
+    Call<List<Tecnico>> getTecnicos();
+
 
 }

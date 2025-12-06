@@ -24,6 +24,10 @@ public class ChatClienteActivity extends AppCompatActivity {
     private DBHelper db;
     private String emailCliente;
 
+    private final android.os.Handler handler = new android.os.Handler();
+    private Runnable autoRefreshTask;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,18 +35,16 @@ public class ChatClienteActivity extends AppCompatActivity {
 
         db = new DBHelper(this);
 
-        // --- MUDANÇA: USAR MEMÓRIA LOCAL (SharedPreferences) EM VEZ DE FIREBASE ---
+        // Obter email do utilizador autenticado das SharedPreferences
         SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
         emailCliente = prefs.getString("user_email", null);
 
         if (emailCliente == null) {
             Toast.makeText(this, "Sessão expirada. Por favor faz login.", Toast.LENGTH_SHORT).show();
-            // Redireciona para o Login se não houver utilizador guardado
             startActivity(new Intent(this, MainActivity.class));
             finish();
             return;
         }
-        // --------------------------------------------------------------------------
 
         listMensagens = findViewById(R.id.listMensagensCliente);
         etMensagem = findViewById(R.id.etMensagemCliente);
@@ -56,7 +58,24 @@ public class ChatClienteActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        // sincroniza imediatamente ao entrar no ecrã
+        SyncUtils.syncChatCompleto(this);
         carregarMensagens();
+
+        autoRefreshTask = () -> {
+            SyncUtils.syncChatCompleto(this);
+            carregarMensagens();
+            handler.postDelayed(autoRefreshTask, 2000); // repetir a cada 2 segundos
+        };
+        handler.postDelayed(autoRefreshTask, 2000);
+    }
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        handler.removeCallbacks(autoRefreshTask);
     }
 
     private void carregarMensagens() {
@@ -87,7 +106,6 @@ public class ChatClienteActivity extends AppCompatActivity {
         );
         listMensagens.setAdapter(adp);
 
-        // Rolar para o fim da lista se houver mensagens
         if (!linhas.isEmpty()) {
             listMensagens.setSelection(linhas.size() - 1);
         }
@@ -121,9 +139,15 @@ public class ChatClienteActivity extends AppCompatActivity {
 
         if (algumInserido) {
             etMensagem.setText("");
+
+            // sincroniza imediatamente após enviar
+            SyncUtils.syncChatCompleto(this);
+
+            // volta a carregar da BD local (já com possíveis mensagens novas do técnico)
             carregarMensagens();
         } else {
             Toast.makeText(this, "Erro ao enviar mensagem.", Toast.LENGTH_SHORT).show();
         }
     }
+
 }
