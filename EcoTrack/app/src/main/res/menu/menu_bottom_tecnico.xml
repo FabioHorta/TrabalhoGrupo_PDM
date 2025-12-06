@@ -4,16 +4,21 @@
     <item
         android:id="@+id/menu_inicio_tecnico"
         android:icon="@drawable/ic_home"
-    android:title="Início" />
+        android:title="Início" />
 
     <item
         android:id="@+id/menu_mensagens_tecnico"
         android:icon="@drawable/ic_mensagens"
-    android:title="Mensagens" />
+        android:title="Mensagens" />
+
+    <item
+        android:id="@+id/menu_relatorios_tecnico"
+        android:icon="@drawable/ic_relatorio"
+        android:title="Relatórios" />
 
     <item
         android:id="@+id/menu_perfil_tecnico"
         android:icon="@drawable/ic_perfil"
-    android:title="Perfil" />
+        android:title="Perfil" />
 
 </menu>

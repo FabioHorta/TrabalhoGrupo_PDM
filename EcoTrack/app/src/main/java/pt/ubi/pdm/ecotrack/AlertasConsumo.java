@@ -2,19 +2,32 @@ package pt.ubi.pdm.ecotrack;
 
 import android.content.Intent;
 import android.graphics.PorterDuff;
+import android.net.ConnectivityManager;
+import android.net.NetworkCapabilities;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import pt.ubi.pdm.ecotrack.api.ApiClient;
+import pt.ubi.pdm.ecotrack.api.ApiService;
+import pt.ubi.pdm.ecotrack.models.DicasResponse;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class AlertasConsumo extends BaseActivity {
 
     private ImageView ivIconeAlerta;
     private TextView tvNomeCasaAlertas, tvTituloAlerta, tvMensagemAlerta, tvDica1, tvDica2, tvDica3;
-    private Button btnAgendarAssistencia, btnVoltarMenu;
+    private Button btnAgendarAssistencia;
+
     private DBHelper dbHelper;
     private int casaIdAtual;
     private String casaNomeAtual;
+
+    private ApiService api;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,14 +39,12 @@ public class AlertasConsumo extends BaseActivity {
         }
 
         dbHelper = new DBHelper(this);
+        api = ApiClient.getRetrofit().create(ApiService.class);
 
-        // Multi-casa
         casaIdAtual = CasaSelecionada.getInstance().getCasaId();
         casaNomeAtual = CasaSelecionada.getInstance().getCasaNome();
 
         ligarViews();
-
-        // Mostrar nome da casa
         tvNomeCasaAlertas.setText(casaNomeAtual);
 
         preencherAnalise();
@@ -53,56 +64,111 @@ public class AlertasConsumo extends BaseActivity {
     }
 
     private void configurarClicks() {
-        btnAgendarAssistencia.setOnClickListener(v ->
-                startActivity(new Intent(AlertasConsumo.this, AgendarAssistencia.class)));
+        btnAgendarAssistencia.setOnClickListener(
+                v -> startActivity(new Intent(AlertasConsumo.this, AgendarAssistencia.class))
+        );
+    }
+
+    // ---------------------------------------------------------
+    //  Verifica se há internet (mesmo estilo do SyncUtils)
+    // ---------------------------------------------------------
+    private boolean temInternet() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
+        if (cm == null) return false;
+
+        android.net.Network network = cm.getActiveNetwork();
+        if (network == null) return false;
+
+        NetworkCapabilities caps = cm.getNetworkCapabilities(network);
+        return caps != null && (
+                caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                        caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                        caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+        );
     }
 
     private void preencherAnalise() {
-        // ✅ CORRIGIDO: Usar dados ESPECÍFICOS DA CASA SELECIONADA
+
         double consumoUltimo = dbHelper.calcularMediaConsumosPorCasa(1, casaIdAtual);
-        double media6 = (dbHelper.calcularMediaConsumos(7)) * ((double) 7 /6) - (consumoUltimo/6);
+        double media6 = (dbHelper.calcularMediaConsumos(7)) * ((double) 7 / 6) - (consumoUltimo / 6);
+
+        String tipo;
 
         if (consumoUltimo <= 0 || media6 <= 0) {
-            tvTituloAlerta.setText("Ainda sem dados suficientes");
-            tvMensagemAlerta.setText("Regista leituras para ativar a análise inteligente.");
-            ivIconeAlerta.setColorFilter(0xFF1976D2, PorterDuff.Mode.SRC_IN);
-            tvDica1.setText("Garante que registas pelo menos 2 leituras em momentos diferentes.");
-            tvDica2.setText("Tira foto do contador sempre com boa iluminação.");
-            tvDica3.setText("Assim que houver histórico suficiente, iremos alertar sobre consumos anormais.");
-            return;
+            tipo = "inicio";
+        } else {
+            double diffPercent = ((consumoUltimo - media6) / media6) * 100.0;
+
+            if (diffPercent > DBHelper.LIMITE_PERCENTUAL_SUP) {
+                tipo = "alto";
+            } else if (diffPercent < DBHelper.LIMITE_PERCENTUAL_INF) {
+                tipo = "baixo";
+            } else {
+                tipo = "normal";
+            }
         }
 
-        double diffPercent = ((consumoUltimo - media6) / media6) * 100.0;
-
-        if (diffPercent > DBHelper.LIMITE_PERCENTUAL_SUP) {
-            tvTituloAlerta.setText("Consumo acima do normal");
-            tvMensagemAlerta.setText(String.format(
-                    "O último período está cerca de %.1f%% acima da média dos últimos meses.",
-                    diffPercent
-            ));
-            ivIconeAlerta.setColorFilter(0xFFD32F2F, PorterDuff.Mode.SRC_IN);
-            tvDica1.setText("Verifica se algum equipamento ficou ligado mais tempo do que o habitual.");
-            tvDica2.setText("Confirma se não há avarias em aquecedores, ar condicionado ou termoacumulador.");
-            tvDica3.setText("Se a situação se mantiver, considera agendar uma assistência técnica.");
-
-        } else if (diffPercent < DBHelper.LIMITE_PERCENTUAL_INF) {
-            tvTituloAlerta.setText("Boa eficiência energética");
-            tvMensagemAlerta.setText(String.format(
-                    "O último período está cerca de %.1f%% abaixo da média. Continua assim!",
-                    Math.abs(diffPercent)
-            ));
-            ivIconeAlerta.setColorFilter(0xFF388E3C, PorterDuff.Mode.SRC_IN);
-            tvDica1.setText("Mantém os hábitos que ajudaram a reduzir o consumo.");
-            tvDica2.setText("Podes comparar os períodos no histórico de leituras.");
-            tvDica3.setText("Explora o simulador para ver quanto podes poupar a longo prazo.");
-
+        // 1) Tentar mostrar logo o que estiver em cache
+        DicasResponse cache = dbHelper.obterDicasCache(tipo);
+        if (cache != null) {
+            aplicarDicasNaUI(tipo, cache);
         } else {
-            tvTituloAlerta.setText("Consumo estável");
-            tvMensagemAlerta.setText("O último período está dentro da normalidade face à média.");
-            ivIconeAlerta.setColorFilter(0xFFFFA000, PorterDuff.Mode.SRC_IN);
-            tvDica1.setText("Continua a registar leituras regularmente para manter o controlo.");
-            tvDica2.setText("Analisa os períodos com maior consumo e tenta evitar picos.");
-            tvDica3.setText("Se notar alterações inesperadas, volta a consultar esta análise.");
+            // fallback visual mínimo
+            tvTituloAlerta.setText("A carregar análise...");
+            tvMensagemAlerta.setText("A obter recomendações de consumo.");
+            tvDica1.setText("");
+            tvDica2.setText("");
+            tvDica3.setText("");
+            ivIconeAlerta.setColorFilter(0xFF1976D2, PorterDuff.Mode.SRC_IN);
+        }
+
+        // 2) Se houver internet, ir ao servidor e atualizar cache + UI
+        if (temInternet()) {
+            carregarDicasServidor(tipo);
+        }
+    }
+
+    private void carregarDicasServidor(String tipo) {
+        api.getDicas(tipo).enqueue(new Callback<DicasResponse>() {
+            @Override
+            public void onResponse(Call<DicasResponse> call, Response<DicasResponse> response) {
+                if (!response.isSuccessful() || response.body() == null) return;
+
+                DicasResponse d = response.body();
+
+                // atualiza UI
+                aplicarDicasNaUI(tipo, d);
+                // guarda na cache offline
+                dbHelper.guardarDicasCache(tipo, d);
+            }
+
+            @Override
+            public void onFailure(Call<DicasResponse> call, Throwable t) {
+                // se falhar, ficas só com o que estiver em cache
+            }
+        });
+    }
+
+    private void aplicarDicasNaUI(String tipo, DicasResponse d) {
+        tvTituloAlerta.setText(d.titulo);
+        tvMensagemAlerta.setText(d.mensagem);
+        tvDica1.setText(d.dica1);
+        tvDica2.setText(d.dica2);
+        tvDica3.setText(d.dica3);
+
+        switch (tipo) {
+            case "alto":
+                ivIconeAlerta.setColorFilter(0xFFD32F2F, PorterDuff.Mode.SRC_IN);
+                break;
+            case "baixo":
+                ivIconeAlerta.setColorFilter(0xFF388E3C, PorterDuff.Mode.SRC_IN);
+                break;
+            case "normal":
+                ivIconeAlerta.setColorFilter(0xFFFFA000, PorterDuff.Mode.SRC_IN);
+                break;
+            default: // "inicio" ou outros
+                ivIconeAlerta.setColorFilter(0xFF1976D2, PorterDuff.Mode.SRC_IN);
+                break;
         }
     }
 
@@ -110,7 +176,6 @@ public class AlertasConsumo extends BaseActivity {
     protected void onResume() {
         super.onResume();
 
-        // Atualizar casa selecionada
         casaIdAtual = CasaSelecionada.getInstance().getCasaId();
         casaNomeAtual = CasaSelecionada.getInstance().getCasaNome();
 

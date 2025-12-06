@@ -131,13 +131,16 @@ public class AgendarAssistencia extends AppCompatActivity {
                 return;
             }
 
-            // gravar assistência com técnico associado
+            // gravar assistência com técnico associado (LOCAL)
             boolean ok = db.inserirAssistencia(data, hora, desc, tecnicoEscolhido);
 
             if (ok) {
                 Toast.makeText(this,
                         "Assistência agendada com o técnico: " + tecnicoEscolhido,
                         Toast.LENGTH_SHORT).show();
+                // assim o técnico noutro dispositivo consegue recebê-la
+                SyncUtils.syncTudoAsync(getApplicationContext());
+
                 finish();
             } else {
                 Toast.makeText(this,

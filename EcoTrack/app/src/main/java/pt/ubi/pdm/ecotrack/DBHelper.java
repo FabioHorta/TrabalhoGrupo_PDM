@@ -5,7 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
+import pt.ubi.pdm.ecotrack.models.DicasResponse;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -122,6 +122,17 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String C_TEC_NOME = "nome";
 
     // =========================================================
+    // TABELA CACHE DICAS DE ALERTAS
+    // =========================================================
+    public static final String T_ALERTAS_DICAS_CACHE = "alertas_dicas_cache";
+    public static final String C_ALERTA_TIPO = "tipo";
+    public static final String C_ALERTA_TITULO = "titulo";
+    public static final String C_ALERTA_MENSAGEM = "mensagem";
+    public static final String C_ALERTA_DICA1 = "dica1";
+    public static final String C_ALERTA_DICA2 = "dica2";
+    public static final String C_ALERTA_DICA3 = "dica3";
+
+    // =========================================================
     // CONSTRUTOR
     // =========================================================
     public DBHelper(Context ctx) {
@@ -225,8 +236,10 @@ public class DBHelper extends SQLiteOpenHelper {
                 "hora TEXT, " +
                 "descricao TEXT, " +
                 "feedback TEXT, " +
-                "tecnico_email TEXT" +
+                "tecnico_email TEXT, " +
+                "server_id INTEGER" +
                 ")");
+
 
         // ---------- CHAT ----------
         db.execSQL("CREATE TABLE " + T_MENSAGENS_CHAT + " (" +
@@ -243,6 +256,16 @@ public class DBHelper extends SQLiteOpenHelper {
                 C_TEC_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 C_TEC_EMAIL + " TEXT NOT NULL, " +
                 C_TEC_NOME + " TEXT" +
+                ")");
+
+        // ---------- CACHE DICAS ALERTAS ----------  // NOVO
+        db.execSQL("CREATE TABLE " + T_ALERTAS_DICAS_CACHE + " (" +
+                C_ALERTA_TIPO + " TEXT PRIMARY KEY, " +
+                C_ALERTA_TITULO + " TEXT, " +
+                C_ALERTA_MENSAGEM + " TEXT, " +
+                C_ALERTA_DICA1 + " TEXT, " +
+                C_ALERTA_DICA2 + " TEXT, " +
+                C_ALERTA_DICA3 + " TEXT" +
                 ")");
 
         // ---------- INDEXES ----------
@@ -273,6 +296,7 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS assistencias");
         db.execSQL("DROP TABLE IF EXISTS " + T_MENSAGENS_CHAT);
         db.execSQL("DROP TABLE IF EXISTS " + T_TECNICOS);
+        db.execSQL("DROP TABLE IF EXISTS " + T_ALERTAS_DICAS_CACHE);
         onCreate(db);
     }
 
@@ -1306,4 +1330,93 @@ public class DBHelper extends SQLiteOpenHelper {
             c.close();
         }
     }
+
+    // =========================================================
+    // SECÇÃO: CACHE OFFLINE DE DICAS DE ALERTAS
+    // =========================================================
+
+    public void guardarDicasCache(String tipo, DicasResponse d) {
+        if (tipo == null || d == null) return;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(C_ALERTA_TIPO, tipo);
+        cv.put(C_ALERTA_TITULO, d.titulo);
+        cv.put(C_ALERTA_MENSAGEM, d.mensagem);
+        cv.put(C_ALERTA_DICA1, d.dica1);
+        cv.put(C_ALERTA_DICA2, d.dica2);
+        cv.put(C_ALERTA_DICA3, d.dica3);
+
+        db.insertWithOnConflict(
+                T_ALERTAS_DICAS_CACHE,
+                null,
+                cv,
+                SQLiteDatabase.CONFLICT_REPLACE
+        );
+    }
+
+    public DicasResponse obterDicasCache(String tipo) {
+        if (tipo == null) return null;
+
+        Cursor c = getReadableDatabase().query(
+                T_ALERTAS_DICAS_CACHE,
+                new String[]{
+                        C_ALERTA_TITULO,
+                        C_ALERTA_MENSAGEM,
+                        C_ALERTA_DICA1,
+                        C_ALERTA_DICA2,
+                        C_ALERTA_DICA3
+                },
+                C_ALERTA_TIPO + " = ?",
+                new String[]{tipo},
+                null, null, null
+        );
+
+        try {
+            if (c.moveToFirst()) {
+                DicasResponse d = new DicasResponse();
+                d.titulo = c.getString(0);
+                d.mensagem = c.getString(1);
+                d.dica1 = c.getString(2);
+                d.dica2 = c.getString(3);
+                d.dica3 = c.getString(4);
+                return d;
+            }
+            return null;
+        } finally {
+            c.close();
+        }
+    }
+
+    public void atualizarAssistenciaServerId(long idLocal, long serverId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put("server_id", serverId);
+        db.update(
+                "assistencias",
+                cv,
+                "id = ?",
+                new String[]{ String.valueOf(idLocal) }
+        );
+    }
+
+    public long obterServerIdDaAssistencia(long idLocal) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor c = db.rawQuery(
+                "SELECT server_id FROM assistencias WHERE id = ?",
+                new String[]{ String.valueOf(idLocal) }
+        );
+        try {
+            if (c.moveToFirst()) {
+                int idx = c.getColumnIndexOrThrow("server_id");
+                if (!c.isNull(idx)) {
+                    return c.getLong(idx);
+                }
+            }
+            return -1;
+        } finally {
+            c.close();
+        }
+    }
+
 }

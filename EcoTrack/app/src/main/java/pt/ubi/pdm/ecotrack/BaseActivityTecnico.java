@@ -15,6 +15,7 @@ public abstract class BaseActivityTecnico extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Sincronização geral (assistências, casas, chat, etc.)
         SyncUtils.syncTudoAsync(this);
     }
 
@@ -29,8 +30,8 @@ public abstract class BaseActivityTecnico extends AppCompatActivity {
         bottomNavTecnico.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
 
+            // Se já estamos neste separador, não faz nada
             if (id == selectedItemId) {
-                // já estamos neste separador
                 return true;
             }
 
@@ -38,11 +39,17 @@ public abstract class BaseActivityTecnico extends AppCompatActivity {
 
             if (id == R.id.menu_inicio_tecnico) {
                 intent = new Intent(this, HomeTecnico.class);
+
             } else if (id == R.id.menu_mensagens_tecnico) {
                 intent = new Intent(this, ListaChatsTecnicoActivity.class);
+
+            } else if (id == R.id.menu_relatorios_tecnico) {
+                // novo separador para os relatórios do técnico
+                intent = new Intent(this, RelatoriosTecnicoActivity.class);
+
             } else if (id == R.id.menu_perfil_tecnico) {
-                startActivity(new Intent(this, PerfilTecnicoActivity.class));
-                return true;
+                // separador de perfil do técnico
+                intent = new Intent(this, PerfilTecnicoActivity.class);
             }
 
             if (intent != null) {

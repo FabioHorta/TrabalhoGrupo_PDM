@@ -18,6 +18,7 @@ import pt.ubi.pdm.ecotrack.api.ApiClient;
 import pt.ubi.pdm.ecotrack.api.ApiService;
 import pt.ubi.pdm.ecotrack.models.ApplianceSync;
 import pt.ubi.pdm.ecotrack.models.AssistenciaSync;
+import pt.ubi.pdm.ecotrack.models.AssistenciasSyncResult;
 import pt.ubi.pdm.ecotrack.models.CasaSync;
 import pt.ubi.pdm.ecotrack.models.LeituraSync;
 import pt.ubi.pdm.ecotrack.models.MensagemChatSync;
@@ -251,12 +252,24 @@ public class SyncUtils {
 
         if (lista.isEmpty()) return;
 
-        api.syncAssistencias(lista).enqueue(new Callback<Void>() {
+        api.syncAssistencias(lista).enqueue(new Callback<AssistenciasSyncResult>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) { }
+            public void onResponse(Call<AssistenciasSyncResult> call,
+                                   Response<AssistenciasSyncResult> response) {
+                if (!response.isSuccessful()) return;
+
+                AssistenciasSyncResult body = response.body();
+                if (body == null || body.mappings == null) return;
+
+                for (AssistenciasSyncResult.Mapping m : body.mappings) {
+                    db.atualizarAssistenciaServerId(m.idLocal, m.serverId);
+                }
+            }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable t) { }
+            public void onFailure(Call<AssistenciasSyncResult> call, Throwable t) {
+                // falhou → tenta-se na próxima sync
+            }
         });
     }
 

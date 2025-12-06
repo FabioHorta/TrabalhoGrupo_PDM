@@ -2,11 +2,14 @@ package pt.ubi.pdm.ecotrack.api;
 
 import java.util.List;
 
+import pt.ubi.pdm.ecotrack.models.AssistenciasSyncResult;
+import pt.ubi.pdm.ecotrack.models.DicasResponse;
 import pt.ubi.pdm.ecotrack.models.GoogleLoginRequest;
 import pt.ubi.pdm.ecotrack.models.MensagemChatSync;
 import pt.ubi.pdm.ecotrack.models.MensagemSuporteSync;
 import pt.ubi.pdm.ecotrack.models.RegisterRequest;
 import pt.ubi.pdm.ecotrack.models.Tecnico;
+import pt.ubi.pdm.ecotrack.models.UpdatePrecoRequest;
 import pt.ubi.pdm.ecotrack.models.UploadLeituraImagemRequest;
 import pt.ubi.pdm.ecotrack.models.UserResponse;
 import pt.ubi.pdm.ecotrack.models.LoginRequest;
@@ -14,7 +17,12 @@ import pt.ubi.pdm.ecotrack.models.LeituraSync;
 import pt.ubi.pdm.ecotrack.models.AssistenciaSync;
 import pt.ubi.pdm.ecotrack.models.CasaSync;
 import pt.ubi.pdm.ecotrack.models.ApplianceSync;
+import pt.ubi.pdm.ecotrack.models.RelatorioCreateRequest;
+import pt.ubi.pdm.ecotrack.models.RelatorioResponse;
+
+
 import retrofit2.http.GET;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 import retrofit2.Call;
@@ -48,7 +56,7 @@ public interface ApiService {
     Call<Void> syncLeituras(@Body List<LeituraSync> leituras);
 
     @POST("/assistencias/sync")
-    Call<Void> syncAssistencias(@Body List<AssistenciaSync> assistencias);
+    Call<AssistenciasSyncResult> syncAssistencias(@Body List<AssistenciaSync> assistencias);
 
     @POST("/casas/sync")
     Call<Void> syncCasas(@Body List<CasaSync> casas);
@@ -68,9 +76,23 @@ public interface ApiService {
     @GET("/mensagens_chat/by-email")
     Call<List<MensagemChatSync>> getMensagensChatByEmail(@Query("email") String email);
 
-
+    @GET("/alertas/dicas")
+    Call<DicasResponse> getDicas(@Query("tipo") String tipo);
     @GET("/tecnicos/all")
     Call<List<Tecnico>> getTecnicos();
+    @POST("/relatorios/create")
+    Call<RelatorioResponse> criarRelatorio(@Body RelatorioCreateRequest body);
+
+    // Lista de relatórios de um cliente
+    @GET("relatorios/by-cliente")
+    Call<List<RelatorioResponse>> getRelatoriosByCliente(@Query("email") String email);
+
+    // Obter um relatório específico com o PDF em Base64
+    @GET("relatorios/{id}/base64")
+    Call<RelatorioResponse> getRelatorioBase64(@Path("id") long id);
+
+    @POST("/users/update-preco")
+    Call<UserResponse> updatePrecoKwh(@Body UpdatePrecoRequest body);
 
 
 }
