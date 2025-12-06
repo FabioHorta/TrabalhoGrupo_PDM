@@ -82,6 +82,8 @@ public class ClasseConsumo extends AppCompatActivity {
 
                 Toast.makeText(this, "Classes guardadas!", Toast.LENGTH_SHORT).show();
 
+                SyncUtils.syncTudoAsync(ClasseConsumo.this);
+
                 // 4. Abrir Mapa de Gastos
                 Intent intent = new Intent(ClasseConsumo.this, MapaGastos.class);
                 // Não é estritamente necessário o putExtra porque usamos o Singleton,

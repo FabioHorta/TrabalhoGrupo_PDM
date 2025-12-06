@@ -155,15 +155,22 @@
                 app:cornerRadius="20dp"
                 app:backgroundTint="@color/onMint" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGoogleLogin"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Entrar com Google" />
+
+            <!-- Botão Registar-me -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:text="Ainda não tens conta?"
                 android:textColor="@color/oliveTextSoft"
-                android:textSize="13sp"
-                android:layout_marginTop="8dp" />
+                android:textSize="13sp" />
 
-            <!-- Botão Registar-me -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRegister"
                 android:layout_width="match_parent"

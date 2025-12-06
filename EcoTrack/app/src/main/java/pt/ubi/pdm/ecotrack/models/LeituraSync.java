@@ -1,7 +1,8 @@
 package pt.ubi.pdm.ecotrack.models;
 
 public class LeituraSync {
-    public long idLocal;
+    public long id;
+    public Integer casa_id;          // <- NOVO
     public String data;
     public double valor_kwh;
     public String imagem_path;
@@ -9,7 +10,10 @@ public class LeituraSync {
     public Double consumo_periodo;
     public Long created_at_ts;
 
-    public LeituraSync(long idLocal,
+    public LeituraSync() {}
+
+    public LeituraSync(long id,
+                       Integer casa_id,
                        String data,
                        double valor_kwh,
                        String imagem_path,
@@ -17,7 +21,8 @@ public class LeituraSync {
                        Double consumo_periodo,
                        Long created_at_ts) {
 
-        this.idLocal = idLocal;
+        this.id = id;
+        this.casa_id = casa_id;
         this.data = data;
         this.valor_kwh = valor_kwh;
         this.imagem_path = imagem_path;

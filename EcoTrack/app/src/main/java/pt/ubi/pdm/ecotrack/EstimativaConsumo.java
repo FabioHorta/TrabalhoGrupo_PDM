@@ -69,7 +69,9 @@ public class EstimativaConsumo extends AppCompatActivity {
         String status = null;
 
         try {
-            media6 = dbHelper.calcularMediaConsumosPorCasa(6, casaIdAtual);
+            double consumoUltimoPeriodo = dbHelper.calcularMediaConsumosPorCasa(1, casaIdAtual);
+            double mediaGeral7 = dbHelper.calcularMediaConsumosPorCasa(7, casaIdAtual);
+            media6 = (mediaGeral7 * 7.0 / 6.0) - (consumoUltimoPeriodo / 6.0);
 
             cursor = dbHelper.obterHistoricoConsumosAnalisados(null);
             if (cursor != null && cursor.moveToFirst()) {

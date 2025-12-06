@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -15,12 +14,19 @@ import android.database.Cursor;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.navigation.NavigationBarView;
 
+
+import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.text.Text;
+import com.google.mlkit.vision.text.TextRecognition;
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class LeiturasMensais extends BaseActivity {
 
@@ -48,6 +54,10 @@ public class LeiturasMensais extends BaseActivity {
                         Bitmap bitmap = carregarImagemReduzida(uri);
                         imgContador.setImageBitmap(bitmap);
                         imagemAtualBitmap = bitmap;
+
+                        // >>> NOVO: tentar ler o número da imagem e preencher a leitura <<<
+                        reconhecerTextoDaImagemEPreencher(bitmap);
+
                     } catch (IOException e) {
                         Toast.makeText(this, "Erro ao carregar imagem.", Toast.LENGTH_SHORT).show();
                     }
@@ -63,6 +73,8 @@ public class LeiturasMensais extends BaseActivity {
                         if (imageBitmap != null) {
                             imgContador.setImageBitmap(imageBitmap);
                             imagemAtualBitmap = imageBitmap;
+
+                            reconhecerTextoDaImagemEPreencher(imageBitmap);
                         }
                     }
                 }
@@ -214,6 +226,16 @@ public class LeiturasMensais extends BaseActivity {
     }
 
     private void guardarLeituraComImagem() {
+
+        // >>> NOVO: impedir guardar se não houver casa associada <<<
+        // (ajusta a condição conforme o valor "default" que usas quando não há casa)
+        if (casaIdAtual <= 0) {
+            Toast.makeText(this,
+                    "Tem de registar uma casa antes de guardar uma leitura.",
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
+
         String leituraStr = etNovaLeitura.getText().toString().trim();
         if (leituraStr.isEmpty()) {
             Toast.makeText(this, "Insere primeiro a leitura do contador.", Toast.LENGTH_SHORT).show();
@@ -240,7 +262,7 @@ public class LeiturasMensais extends BaseActivity {
         }
 
         String dataHoje = java.time.LocalDate.now().toString();
-        long id = dbHelper.inserirLeituraComFotoPorCasa( casaIdAtual,dataHoje, leituraValor, imagemPath );
+        long id = dbHelper.inserirLeituraComFotoPorCasa(casaIdAtual, dataHoje, leituraValor, imagemPath);
 
         if (id > 0) {
             double novaLeituraAnterior = dbHelper.obterUltimaLeituraOuDefaultPorCasa(casaIdAtual, 0);
@@ -328,5 +350,51 @@ public class LeiturasMensais extends BaseActivity {
         input.close();
 
         return bitmap;
+    }
+
+    // =========================================================
+    //OCR DA IMAGEM PARA PREENCHER AUTOMATICAMENTE A LEITURA
+    // =========================================================
+    private void reconhecerTextoDaImagemEPreencher(Bitmap bitmap) {
+        if (bitmap == null || etNovaLeitura == null) return;
+
+        try {
+            InputImage image = InputImage.fromBitmap(bitmap, 0);
+
+            // Reconhecedor de texto de ML Kit (on-device)
+            com.google.mlkit.vision.text.TextRecognizer recognizer =
+                    TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS);
+
+            recognizer.process(image)
+                    .addOnSuccessListener(this::tratarResultadoOCR)
+                    .addOnFailureListener(e -> {
+                        // Se falhar, simplesmente não preenche nada
+                        e.printStackTrace();
+                    });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Trata o resultado de OCR: procura o primeiro número com regex e coloca no EditText
+    private void tratarResultadoOCR(Text result) {
+        if (result == null) return;
+
+        String textoCompleto = result.getText();
+        if (textoCompleto == null || textoCompleto.isEmpty()) return;
+
+        // Regex para apanhar algo como "12345" ou "12345.6" ou "12345,6"
+        Pattern p = Pattern.compile("\\d+(?:[\\.,]\\d+)?");
+        Matcher m = p.matcher(textoCompleto);
+
+        if (m.find()) {
+            String numero = m.group(0);
+            // Normalizar vírgula para ponto, para bater certo com Double.parseDouble
+            numero = numero.replace(',', '.');
+
+            etNovaLeitura.setText(numero);
+            etNovaLeitura.setSelection(numero.length()); // cursor no fim
+            Toast.makeText(this, "Leitura sugerida a partir da imagem.", Toast.LENGTH_SHORT).show();
+        }
     }
 }
