@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
 public class LeiturasMensais extends BaseActivity {
 
     private TextView tvNomeCasaLeituras;
@@ -264,6 +265,7 @@ public class LeiturasMensais extends BaseActivity {
         String dataHoje = java.time.LocalDate.now().toString();
         long id = dbHelper.inserirLeituraComFotoPorCasa(casaIdAtual, dataHoje, leituraValor, imagemPath);
 
+
         if (id > 0) {
             double novaLeituraAnterior = dbHelper.obterUltimaLeituraOuDefaultPorCasa(casaIdAtual, 0);
             if (novaLeituraAnterior > 0) {
@@ -323,6 +325,7 @@ public class LeiturasMensais extends BaseActivity {
             Toast.makeText(this, "Não foi possível abrir a câmara.", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     // Método para carregar imagem reduzida e evitar OutOfMemory
     private Bitmap carregarImagemReduzida(Uri uri) throws IOException {

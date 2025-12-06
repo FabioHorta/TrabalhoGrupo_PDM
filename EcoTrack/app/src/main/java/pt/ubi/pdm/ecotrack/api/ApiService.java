@@ -4,6 +4,7 @@ import java.util.List;
 
 import pt.ubi.pdm.ecotrack.models.GoogleLoginRequest;
 import pt.ubi.pdm.ecotrack.models.RegisterRequest;
+import pt.ubi.pdm.ecotrack.models.UploadLeituraImagemRequest;
 import pt.ubi.pdm.ecotrack.models.UserResponse;
 import pt.ubi.pdm.ecotrack.models.LoginRequest;
 import pt.ubi.pdm.ecotrack.models.LeituraSync;
@@ -51,4 +52,8 @@ public interface ApiService {
 
     @POST("/appliances/sync")
     Call<Void> syncAppliances(@Body List<ApplianceSync> appliances);
+
+    @POST("/leituras/upload-bitmap")
+    Call<Void> uploadLeituraBitmap(@Body UploadLeituraImagemRequest body);
+
 }

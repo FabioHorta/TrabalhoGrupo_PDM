@@ -19,6 +19,15 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import android.util.Base64;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
+import pt.ubi.pdm.ecotrack.models.UploadLeituraImagemRequest;
+
+
 /**
  * Classe utilitária para:
  *  - Sincronizar dados locais -> servidor (leituras, assistências, casas, appliances)
@@ -46,6 +55,7 @@ public class SyncUtils {
         syncAssistencias(context, db, api);
         syncCasas(context, db, api);
         syncAppliances(context, db, api);
+
     }
 
     // =========================================================
@@ -130,13 +140,26 @@ public class SyncUtils {
         api.syncLeituras(lista).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
-                // Se o servidor recebeu bem, marcamos as leituras como sincronizadas
                 if (response.isSuccessful()) {
                     long[] idsArray = new long[idsLocais.size()];
                     for (int i = 0; i < idsLocais.size(); i++) {
                         idsArray[i] = idsLocais.get(i);
                     }
                     db.marcarLeiturasComoSincronizadas(idsArray);
+
+                    // >>> NOVO: 2.º POST por leitura com imagem <<<
+                    for (LeituraSync l : lista) {
+                        if (l.imagem_path != null && !l.imagem_path.isEmpty()) {
+                            enviarImagemLeitura(
+                                    context.getApplicationContext(),
+                                    api,
+                                    l.casa_id,
+                                    l.data,
+                                    l.valor_kwh,
+                                    l.imagem_path
+                            );
+                        }
+                    }
                 }
             }
 
@@ -380,11 +403,23 @@ public class SyncUtils {
                 if (!response.isSuccessful() || response.body() == null) return;
 
                 for (LeituraSync l : response.body()) {
+
+                    // 1) Se vier imagem_base64 do servidor, recriamos o ficheiro local
+                    String imagemPathLocal = null;
+
+                    if (l.imagem_base64 != null && !l.imagem_base64.isEmpty()) {
+                        imagemPathLocal = guardarImagemRestaurada(context, l.imagem_base64);
+                    } else {
+                        // fallback: se ainda usares imagem_path textual do servidor
+                        imagemPathLocal = l.imagem_path;
+                    }
+
+                    // 2) Inserir na BD local como sempre, mas agora com o path do ficheiro recriado
                     db.inserirLeituraRestaurada(
                             l.casa_id,
                             l.data,
                             l.valor_kwh,
-                            l.imagem_path,
+                            imagemPathLocal,         // <== AQUI
                             l.prev_leitura_id,
                             l.consumo_periodo,
                             l.created_at_ts
@@ -544,5 +579,109 @@ public class SyncUtils {
             public void onFailure(Call<List<AssistenciaSync>> call, Throwable t) { }
         });
     }
+
+    // =========================================================
+// ENVIAR IMAGEM DE UMA LEITURA (SEGUNDO POST)
+// =========================================================
+    private static void enviarImagemLeitura(Context context,
+                                            ApiService api,
+                                            Integer casaId,
+                                            String data,
+                                            double valorKwh,
+                                            String imagemPath) {
+
+        if (imagemPath == null || casaId == null) return;
+
+        FileInputStream fis = null;
+        try {
+            // Lê o ficheiro que guardaste em internal storage (guardarImagemInterna)
+            fis = context.openFileInput(imagemPath);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int n;
+            while ((n = fis.read(buffer)) != -1) {
+                baos.write(buffer, 0, n);
+            }
+
+            String imagemBase64 = Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP);
+
+            UploadLeituraImagemRequest body =
+                    new UploadLeituraImagemRequest(casaId, data, valorKwh, imagemBase64);
+
+            api.uploadLeituraBitmap(body).enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    // Se quiseres, podes fazer log ou ignorar
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    t.printStackTrace();
+                }
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (fis != null) {
+                try { fis.close(); } catch (IOException ignored) {}
+            }
+        }
+    }
+
+    // =========================================================
+// GUARDAR IMAGEM RECEBIDA DA API EM FICHEIRO LOCAL
+// =========================================================
+    private static String guardarImagemDaApi(Context context, String base64) {
+        if (base64 == null || base64.isEmpty()) return null;
+
+        byte[] dados;
+        try {
+            dados = Base64.decode(base64, Base64.DEFAULT);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        String fileName = "contador_srv_" + System.currentTimeMillis() + ".png";
+
+        FileOutputStream fos = null;
+        try {
+            fos = context.openFileOutput(fileName, Context.MODE_PRIVATE);
+            fos.write(dados);
+            fos.flush();
+            return fileName;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            if (fos != null) {
+                try { fos.close(); } catch (IOException ignored) {}
+            }
+        }
+    }
+
+
+
+    private static String guardarImagemRestaurada(Context context, String base64) {
+        if (base64 == null || base64.isEmpty()) return null;
+
+        try {
+            byte[] bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
+
+            String fileName = "contador_restaurado_" + System.currentTimeMillis() + ".png";
+
+            try (java.io.FileOutputStream fos =
+                         context.openFileOutput(fileName, Context.MODE_PRIVATE)) {
+                fos.write(bytes);
+            }
+
+            return fileName; // este é o valor que vai para imagem_path no SQLite
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 
 }
