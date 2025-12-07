@@ -2,11 +2,11 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/gradient_verde">
 
-    <!-- 🔵 HEADER NOVO -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/headerCasa"
         android:layout_width="match_parent"
@@ -14,73 +14,49 @@
         android:paddingHorizontal="24dp"
         android:paddingTop="48dp"
         android:paddingBottom="16dp"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <ImageView
-            android:id="@+id/btnBackArrow"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@android:drawable/ic_media_previous"
-            app:tint="@color/green"
-            android:contentDescription="Voltar"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@id/tvNomeCasaResumo"
-            app:layout_constraintBottom_toBottomOf="@id/tvNomeCasaResumo" />
-
-        <TextView
-            android:id="@+id/tvLabelCategoria"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="REGISTO COMPLETO"
-            android:textSize="12sp"
-            android:textColor="#CCFFFFFF"
-            android:letterSpacing="0.1"
-            android:textStyle="bold"
-            android:layout_marginStart="16dp"
-            android:layout_marginBottom="4dp"
-            app:layout_constraintStart_toEndOf="@id/btnBackArrow"
-            app:layout_constraintBottom_toTopOf="@id/tvNomeCasaResumo" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <TextView
             android:id="@+id/tvNomeCasaResumo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Minha Casa"
+            android:textColor="@color/green"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:textColor="@color/green"
-            android:layout_marginStart="16dp"
-            app:layout_constraintStart_toEndOf="@id/btnBackArrow"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
-
-    <!-- 🔽 SCROLLVIEW COM FUNDO VERDE -->
     <ScrollView
         android:id="@+id/scrollConteudo"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
-        android:background="@drawable/gradient_verde"
+        android:clipToPadding="false"
+        android:paddingBottom="20dp"
         app:layout_constraintTop_toBottomOf="@id/headerCasa"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigation">
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:paddingHorizontal="24dp"
+            android:paddingTop="10dp">
 
-
-            <!-- CARTÃO ÚLTIMA LEITURA -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="6dp"
                 app:cardBackgroundColor="#FFFFFF">
 
                 <LinearLayout
@@ -108,7 +84,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="ÚLTIMA LEITURA"
-                            android:textSize="14sp"
+                            android:textSize="12sp"
+                            android:letterSpacing="0.1"
                             android:textColor="#666666"
                             android:textAllCaps="true"
                             android:textStyle="bold" />
@@ -135,27 +112,21 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-
-
-            <!-- TÍTULO REGISTO COMPLETO -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Registo Completo"
+                android:text="Histórico Completo"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
                 android:layout_marginBottom="12dp"
                 android:layout_marginStart="4dp" />
 
-
-
-            <!-- CARD DA TABELA -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="4dp"
                 app:cardBackgroundColor="#FFFFFF"
                 android:layout_marginBottom="24dp">
 
@@ -164,7 +135,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- HEADER TABELA -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -213,7 +183,6 @@
                         android:layout_height="1dp"
                         android:background="#E0E0E0" />
 
-                    <!-- TABELA DINÂMICA -->
                     <TableLayout
                         android:id="@+id/tabelaHistorico"
                         android:layout_width="match_parent"
@@ -222,10 +191,6 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-
-
-
-            <!-- BOTÃO VOLTAR -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnVoltarResumo"
                 android:layout_width="match_parent"
@@ -235,18 +200,12 @@
                 android:textStyle="bold"
                 app:backgroundTint="#FFFFFF"
                 android:textColor="#1E4D42"
-                app:cornerRadius="30dp" />
-
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="32dp"/>
+                app:cornerRadius="20dp"
+                app:elevation="4dp"/>
 
         </LinearLayout>
     </ScrollView>
 
-
-
-    <!-- ⚪ BOTTOM NAVIGATION -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
@@ -255,6 +214,8 @@
         app:itemTextColor="@color/selector_bottom_nav"
         android:background="#FFFFFF"
         app:menu="@menu/menu_bottom_nav"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:labelVisibilityMode="labeled"
+        app:elevation="8dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

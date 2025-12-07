@@ -17,14 +17,15 @@ import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.navigation.NavigationBarView; // Import necessário
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class ResumoLeituras extends AppCompatActivity {
+// Alterado para estender BaseActivity
+public class ResumoLeituras extends BaseActivity {
 
     private DBHelper dbHelper;
     private TextView tvNomeCasaResumo, tvConsumoAtual, tvDataAtual;
@@ -39,6 +40,14 @@ public class ResumoLeituras extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_leituras);
+
+        // === CONFIGURAÇÃO DA BARRA DE NAVEGAÇÃO ===
+        setupBottomNav(R.id.nav_leituras); // Define o item "Leituras" como selecionado
+
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setLabelVisibilityMode(NavigationBarView.LABEL_VISIBILITY_LABELED);
+        }
+        // ==========================================
 
         dbHelper = new DBHelper(this);
 
@@ -76,6 +85,13 @@ public class ResumoLeituras extends AppCompatActivity {
         if (tvNomeCasaResumo != null) {
             tvNomeCasaResumo.setText(casaNomeAtual);
         }
+
+        // === REFORÇAR BARRA DE NAVEGAÇÃO AO VOLTAR ===
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setLabelVisibilityMode(NavigationBarView.LABEL_VISIBILITY_LABELED);
+            bottomNavigationView.setSelectedItemId(R.id.nav_leituras);
+        }
+        // =============================================
 
         carregarEcraCompleto(); // atualiza sempre que volta para esta tela
     }

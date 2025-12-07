@@ -135,7 +135,7 @@ public class MenuPrincipal extends BaseActivity {
             pieResumo.setVisibility(View.GONE);
 
             // Desativar cards que dependem da casa
-            cardMelhorEnergia.setEnabled(false);
+
             cardEstimativas.setEnabled(false);
             cardMapaGastos.setEnabled(false);
             cardAlertas.setEnabled(false);
@@ -185,7 +185,6 @@ public class MenuPrincipal extends BaseActivity {
             }
 
             // Reativar cards
-            cardMelhorEnergia.setEnabled(true);
             cardEstimativas.setEnabled(true);
             cardMapaGastos.setEnabled(true);
             cardAlertas.setEnabled(true);
@@ -197,7 +196,7 @@ public class MenuPrincipal extends BaseActivity {
                 startActivity(new Intent(MenuPrincipal.this, PerfilUtilizador.class)));
 
         cardMelhorEnergia.setOnClickListener(v -> {
-             startActivity(new Intent(this, TipoEnergia.class));
+             startActivity(new Intent(MenuPrincipal.this, TipoEnergia.class));
         });
 
         // Nota: As leituras agora são acessíveis pela BottomBar, não pelo card
