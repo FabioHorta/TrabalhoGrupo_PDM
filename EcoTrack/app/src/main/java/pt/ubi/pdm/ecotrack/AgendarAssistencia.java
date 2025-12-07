@@ -26,6 +26,8 @@ public class AgendarAssistencia extends AppCompatActivity {
 
         db = new DBHelper(this);
 
+        SyncUtils.restaurarTudoSeNecessario(getApplicationContext());
+
         etData = findViewById(R.id.etData);
         etHora = findViewById(R.id.etHora);
         etDescricao = findViewById(R.id.etDescricao);

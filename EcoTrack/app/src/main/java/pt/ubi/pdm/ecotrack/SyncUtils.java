@@ -76,16 +76,31 @@ public class SyncUtils {
         }
 
         DBHelper db = new DBHelper(context.getApplicationContext());
-        ApiService api = ApiClient.getRetrofit().create(ApiService.class);
+        ApiService api = ApiClient
+                .getRetrofit(context.getApplicationContext())
+                .create(ApiService.class);
+
+        SharedPreferences sp = context.getSharedPreferences("auth", Context.MODE_PRIVATE);
+        String email = sp.getString("user_email", null);
+        String tipo = null;
+        if (email != null) {
+            tipo = db.obterTipoUtilizadorPorEmail(email);
+        }
 
         // Enviar dados locais para o servidor
         syncLeituras(context, db, api);
-        syncAssistencias(context, db, api);
+
+        // Assistências só para técnicos
+        if ("tecnico".equalsIgnoreCase(tipo)) {
+            syncAssistencias(context, db, api);
+        }
+
         syncCasas(context, db, api);
         syncAppliances(context, db, api);
         syncMensagensSuporte(context, db, api);
         syncMensagensChat(context, db, api);
     }
+
 
     /**
      * Sincronização específica do CHAT para o utilizador autenticado:
@@ -102,7 +117,9 @@ public class SyncUtils {
         if (email == null) return;
 
         DBHelper db = new DBHelper(context.getApplicationContext());
-        ApiService api = ApiClient.getRetrofit().create(ApiService.class);
+        ApiService api = ApiClient
+                .getRetrofit(context.getApplicationContext())
+                .create(ApiService.class);
 
         // 1) Enviar tudo o que temos localmente para o servidor
         syncMensagensChat(context, db, api);
@@ -539,14 +556,24 @@ public class SyncUtils {
         if (email == null) return;
 
         DBHelper db = new DBHelper(context.getApplicationContext());
-        ApiService api = ApiClient.getRetrofit().create(ApiService.class);
+        ApiService api = ApiClient
+                .getRetrofit(context.getApplicationContext())
+                .create(ApiService.class);
+
+        String tipo = db.obterTipoUtilizadorPorEmail(email);
 
         restaurarCasasSeNecessario(context, db, api, email);
         restaurarAppliancesSeNecessario(context, db, api, email);
-        restaurarAssistenciasSeNecessario(context, db, api);
+
+        // só técnicos restauram assistências
+        if ("tecnico".equalsIgnoreCase(tipo)) {
+            restaurarAssistenciasSeNecessario(context, db, api);
+        }
+
         restaurarLeiturasSeNecessario(context, db, api, email);
         restaurarTecnicosSeNecessario(context, db, api);
     }
+
 
     // =========================================================
     //  RESTAURO DE LEITURAS (SERVIDOR -> LOCAL)

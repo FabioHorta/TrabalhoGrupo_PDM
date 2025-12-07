@@ -267,6 +267,52 @@ public class DBHelper extends SQLiteOpenHelper {
                 C_ALERTA_DICA2 + " TEXT, " +
                 C_ALERTA_DICA3 + " TEXT" +
                 ")");
+        db.execSQL(
+                "CREATE TABLE IF NOT EXISTS dicas_cache (" +
+                        "tipo TEXT PRIMARY KEY," +
+                        "titulo TEXT," +
+                        "mensagem TEXT," +
+                        "dica1 TEXT," +
+                        "dica2 TEXT," +
+                        "dica3 TEXT" +
+                        ")"
+        );
+
+        inserirDicaDefault(db,
+                "alto",
+                "Consumo elevado",
+                "O seu consumo recente está bastante acima da média.",
+                "Verifique se deixou algum equipamento ligado mais tempo.",
+                "Considere reduzir o uso de aquecimento/ar condicionado.",
+                "Veja no mapa de gastos quais os dias com maior consumo."
+        );
+
+        inserirDicaDefault(db,
+                "baixo",
+                "Bom desempenho energético",
+                "O seu consumo recente está abaixo da média. Excelente!",
+                "Mantenha estes hábitos de poupança.",
+                "Veja se consegue manter o mesmo padrão nos próximos meses.",
+                "Compare o consumo com outras casas no histórico."
+        );
+
+        inserirDicaDefault(db,
+                "normal",
+                "Consumo estável",
+                "O seu consumo está dentro da média.",
+                "Mantenha um uso responsável dos equipamentos.",
+                "Veja que eletrodomésticos consomem mais.",
+                "Considere trocar equipamentos antigos por outros mais eficientes."
+        );
+
+        inserirDicaDefault(db,
+                "inicio",
+                "Ainda a reunir dados",
+                "Precisamos de mais leituras para analisar o seu consumo.",
+                "Introduza leituras regulares do contador.",
+                "Tente registar pelo menos uma leitura por mês.",
+                "Volte a este ecrã depois de ter mais leituras."
+        );
 
         // ---------- INDEXES ----------
         db.execSQL("CREATE INDEX IF NOT EXISTS idx_leituras_prev ON " +
@@ -1356,36 +1402,26 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public DicasResponse obterDicasCache(String tipo) {
-        if (tipo == null) return null;
-
-        Cursor c = getReadableDatabase().query(
-                T_ALERTAS_DICAS_CACHE,
-                new String[]{
-                        C_ALERTA_TITULO,
-                        C_ALERTA_MENSAGEM,
-                        C_ALERTA_DICA1,
-                        C_ALERTA_DICA2,
-                        C_ALERTA_DICA3
-                },
-                C_ALERTA_TIPO + " = ?",
-                new String[]{tipo},
-                null, null, null
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor c = db.rawQuery(
+                "SELECT titulo, mensagem, dica1, dica2, dica3 " +
+                        "FROM dicas_cache WHERE tipo = ?",
+                new String[]{ tipo }
         );
 
-        try {
-            if (c.moveToFirst()) {
-                DicasResponse d = new DicasResponse();
-                d.titulo = c.getString(0);
-                d.mensagem = c.getString(1);
-                d.dica1 = c.getString(2);
-                d.dica2 = c.getString(3);
-                d.dica3 = c.getString(4);
-                return d;
-            }
-            return null;
-        } finally {
+        if (c != null && c.moveToFirst()) {
+            DicasResponse d = new DicasResponse();
+            d.titulo   = c.getString(0);
+            d.mensagem = c.getString(1);
+            d.dica1    = c.getString(2);
+            d.dica2    = c.getString(3);
+            d.dica3    = c.getString(4);
             c.close();
+            return d;
         }
+
+        if (c != null) c.close();
+        return null;
     }
 
     public void atualizarAssistenciaServerId(long idLocal, long serverId) {
@@ -1417,6 +1453,24 @@ public class DBHelper extends SQLiteOpenHelper {
         } finally {
             c.close();
         }
+    }
+
+    private void inserirDicaDefault(SQLiteDatabase db,
+                                    String tipo,
+                                    String titulo,
+                                    String mensagem,
+                                    String dica1,
+                                    String dica2,
+                                    String dica3) {
+        ContentValues cv = new ContentValues();
+        cv.put("tipo", tipo);
+        cv.put("titulo", titulo);
+        cv.put("mensagem", mensagem);
+        cv.put("dica1", dica1);
+        cv.put("dica2", dica2);
+        cv.put("dica3", dica3);
+
+        db.insertWithOnConflict("dicas_cache", null, cv, SQLiteDatabase.CONFLICT_REPLACE);
     }
 
 }

@@ -39,7 +39,7 @@ public class AlertasConsumo extends BaseActivity {
         }
 
         dbHelper = new DBHelper(this);
-        api = ApiClient.getRetrofit().create(ApiService.class);
+        api = ApiClient.getRetrofit(this).create(ApiService.class);
 
         casaIdAtual = CasaSelecionada.getInstance().getCasaId();
         casaNomeAtual = CasaSelecionada.getInstance().getCasaNome();

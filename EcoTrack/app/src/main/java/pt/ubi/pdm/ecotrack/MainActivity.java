@@ -2,6 +2,7 @@ package pt.ubi.pdm.ecotrack;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
@@ -64,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         dbHelper = new DBHelper(this);
 
         // Instância do serviço Retrofit para falar com o servidor Node/MariaDB
-        apiService = ApiClient.getRetrofit().create(ApiService.class);
+        apiService = ApiClient.getRetrofit(this).create(ApiService.class);
 
         // Ligação às views do layout
         etEmail = findViewById(R.id.etEmail);
@@ -172,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
     // Enviar o ID Token do Google para o servidor
     // - O servidor valida o token junto da Google
     // - Cria ou obtém o utilizador na MariaDB
-    // - Devolve UserResponse
+    // - Devolve UserResponse (agora com token JWT)
     // ---------------------------------------------------------
     private void enviarTokenParaServidor(String idToken) {
         GoogleLoginRequest body = new GoogleLoginRequest(idToken);
@@ -182,6 +183,14 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<UserResponse> call, Response<UserResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     UserResponse user = response.body();
+
+                    // NOVO: guardar token JWT nas SharedPreferences
+                    if (user.getToken() != null) {
+                        SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
+                        prefs.edit()
+                                .putString("auth_token", user.getToken())
+                                .apply();
+                    }
 
                     // Para login offline com Google:
                     // é usado um hash da string do email (não há password real)
@@ -321,6 +330,14 @@ public class MainActivity extends AppCompatActivity {
 
                 if (response.isSuccessful() && response.body() != null) {
                     UserResponse user = response.body();
+
+                    // NOVO: guardar token JWT nas SharedPreferences
+                    if (user.getToken() != null) {
+                        SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
+                        prefs.edit()
+                                .putString("auth_token", user.getToken())
+                                .apply();
+                    }
 
                     // Gera hash BCRYPT da password para guardar offline
                     String offlineHash = BCrypt.hashpw(password, BCrypt.gensalt());

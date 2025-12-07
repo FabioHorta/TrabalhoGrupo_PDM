@@ -53,7 +53,8 @@ public class Relatorios extends AppCompatActivity {
             return;
         }
 
-        api = ApiClient.getRetrofit().create(ApiService.class);
+        api = ApiClient.getRetrofit(this).create(ApiService.class);
+
 
         listRelatorios = findViewById(R.id.listRelatorios);
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, relatoriosList);

@@ -37,7 +37,8 @@ public class RegisterActivity extends AppCompatActivity {
         dbHelper = new DBHelper(this);
 
         // API remota (MariaDB)
-        apiService = ApiClient.getRetrofit().create(ApiService.class);
+        apiService = ApiClient.getRetrofit(this).create(ApiService.class);
+
 
         // Ligação às views
         etNomeCompleto = findViewById(R.id.etNomeCompleto);

@@ -9,30 +9,13 @@ public class UserResponse {
     private Double preco_kwh;
     private String tipo;
 
-    @SerializedName("password_hash")
-    private String passwordHash;   // vem do JSON "password_hash"
+    private String token;
 
-    public int getId() {
-        return id;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Double getPreco_kwh() {
-        return preco_kwh;
-    }
-
-    public String getTipo() {
-        return tipo;
-    }
-
-    public String getPasswordHash() {
-        return passwordHash;
-    }
+    public int getId() { return id; }
+    public String getEmail() { return email; }
+    public String getName() { return name; }
+    public Double getPreco_kwh() { return preco_kwh; }
+    public String getTipo() { return tipo; }
+    public String getToken() { return token; } 
 }
+

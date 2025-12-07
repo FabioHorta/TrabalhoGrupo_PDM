@@ -53,7 +53,8 @@ public class RelatoriosTecnicoActivity extends BaseActivityTecnico {
         setContentView(R.layout.activity_relatorios_tecnico);
 
         db = new DBHelper(this);
-        api = ApiClient.getRetrofit().create(ApiService.class);
+        api = ApiClient.getRetrofit(this).create(ApiService.class);
+
 
         // 1) Obter email do técnico guardado em SharedPreferences
         SharedPreferences sp = getSharedPreferences("auth", MODE_PRIVATE);

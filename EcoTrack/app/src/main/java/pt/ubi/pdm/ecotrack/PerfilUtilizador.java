@@ -78,7 +78,7 @@ public class PerfilUtilizador extends AppCompatActivity {
         setContentView(R.layout.activity_perfil_utilizador);
 
         dbHelper = new DBHelper(this);
-        api = ApiClient.getRetrofit().create(ApiService.class);
+        api = ApiClient.getRetrofit(this).create(ApiService.class);
 
         // 1) Recuperar email da sessão (guardado no login)
         SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);

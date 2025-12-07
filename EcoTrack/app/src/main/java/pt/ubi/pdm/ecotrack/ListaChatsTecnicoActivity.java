@@ -111,7 +111,7 @@ public class ListaChatsTecnicoActivity extends BaseActivityTecnico {
      * evitando duplicados.
      */
     private void sincronizarMensagensDoServidor() {
-        ApiService api = ApiClient.getRetrofit().create(ApiService.class);
+        ApiService api = ApiClient.getRetrofit(this).create(ApiService.class);
 
         api.getMensagensChatByEmail(emailTecnico).enqueue(new Callback<List<MensagemChatSync>>() {
             @Override
