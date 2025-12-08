@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+// dependências para a API
 import pt.ubi.pdm.ecotrack.api.ApiClient;
 import pt.ubi.pdm.ecotrack.api.ApiService;
 import pt.ubi.pdm.ecotrack.models.DicasResponse;
@@ -19,14 +20,15 @@ import retrofit2.Response;
 
 public class AlertasConsumo extends BaseActivity {
 
+    // declaração de views
     private ImageView ivIconeAlerta;
     private TextView tvNomeCasaAlertas, tvTituloAlerta, tvMensagemAlerta, tvDica1, tvDica2, tvDica3;
     private Button btnAgendarAssistencia;
 
+    // variáveis de estado e helpers
     private DBHelper dbHelper;
     private int casaIdAtual;
     private String casaNomeAtual;
-
     private ApiService api;
 
     @Override
@@ -34,24 +36,29 @@ public class AlertasConsumo extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_alertas_consumo);
 
+        // esconde a action bar
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
 
         dbHelper = new DBHelper(this);
+        // inicializa o retrofit
         api = ApiClient.getRetrofit(this).create(ApiService.class);
 
+        // obtém o contexto da casa
         casaIdAtual = CasaSelecionada.getInstance().getCasaId();
         casaNomeAtual = CasaSelecionada.getInstance().getCasaNome();
 
         ligarViews();
         tvNomeCasaAlertas.setText(casaNomeAtual);
 
+        // inicia a lógica principal
         preencherAnalise();
         configurarClicks();
         setupBottomNav(R.id.nav_alertas);
     }
 
+    // liga as variáveis aos IDs do layout
     private void ligarViews() {
         tvNomeCasaAlertas = findViewById(R.id.tvNomeCasaAlertas);
         ivIconeAlerta = findViewById(R.id.ivIconeAlerta);
@@ -63,15 +70,15 @@ public class AlertasConsumo extends BaseActivity {
         btnAgendarAssistencia = findViewById(R.id.btnAgendarAssistencia);
     }
 
+    // configura o clique do botão
     private void configurarClicks() {
+        // abre a activity de agendamento
         btnAgendarAssistencia.setOnClickListener(
                 v -> startActivity(new Intent(AlertasConsumo.this, AgendarAssistencia.class))
         );
     }
 
-    // ---------------------------------------------------------
-    //  Verifica se há internet (mesmo estilo do SyncUtils)
-    // ---------------------------------------------------------
+    // verifica a conectividade
     private boolean temInternet() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);
         if (cm == null) return false;
@@ -87,13 +94,18 @@ public class AlertasConsumo extends BaseActivity {
         );
     }
 
+    // realiza a análise e carrega as dicas (cache e/ou API)
     private void preencherAnalise() {
 
+        // calcula o consumo do último período
         double consumoUltimo = dbHelper.calcularMediaConsumosPorCasa(1, casaIdAtual);
+
+        // calcula a média de referência dos 6 períodos anteriores
         double media6 = (dbHelper.calcularMediaConsumos(7)) * ((double) 7 / 6) - (consumoUltimo / 6);
 
         String tipo;
 
+        // classifica o tipo de consumo (alto, baixo, normal, inicio)
         if (consumoUltimo <= 0 || media6 <= 0) {
             tipo = "inicio";
         } else {
@@ -108,26 +120,27 @@ public class AlertasConsumo extends BaseActivity {
             }
         }
 
-        // 1) Tentar mostrar logo o que estiver em cache
+        // tenta carregar da cache primeiro
         DicasResponse cache = dbHelper.obterDicasCache(tipo);
         if (cache != null) {
             aplicarDicasNaUI(tipo, cache);
         } else {
-            // fallback visual mínimo
-            tvTituloAlerta.setText("A carregar análise...");
-            tvMensagemAlerta.setText("A obter recomendações de consumo.");
+            // fallback visual enquanto carrega
+            tvTituloAlerta.setText("a carregar análise...");
+            tvMensagemAlerta.setText("a obter recomendações de consumo.");
             tvDica1.setText("");
             tvDica2.setText("");
             tvDica3.setText("");
             ivIconeAlerta.setColorFilter(0xFF1976D2, PorterDuff.Mode.SRC_IN);
         }
 
-        // 2) Se houver internet, ir ao servidor e atualizar cache + UI
+        // se houver internet, busca dados atualizados no servidor
         if (temInternet()) {
             carregarDicasServidor(tipo);
         }
     }
 
+    // chamada assíncrona à API
     private void carregarDicasServidor(String tipo) {
         api.getDicas(tipo).enqueue(new Callback<DicasResponse>() {
             @Override
@@ -136,19 +149,19 @@ public class AlertasConsumo extends BaseActivity {
 
                 DicasResponse d = response.body();
 
-                // atualiza UI
+                // aplica na UI e guarda na cache
                 aplicarDicasNaUI(tipo, d);
-                // guarda na cache offline
                 dbHelper.guardarDicasCache(tipo, d);
             }
 
             @Override
             public void onFailure(Call<DicasResponse> call, Throwable t) {
-                // se falhar, ficas só com o que estiver em cache
+                // ignora, fica com o que está em cache
             }
         });
     }
 
+    // preenche os campos com os dados e define a cor do ícone
     private void aplicarDicasNaUI(String tipo, DicasResponse d) {
         tvTituloAlerta.setText(d.titulo);
         tvMensagemAlerta.setText(d.mensagem);
@@ -156,18 +169,19 @@ public class AlertasConsumo extends BaseActivity {
         tvDica2.setText(d.dica2);
         tvDica3.setText(d.dica3);
 
+        // define a cor do ícone
         switch (tipo) {
             case "alto":
-                ivIconeAlerta.setColorFilter(0xFFD32F2F, PorterDuff.Mode.SRC_IN);
+                ivIconeAlerta.setColorFilter(0xFFD32F2F, PorterDuff.Mode.SRC_IN); // vermelho
                 break;
             case "baixo":
-                ivIconeAlerta.setColorFilter(0xFF388E3C, PorterDuff.Mode.SRC_IN);
+                ivIconeAlerta.setColorFilter(0xFF388E3C, PorterDuff.Mode.SRC_IN); // verde
                 break;
             case "normal":
-                ivIconeAlerta.setColorFilter(0xFFFFA000, PorterDuff.Mode.SRC_IN);
+                ivIconeAlerta.setColorFilter(0xFFFFA000, PorterDuff.Mode.SRC_IN); // amarelo
                 break;
-            default: // "inicio" ou outros
-                ivIconeAlerta.setColorFilter(0xFF1976D2, PorterDuff.Mode.SRC_IN);
+            default: // inicio
+                ivIconeAlerta.setColorFilter(0xFF1976D2, PorterDuff.Mode.SRC_IN); // azul
                 break;
         }
     }
@@ -176,6 +190,7 @@ public class AlertasConsumo extends BaseActivity {
     protected void onResume() {
         super.onResume();
 
+        // atualiza o contexto da casa
         casaIdAtual = CasaSelecionada.getInstance().getCasaId();
         casaNomeAtual = CasaSelecionada.getInstance().getCasaNome();
 
@@ -183,8 +198,10 @@ public class AlertasConsumo extends BaseActivity {
             tvNomeCasaAlertas.setText(casaNomeAtual);
         }
 
+        // recarrega a análise
         preencherAnalise();
 
+        // seleciona o item na navegação
         if (bottomNavigationView != null) {
             bottomNavigationView.setSelectedItemId(R.id.nav_alertas);
         }
