@@ -68,7 +68,7 @@ public class ClasseConsumo extends AppCompatActivity {
             // Carregar a lista
             carregarEletrodomesticosSelecionados();
 
-            // --- BOTÃO PRÓXIMO (CORREÇÃO AQUI) ---
+            // --- BOTÃO PRÓXIMO ---
             btnProximo.setOnClickListener(v -> {
                 // 1. Obter email do utilizador (SharedPreferences)
                 String userEmail = getSharedPreferences("auth", MODE_PRIVATE)

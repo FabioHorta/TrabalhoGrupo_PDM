@@ -73,7 +73,7 @@ public class ListaChatsTecnicoActivity extends BaseActivityTecnico {
         // Sync geral (inclui envio de mensagens locais para o servidor)
         SyncUtils.syncTudoAsync(getApplicationContext());
 
-        // NOVO: puxar mensagens do servidor para o SQLite deste técnico
+        // puxar mensagens do servidor para o SQLite deste técnico
         sincronizarMensagensDoServidor();
 
         // Carregar lista de clientes a partir da BD local

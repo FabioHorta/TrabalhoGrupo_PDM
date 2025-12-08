@@ -16,7 +16,6 @@ public class DBHelper extends SQLiteOpenHelper {
     // CONFIGURAÇÃO DA BASE DE DADOS
     // =========================================================
     private static final String DB_NAME = "ecotrack.db";
-    // ++ NOVO: subir versão porque alterámos a tabela de chat
     private static final int DB_VERSION = 7;
 
     // Limites para análise de consumo (% acima/abaixo da média)
@@ -110,7 +109,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String C_MSG_DESTINATARIO = "destinatario_email";
     public static final String C_MSG_TEXTO = "texto";
     public static final String C_MSG_TS = "timestamp";
-    // ++ NOVO:
+
     public static final String C_MSG_SYNC_STATUS = "sync_status"; // 0 = local, 1 = já no servidor
 
     // =========================================================
