@@ -69,7 +69,7 @@ public class EstimativaConsumo extends AppCompatActivity {
     private void carregarDadosBase() {
         Cursor cursor = null;
         double media6 = 0.0; // Média de consumo dos últimos 6 períodos
-        double consumoAtualPeriodo = 0.0; // Valor da última leitura registrada
+        double consumoAtualPeriodo = 0.0; // Valor da última leitura registada
         double percentagem = 0.0;
         String status = null;
 

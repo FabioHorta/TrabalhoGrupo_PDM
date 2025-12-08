@@ -258,7 +258,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 C_TEC_NOME + " TEXT" +
                 ")");
 
-        // ---------- CACHE DICAS ALERTAS ----------  // NOVO
+        // ---------- CACHE DICAS ALERTAS ----------
         db.execSQL("CREATE TABLE " + T_ALERTAS_DICAS_CACHE + " (" +
                 C_ALERTA_TIPO + " TEXT PRIMARY KEY, " +
                 C_ALERTA_TITULO + " TEXT, " +

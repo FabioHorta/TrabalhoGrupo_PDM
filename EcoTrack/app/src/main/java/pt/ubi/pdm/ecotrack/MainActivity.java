@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
                     UserResponse user = response.body();
 
-                    // NOVO: guardar token JWT nas SharedPreferences
+                    // guardar token JWT nas SharedPreferences
                     if (user.getToken() != null) {
                         SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
                         prefs.edit()

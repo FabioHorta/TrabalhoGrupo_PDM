@@ -127,7 +127,7 @@ public class LeiturasMensais extends BaseActivity {
         // Mostrar o nome da casa no topo
         tvNomeCasaLeituras.setText(casaNomeAtual);
 
-        // Carrega e exibe a última leitura registrada para esta casa
+        // Carrega e exibe a última leitura registada para esta casa
         double leituraAnterior = dbHelper.obterUltimaLeituraOuDefaultPorCasa(casaIdAtual, 0);
         if (leituraAnterior > 0) {
             tvLeituraAnterior.setText("Leitura anterior do contador: " + leituraAnterior + " kWh");
@@ -171,7 +171,7 @@ public class LeiturasMensais extends BaseActivity {
         btnEscolherImagem.setOnClickListener(v -> escolherImagemLauncher.launch("image/*"));
         // Lógica de cálculo do consumo
         btnCalcular.setOnClickListener(v -> calcularConsumo());
-        // Lógica para salvar a leitura e a imagem
+        // Lógica para guardar a leitura e a imagem
         btnGuardar.setOnClickListener(v -> guardarLeituraComImagem());
         // Lança a câmara
         btnTirarFoto.setOnClickListener(v -> abrirCamera());
@@ -295,9 +295,9 @@ public class LeiturasMensais extends BaseActivity {
             imagemPath = guardarImagemInterna(imagemAtualBitmap);
         }
 
-        // Pega a data atual no formato YYYY-MM-DD
+        // Pega na data atual no formato YYYY-MM-DD
         String dataHoje = java.time.LocalDate.now().toString();
-        // Insere o registro na base de dados, obtendo o ID gerado
+        // Insere o registo na base de dados, obtendo o ID gerado
         long id = dbHelper.inserirLeituraComFotoPorCasa(casaIdAtual, dataHoje, leituraValor, imagemPath);
 
 
@@ -339,7 +339,7 @@ public class LeiturasMensais extends BaseActivity {
         }
     }
 
-    // Salva o Bitmap da imagem no armazenamento interno da aplicação
+    // guarda o Bitmap da imagem no armazenamento interno da aplicação
     private String guardarImagemInterna(Bitmap bitmap) {
         if (bitmap == null) return null;
 

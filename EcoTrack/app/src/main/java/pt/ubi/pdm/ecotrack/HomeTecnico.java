@@ -13,7 +13,7 @@ public class HomeTecnico extends BaseActivityTecnico {
     private TextView tvResumoAssistencias, tvResumoMensagens;
     private DBHelper db;
 
-    private String emailTecnico;   // <== agora guardamos aqui
+    private String emailTecnico;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

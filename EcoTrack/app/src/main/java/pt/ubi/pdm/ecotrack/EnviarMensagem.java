@@ -43,7 +43,7 @@ public class EnviarMensagem extends AppCompatActivity {
         carregarMensagens();
 
         btnEnviar.setOnClickListener(v -> {
-            // Obtém o texto digitado nos campos
+            // Obtém o texto escrito nos campos
             String assunto = etAssunto.getText().toString();
             String mensagem = etMensagem.getText().toString();
 
