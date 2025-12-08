@@ -10,6 +10,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 
+
+//Activity que mostra uma lista de todas as casas associadas ao user autent.
+// Permite clicar numa casa para editar ou criar uma nova.
 public class ListarCasas extends AppCompatActivity {
 
     ListView listCasas;
@@ -41,6 +44,7 @@ public class ListarCasas extends AppCompatActivity {
 
         carregarLista();
 
+        // Botão Adicionar: Abre CaracterizacaoCasa com ID = -1
         btnAdicionar.setOnClickListener(v -> {
             Intent i = new Intent(ListarCasas.this, CaracterizacaoCasa.class);
             i.putExtra("casa_id", -1);
@@ -49,6 +53,7 @@ public class ListarCasas extends AppCompatActivity {
 
         btnVoltar.setOnClickListener(v -> finish());
 
+        // Clique na Lista: Abre CaracterizacaoCasa com ID da casa clicada
         listCasas.setOnItemClickListener((parent, view, position, id) -> {
             int idCasaSelecionada = idsCasas.get(position);
             Intent i = new Intent(ListarCasas.this, CaracterizacaoCasa.class);

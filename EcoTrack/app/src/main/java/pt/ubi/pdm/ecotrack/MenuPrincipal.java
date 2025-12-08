@@ -25,6 +25,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Activity principal (Dashboard) da aplicação EcoTrack.
+ *
+ * Funcionalidades principais:
+ * Visão geral do perfil do utilizador.
+ * Seletor de Casas:Permite alternar entre diferentes propriedades.
+ * Ao mudar aqui, o estado global é atualizado no Singleton CasaSelecionada
+ * Resumo Rápido:Mostra consumo do último período e compara com a média histórica.
+ * Navegação:Cards de atalho para as funcionalidades principais (Energia, Estimativas, Mapa de Gastos).
+ */
 public class MenuPrincipal extends BaseActivity {
 
     // Cabeçalho
@@ -102,6 +112,9 @@ public class MenuPrincipal extends BaseActivity {
                 .getString("user_email", null);
     }
 
+    //Busca todas as casas do utilizador na BD e preenche o Spinner.
+    //1. Se a lista estiver vazia, bloqueia os cards de funcionalidades e pede para criar casa.
+    //2. Se houver casas, ativa o listener do Spinner. Sempre que o user seleciona uma casa,
     private void carregarListaCasas() {
         String email = obterEmailSessao();
         if (email == null) {
@@ -314,6 +327,8 @@ public class MenuPrincipal extends BaseActivity {
         configurarGraficoResumo(consumoUltimoPeriodo, media6);
     }
 
+    // Calcula e exibe o resumo de consumo no Card central.
+    //Compara o consumo atual com a média histórica.
     private void configurarGraficoResumo(double consumoPeriodo, double media6) {
         ArrayList<PieEntry> entradas = new ArrayList<>();
         if (consumoPeriodo <= 0 && media6 <= 0) {

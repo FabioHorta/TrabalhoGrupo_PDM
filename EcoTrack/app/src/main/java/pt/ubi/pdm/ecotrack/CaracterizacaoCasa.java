@@ -73,12 +73,14 @@ public class CaracterizacaoCasa extends AppCompatActivity {
             return;
         }
 
+        // Verificar se viemos para EDITAR (tem ID) ou CRIAR (ID = -1)
         casaId = getIntent().getIntExtra("casa_id", -1);
 
-        carregarDadosPortugal();
+        carregarDadosPortugal(); // Parse do JSON de localizações
         initViews();
         configurarDropdowns();
 
+        // Se estamos a editar, preencher o formulário com dados da BD
         if (casaId != -1) {
             carregarDadosExistentes(casaId);
         }
@@ -132,10 +134,12 @@ public class CaracterizacaoCasa extends AppCompatActivity {
         selTipo = tipo;
         boolean isApt = tipo.equals("Apartamento");
 
+        // Altera o estilo do botão Apartamento
         btnApt.setBackgroundResource(isApt ? R.drawable.bg_option_selected : R.drawable.bg_option_unselected);
         iconApt.setColorFilter(isApt ? Color.parseColor("#4CAF50") : Color.parseColor("#555555"));
         txtApt.setTextColor(isApt ? Color.parseColor("#4CAF50") : Color.parseColor("#555555"));
 
+        // Altera o estilo do botão Moradia
         btnMoradia.setBackgroundResource(!isApt ? R.drawable.bg_option_selected : R.drawable.bg_option_unselected);
         iconMoradia.setColorFilter(!isApt ? Color.parseColor("#4CAF50") : Color.parseColor("#555555"));
         txtMoradia.setTextColor(!isApt ? Color.parseColor("#4CAF50") : Color.parseColor("#555555"));
@@ -166,12 +170,14 @@ public class CaracterizacaoCasa extends AppCompatActivity {
         b.setTextColor(Color.parseColor("#4CAF50"));
     }
 
+    // --- MUDANÇA DE COR DOS BOTÕES (Highlight vs Reset) ---
     private void reset(MaterialButton b) {
         b.setStrokeColor(android.content.res.ColorStateList.valueOf(Color.parseColor("#CCCCCC"))); // Cinza
         b.setStrokeWidth(2);
         b.setTextColor(Color.parseColor("#1E4D42"));
     }
 
+    //Valida os campos e guarda os dados na BD via DBHelper.
     private void guardarEAvancar() {
         String nome = etNomeCasa.getText().toString();
 
@@ -201,6 +207,7 @@ public class CaracterizacaoCasa extends AppCompatActivity {
         );
 
         if (novoId != -1) {
+            // Avança para a seleção de eletrodomésticos
             Intent i = new Intent(CaracterizacaoCasa.this, Eletrodomesticos.class);
             i.putExtra("casa_id", novoId);
             startActivity(i);
@@ -210,7 +217,8 @@ public class CaracterizacaoCasa extends AppCompatActivity {
         }
     }
 
-    // --- JSON ---
+    // Lê o ficheiro 'portugal_db.json' dos Assets para preencher os dropdowns.
+    //     * O JSON tem estrutura hierárquica (Distrito -> Concelho -> Freguesia).
     private void carregarDadosPortugal() {
         try {
             InputStream is = getAssets().open("portugal_db.json");
@@ -253,6 +261,8 @@ public class CaracterizacaoCasa extends AppCompatActivity {
         }
     }
 
+    //Configura os listeners dos dropdowns para carregar a lista seguinte
+    //  baseada na seleção anterior (Ex: Seleciona Distrito -> Carrega Concelhos).
     private void configurarDropdowns() {
         ArrayAdapter<String> adp = new ArrayAdapter<>(
                 this,
@@ -294,6 +304,7 @@ public class CaracterizacaoCasa extends AppCompatActivity {
         });
     }
 
+    //Preenche os campos da UI com dados da base de dados
     private void carregarDadosExistentes(int id) {
         Cursor c = dbHelper.obterCasaPorId(id);
         if (c != null && c.moveToFirst()) {
