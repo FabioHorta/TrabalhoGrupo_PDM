@@ -51,16 +51,17 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
         android:layout_marginTop="8dp"
+        android:layout_marginBottom="-16dp"
+        android:layout_weight="1"
         app:cardBackgroundColor="@android:color/white"
         app:cardCornerRadius="24dp"
-        app:cardElevation="0dp"
-        android:layout_marginBottom="-16dp">
+        app:cardElevation="0dp">
 
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:padding="24dp">
 
             <LinearLayout
@@ -71,16 +72,16 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
                     android:text="Email"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="4dp" />
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tvEmailTecnico"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="8dp"
                     android:background="@drawable/bg_input_readonly"
+                    android:padding="8dp"
                     android:textColor="@android:color/black" />
 
                 <Space
@@ -90,17 +91,17 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
                     android:text="Nome"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="4dp" />
+                    android:textStyle="bold" />
 
                 <EditText
                     android:id="@+id/etNomeTecnico"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_input"
-                    android:padding="10dp"
-                    android:hint="Nome do técnico" />
+                    android:hint="Nome do técnico"
+                    android:padding="10dp" />
 
                 <Space
                     android:layout_width="match_parent"
@@ -116,18 +117,19 @@
 
         </ScrollView>
 
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottomNavTecnico"
+            android:layout_width="match_parent"
+            android:layout_height="109dp"
+            android:layout_gravity="bottom"
+            android:background="@android:color/white"
+            app:itemIconTint="@color/green"
+            app:itemTextColor="@color/green"
+            app:labelVisibilityMode="labeled"
+            app:menu="@menu/menu_bottom_tecnico" />
+
     </com.google.android.material.card.MaterialCardView>
 
     <!-- Bottom navigation do técnico -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavTecnico"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_gravity="bottom"
-        android:background="@android:color/white"
-        app:itemIconTint="@color/green"
-        app:itemTextColor="@color/green"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/menu_bottom_tecnico" />
 
 </LinearLayout>

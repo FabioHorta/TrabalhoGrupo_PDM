@@ -40,125 +40,147 @@
         app:cardElevation="4dp"
         app:cardBackgroundColor="@android:color/white">
 
-        <ScrollView
+        <!-- IMPORTANTE: container vertical para separar Scroll e BottomBar -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="16dp">
+            android:orientation="vertical">
 
-            <LinearLayout
+            <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:dividerHeight="8dp">
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:padding="16dp"
+                android:fillViewport="true">
 
-                <!-- Assistência associada (opcional) -->
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Assistência (opcional)"
-                    android:textSize="14sp"
-                    android:textColor="@color/black"
-                    android:layout_marginBottom="4dp" />
-
-                <Spinner
-                    android:id="@+id/spinnerAssistencias"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_input" />
-
-                <!-- Email do cliente -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    app:boxBackgroundMode="outline"
-                    app:boxStrokeColor="@color/green">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etClienteEmail"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Email do cliente"
-                        android:inputType="textEmailAddress" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Título -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    app:boxBackgroundMode="outline"
-                    app:boxStrokeColor="@color/green">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etTituloRelatorio"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Título do relatório" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Resumo -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    app:boxBackgroundMode="outline"
-                    app:boxStrokeColor="@color/green">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etResumoRelatorio"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Resumo (curto)"
-                        android:maxLines="3" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Detalhes -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    app:boxBackgroundMode="outline"
-                    app:boxStrokeColor="@color/green">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etDetalhesRelatorio"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Detalhes técnicos"
-                        android:gravity="top"
-                        android:minLines="4"
-                        android:inputType="textMultiLine" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Botão + progress -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="end|center_vertical"
-                    android:layout_marginTop="16dp">
+                    android:orientation="vertical"
+                    android:dividerHeight="8dp">
 
-                    <ProgressBar
-                        android:id="@+id/progressRelatorio"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:visibility="gone"
-                        style="?android:attr/progressBarStyleSmall" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnGerarEnviarRelatorio"
+                    <!-- Assistência associada (opcional) -->
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Gerar e enviar"
-                        android:layout_marginStart="16dp"
-                        style="@style/Widget.MaterialComponents.Button"
-                        android:backgroundTint="@color/green"
-                        android:textColor="@android:color/white" />
-                </LinearLayout>
+                        android:text="Assistência (opcional)"
+                        android:textSize="14sp"
+                        android:textColor="@color/black"
+                        android:layout_marginBottom="4dp" />
 
-            </LinearLayout>
-        </ScrollView>
+                    <Spinner
+                        android:id="@+id/spinnerAssistencias"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_input" />
+
+                    <!-- Email do cliente -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        app:boxBackgroundMode="outline"
+                        app:boxStrokeColor="@color/green">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etClienteEmail"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Email do cliente"
+                            android:inputType="textEmailAddress" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Título -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        app:boxBackgroundMode="outline"
+                        app:boxStrokeColor="@color/green">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etTituloRelatorio"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Título do relatório" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Resumo -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        app:boxBackgroundMode="outline"
+                        app:boxStrokeColor="@color/green">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etResumoRelatorio"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Resumo (curto)"
+                            android:maxLines="3" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Detalhes -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        app:boxBackgroundMode="outline"
+                        app:boxStrokeColor="@color/green">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etDetalhesRelatorio"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Detalhes técnicos"
+                            android:gravity="top"
+                            android:minLines="4"
+                            android:inputType="textMultiLine" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Botão + progress -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="end|center_vertical"
+                        android:layout_marginTop="16dp">
+
+                        <ProgressBar
+                            android:id="@+id/progressRelatorio"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:visibility="gone"
+                            style="?android:attr/progressBarStyleSmall" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnGerarEnviarRelatorio"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Gerar e enviar"
+                            android:layout_marginStart="16dp"
+                            style="@style/Widget.MaterialComponents.Button"
+                            android:backgroundTint="@color/green"
+                            android:textColor="@android:color/white" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </ScrollView>
+
+            <!-- Bottom bar -->
+            <com.google.android.material.bottomnavigation.BottomNavigationView
+                android:id="@+id/bottomNavTecnico"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/white"
+                app:itemIconTint="@color/green"
+                app:itemTextColor="@color/green"
+                app:labelVisibilityMode="labeled"
+                app:menu="@menu/menu_bottom_tecnico" />
+
+        </LinearLayout>
+
     </com.google.android.material.card.MaterialCardView>
 
 </LinearLayout>

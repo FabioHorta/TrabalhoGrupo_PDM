@@ -256,13 +256,13 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@android:color/white"
-        app:menu="@menu/menu_bottom_tecnico"
+        app:itemIconTint="@color/green"
+        app:itemTextColor="@color/green"
         app:labelVisibilityMode="labeled"
-        app:itemIconTint="@color/selector_bottom_nav"
-        app:itemTextColor="@color/selector_bottom_nav"
-        app:elevation="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:menu="@menu/menu_bottom_tecnico"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:elevation="12dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

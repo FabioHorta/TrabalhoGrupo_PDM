@@ -59,59 +59,69 @@
         app:cardElevation="0dp"
         android:layout_marginBottom="-16dp">
 
-        <RelativeLayout
+        <!-- Container vertical: conteúdo + bottom bar -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingTop="16dp"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp">
+            android:orientation="vertical">
 
-            <LinearLayout
-                android:id="@+id/layoutVazio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_centerInParent="true"
-                android:gravity="center"
-                android:alpha="0.3">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:paddingStart="8dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="8dp">
 
-                <ImageView
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:src="@drawable/ic_menu_dich_mute"
-                    app:tint="#CCCCCC"
-                    android:layout_marginBottom="8dp"/>
-
-                <TextView
+                <LinearLayout
+                    android:id="@+id/layoutVazio"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Nenhuma conversa iniciada"
-                    android:textSize="16sp"/>
-            </LinearLayout>
+                    android:layout_centerInParent="true"
+                    android:alpha="0.3"
+                    android:gravity="center"
+                    android:orientation="vertical">
 
-            <ListView
-                android:id="@+id/listClientesChat"
+                    <ImageView
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:layout_marginBottom="8dp"
+                        android:src="@drawable/ic_menu_dich_mute"
+                        app:tint="#CCCCCC" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Nenhuma conversa iniciada"
+                        android:textSize="16sp" />
+                </LinearLayout>
+
+                <ListView
+                    android:id="@+id/listClientesChat"
+                    android:layout_width="wrap_content"
+                    android:layout_height="532dp"
+                    android:clipToPadding="false"
+                    android:divider="@null"
+                    android:dividerHeight="16dp"
+                    android:drawSelectorOnTop="true"
+                    android:padding="8dp"
+                    android:scrollbarStyle="outsideOverlay" />
+            </RelativeLayout>
+
+            <com.google.android.material.bottomnavigation.BottomNavigationView
+                android:id="@+id/bottomNavTecnico"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:divider="@null"
-                android:dividerHeight="16dp"
-                android:padding="8dp"
-                android:clipToPadding="false"
-                android:scrollbarStyle="outsideOverlay"
-                android:drawSelectorOnTop="true"/>
-        </RelativeLayout>
+                android:layout_height="109dp"
+                android:layout_gravity="bottom"
+                android:background="@android:color/white"
+                app:itemIconTint="@color/green"
+                app:itemTextColor="@color/green"
+                app:labelVisibilityMode="labeled"
+                app:menu="@menu/menu_bottom_tecnico" />
+
+
+        </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
-
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavTecnico"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_gravity="bottom"
-        android:background="@color/white"
-        app:itemIconTint="@color/green"
-        app:itemTextColor="@color/green"
-        app:labelVisibilityMode="labeled"
-        app:menu="@menu/menu_bottom_tecnico" />
 
 </LinearLayout>
