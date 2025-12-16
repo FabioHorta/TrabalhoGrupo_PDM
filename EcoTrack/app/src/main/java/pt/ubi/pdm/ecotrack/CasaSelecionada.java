@@ -1,7 +1,7 @@
 package pt.ubi.pdm.ecotrack;
 
 /**
- * Classe singleton para gerir a casa selecionada globalmente
+ * Classe para gerir a casa selecionada globalmente
  * Permite que toda a app saiba qual é a casa atual sem ter de passar por extras
  */
 public class CasaSelecionada {

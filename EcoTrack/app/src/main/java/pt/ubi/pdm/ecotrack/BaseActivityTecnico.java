@@ -44,7 +44,7 @@ public abstract class BaseActivityTecnico extends AppCompatActivity {
                 intent = new Intent(this, ListaChatsTecnicoActivity.class);
 
             } else if (id == R.id.menu_relatorios_tecnico) {
-                // novo separador para os relatórios do técnico
+                // separador para os relatórios do técnico
                 intent = new Intent(this, RelatoriosTecnicoActivity.class);
 
             } else if (id == R.id.menu_perfil_tecnico) {

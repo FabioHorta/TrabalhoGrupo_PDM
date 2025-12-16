@@ -11,6 +11,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.card.MaterialCardView;
 
+//Activity de catálogo onde o utilizador seleciona QUE aparelhos tem em casa.
+
 public class Eletrodomesticos extends AppCompatActivity {
 
     private int casaId;
@@ -140,6 +142,7 @@ public class Eletrodomesticos extends AppCompatActivity {
         }
     }
 
+    //Altera a cor do Card para Verde se a quantidade for > 0.
     private void atualizarVisualCard(MaterialCardView card, int qtd) {
         if (qtd > 0) {
             card.setStrokeColor(Color.parseColor("#4CAF50"));

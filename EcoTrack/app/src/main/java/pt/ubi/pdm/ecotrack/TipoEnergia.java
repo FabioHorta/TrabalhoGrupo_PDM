@@ -32,6 +32,15 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.Locale;
 
+
+/**
+ * Activity que determina o melhor tipo de energia renovável (Solar vs Eólica).
+ *
+ * Processo:
+ * 1. Pede permissão e obtém a localização GPS atual.
+ * 2. Consulta a API Open-Meteo para dados meteorológicos (vento, sol, nuvens).
+ * 3. Aplica um algoritmo de pontuação para sugerir a melhor tecnologia.
+ */
 public class TipoEnergia extends AppCompatActivity {
 
     private Button btnVoltarMenu, btnObterLocalizacao;
@@ -40,6 +49,7 @@ public class TipoEnergia extends AppCompatActivity {
     private AlertDialog loadingDialog;
     private static final String TAG = "TipoEnergia";
 
+    // Launcher para pedir permissões de localização
     private final ActivityResultLauncher<String[]> locationPermissionRequest =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
                 Boolean fineLocationGranted = result.getOrDefault(
@@ -75,6 +85,9 @@ public class TipoEnergia extends AppCompatActivity {
         btnVoltarMenu.setOnClickListener(v -> finish());
     }
 
+    /**
+     * Verifica permissões antes de tentar obter a localização.
+     */
     private void verificarPermissaoEObterLocalizacao() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -87,6 +100,7 @@ public class TipoEnergia extends AppCompatActivity {
         }
     }
 
+    //Tenta obter a última localização conhecida ou a localização atual.
     private void obterLocalizacao() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -100,7 +114,7 @@ public class TipoEnergia extends AppCompatActivity {
                     if (location != null) {
                         processarLocalizacao(location);
                     } else {
-                        obterLocalizacaoAtual();
+                        obterLocalizacaoAtual();// Se lastLocation for null, força update
                     }
                 })
                 .addOnFailureListener(this, e -> {
@@ -134,9 +148,11 @@ public class TipoEnergia extends AppCompatActivity {
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
 
+        // Chama a API com as coordenadas
         buscarDadosMeteorologicos(latitude, longitude);
     }
 
+    //Faz o pedido HTTP à API Open-Meteo numa thread separada.
     private void buscarDadosMeteorologicos(double latitude, double longitude) {
         executorService.execute(() -> {
             try {
@@ -190,12 +206,14 @@ public class TipoEnergia extends AppCompatActivity {
         });
     }
 
+    //Faz o parse do JSON e calcula as variáveis meteorológicas chave.
     private void analisarDadosEnergeticos(String jsonResponse, double latitude, double longitude) {
         try {
             JSONObject json = new JSONObject(jsonResponse);
             JSONObject current = json.getJSONObject("current");
             JSONObject daily = json.getJSONObject("daily");
 
+            // Extrair valores atuais e diários
             double windSpeed = current.getDouble("wind_speed_10m");
             double cloudCover = current.getDouble("cloud_cover");
             double temperature = current.getDouble("temperature_2m");
@@ -204,10 +222,12 @@ public class TipoEnergia extends AppCompatActivity {
             JSONArray daylightDuration = daily.getJSONArray("daylight_duration");
             JSONArray windSpeedMax = daily.getJSONArray("wind_speed_10m_max");
 
+            // Converter segundos para horas
             double sunshineHours = sunshineDuration.getDouble(0) / 3600.0;
             double daylightHours = daylightDuration.getDouble(0) / 3600.0;
             double maxWindSpeed = windSpeedMax.getDouble(0);
 
+            // Calcular percentagem de sol efetivo
             double sunshinePercentage = (sunshineHours / daylightHours) * 100;
 
             DadosEnergia dados = new DadosEnergia(
@@ -215,11 +235,13 @@ public class TipoEnergia extends AppCompatActivity {
                     sunshinePercentage, sunshineHours, cloudCover
             );
 
+            // Determinar a recomendação final
             String recomendacao = determinarEnergiaComDadosReais(
                     windSpeed, maxWindSpeed, sunshinePercentage, cloudCover,
                     latitude, longitude
             );
 
+            // Atualizar UI na Thread Principal
             runOnUiThread(() -> {
                 esconderLoadingDialog();
                 mostrarDialogResultado(dados, recomendacao);
@@ -234,16 +256,21 @@ public class TipoEnergia extends AppCompatActivity {
         }
     }
 
+    /**
+     * Algoritmo de pontuação para decidir entre Solar, Eólica ou Híbrida.
+     * Baseia-se em vento e insolação.
+     */
     private String determinarEnergiaComDadosReais(
             double windSpeed, double maxWindSpeed, double sunshinePercentage,
             double cloudCover, double latitude, double longitude) {
 
-        final double WIND_THRESHOLD = 15.0;
-        final double SUN_THRESHOLD = 60.0;
+        final double WIND_THRESHOLD = 15.0; // km/h
+        final double SUN_THRESHOLD = 60.0; // %
 
         int solarScore = 0;
         int windScore = 0;
 
+        // Pontuação Solar
         if (sunshinePercentage > 70) solarScore += 3;
         else if (sunshinePercentage > SUN_THRESHOLD) solarScore += 2;
         else if (sunshinePercentage > 40) solarScore += 1;
@@ -251,9 +278,11 @@ public class TipoEnergia extends AppCompatActivity {
         if (cloudCover < 30) solarScore += 2;
         else if (cloudCover < 50) solarScore += 1;
 
+        // Ajuste por latitude (Sul de Portugal tem mais sol)
         if (latitude < 38.5) solarScore += 2;
         else if (latitude < 40) solarScore += 1;
 
+        // Pontuação Eólica
         if (maxWindSpeed > 25) windScore += 3;
         else if (maxWindSpeed > WIND_THRESHOLD) windScore += 2;
         else if (maxWindSpeed > 10) windScore += 1;
@@ -261,11 +290,15 @@ public class TipoEnergia extends AppCompatActivity {
         if (windSpeed > 20) windScore += 2;
         else if (windSpeed > WIND_THRESHOLD) windScore += 1;
 
+        // Ajuste geográfico (Norte/Litoral costuma ter mais vento)
         if (latitude > 41) windScore += 2;
         else if (latitude > 39.5) windScore += 1;
 
+        // Ajuste para litoral
         if (longitude > -9.0) windScore += 1;
 
+
+        // Decisão final
         String tipoEnergia;
         String descricao;
 

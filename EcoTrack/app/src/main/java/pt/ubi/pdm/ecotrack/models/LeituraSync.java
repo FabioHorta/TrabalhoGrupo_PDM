@@ -6,7 +6,7 @@ public class LeituraSync {
     public String data;
     public double valor_kwh;
     public String imagem_path;
-    public String imagem_base64;   // <== NOVO
+    public String imagem_base64;
     public Long prev_leitura_id;
     public Double consumo_periodo;
     public Long created_at_ts;

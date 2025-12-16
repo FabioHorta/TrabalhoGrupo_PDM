@@ -21,18 +21,19 @@ import com.github.mikephil.charting.data.PieEntry;
 
 import java.util.ArrayList;
 
+//Mostra um gráfico circular com a distribuição de consumo energético.
 public class MapaGastos extends AppCompatActivity {
 
     private PieChart pieChart;
     private Button btnSimular, btnVoltarMenu;
     private ImageView btnBackArrow;
-    private LinearLayout layoutListaCategorias;
+    private LinearLayout layoutListaCategorias; // Lista textual abaixo do gráfico
     private TextView tvSugestao, tvNomeCasaMapa;
 
     private DBHelper dbHelper;
     private int casaId;
     private String casaNome;
-    private double precoKwhUsuario = 0.20;
+    private double precoKwhUsuario = 0.20; // Default
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +42,7 @@ public class MapaGastos extends AppCompatActivity {
 
         dbHelper = new DBHelper(this);
 
+        // Obtém dados
         casaId = CasaSelecionada.getInstance().getCasaId();
         casaNome = CasaSelecionada.getInstance().getCasaNome();
 
@@ -54,8 +56,8 @@ public class MapaGastos extends AppCompatActivity {
         tvNomeCasaMapa.setText(casaNome);
 
         configurarBotoes();
-        carregarDadosUsuario();
-        carregarDadosReais();
+        carregarDadosUsuario(); // Busca preço do kWh
+        carregarDadosReais(); // Gera o gráfico
     }
 
     private void initViews() {
@@ -95,6 +97,7 @@ public class MapaGastos extends AppCompatActivity {
         });
     }
 
+    //Carrega o preço do kWh definido pelo utilizador na BD.
     private void carregarDadosUsuario() {
         String email = CasaSelecionada.getInstance().getUserEmail();
         if (email == null || email.isEmpty()) return;
@@ -111,6 +114,13 @@ public class MapaGastos extends AppCompatActivity {
         }
     }
 
+    /**
+     * Lógica principal:
+     * 1. Busca todos os eletrodomésticos da casa.
+     * 2. Calcula consumo mensal baseado na classe (DadosEnergeticos.java).
+     * 3. Agrega valores por nome de aparelho.
+     * 4. Alimenta o Gráfico Circular e a Lista.
+     */
     private void carregarDadosReais() {
         Cursor cursor = dbHelper.obterEletrodomesticosDaCasa(casaId);
 
@@ -133,6 +143,7 @@ public class MapaGastos extends AppCompatActivity {
 
             double consumoMensal = DadosEnergeticos.getConsumoMensal(nome, classe);
 
+            // Agregação (ex: soma 2 Televisões numa só fatia do gráfico)
             int index = nomes.indexOf(nome);
             if (index >= 0) {
                 valores.set(index, valores.get(index) + consumoMensal);
@@ -271,6 +282,7 @@ public class MapaGastos extends AppCompatActivity {
         pieChart.invalidate();
     }
 
+    //Gera a lista detalhada de custos abaixo do gráfico.
     private void atualizarListaCustos(ArrayList<String> nomes, ArrayList<Double> valores, ArrayList<Integer> cores) {
         layoutListaCategorias.removeAllViews();
 

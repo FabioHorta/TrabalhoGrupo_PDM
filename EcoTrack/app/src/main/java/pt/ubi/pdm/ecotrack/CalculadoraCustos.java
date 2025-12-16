@@ -91,6 +91,10 @@ public class CalculadoraCustos extends BaseActivity {
         }
     }
 
+    /**
+     * Realiza o cálculo: (Total kWh da Casa) * (Preço inserido).
+     * Guarda o novo preço na BD para uso futuro.
+     */
     private void calcularEstimativa() {
         String precoStr = etPrecoKwh.getText().toString().trim();
         if (precoStr.isEmpty()) {

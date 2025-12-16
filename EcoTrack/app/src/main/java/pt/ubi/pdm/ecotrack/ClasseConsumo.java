@@ -17,6 +17,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Activity responsável por definir a Classe Energética (A, B, C...)
+ * para cada eletrodoméstico que o utilizador adicionou à casa.
+ *
+ * Gera dinamicamente "Cards" para cada item encontrado na BD.
+ */
 public class ClasseConsumo extends AppCompatActivity {
 
     private int casaId;
@@ -62,7 +68,7 @@ public class ClasseConsumo extends AppCompatActivity {
             // Carregar a lista
             carregarEletrodomesticosSelecionados();
 
-            // --- BOTÃO PRÓXIMO (CORREÇÃO AQUI) ---
+            // --- BOTÃO PRÓXIMO ---
             btnProximo.setOnClickListener(v -> {
                 // 1. Obter email do utilizador (SharedPreferences)
                 String userEmail = getSharedPreferences("auth", MODE_PRIVATE)
@@ -102,6 +108,7 @@ public class ClasseConsumo extends AppCompatActivity {
         }
     }
 
+    //Itera sobre todos os eletrodomésticos da casa na BD e cria um Card visual para cada.
     private void carregarEletrodomesticosSelecionados() {
         containerClasseConsumo.removeAllViews(); // Limpar antes de adicionar
 
@@ -142,6 +149,7 @@ public class ClasseConsumo extends AppCompatActivity {
         }
     }
 
+    //Cria programaticamente o Layout (Card) com RadioButtons A-G para um aparelho.
     private void adicionarCardClasseConsumo(int eletroId, String tituloExibicao, String categoria, String classeGuardada) {
         try {
             // Card Principal

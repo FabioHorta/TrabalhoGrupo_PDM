@@ -255,7 +255,7 @@ public class PerfilUtilizador extends AppCompatActivity {
             finish();
         });
 
-        // Eliminar conta (por agora só faz logout; apagar no servidor fica para depois)
+        // Eliminar conta
         btnEliminar.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
                     .setTitle("Eliminar Conta")

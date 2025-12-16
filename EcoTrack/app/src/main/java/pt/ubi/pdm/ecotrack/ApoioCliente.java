@@ -3,29 +3,24 @@ package pt.ubi.pdm.ecotrack;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.ImageView; // Importante: Adicionado ImageView
+import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class ApoioCliente extends AppCompatActivity {
-
     private Button btnAgendarAssistencia, btnEnviarMensagem, btnConsultarRelatorios;
-    private ImageView btnVoltar; // Alterado de Button para ImageView
+    private ImageView btnVoltar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_apoio_cliente);
 
-        // Ligar às Views do XML
         btnAgendarAssistencia = findViewById(R.id.btnAgendarAssistencia);
         btnEnviarMensagem = findViewById(R.id.btnEnviarMensagem);
         btnConsultarRelatorios = findViewById(R.id.btnConsultarRelatorios);
-
-        // O ID no XML é "voltar" e é uma ImageView
         btnVoltar = findViewById(R.id.voltar);
 
-        // --- Configurar Cliques ---
 
         btnAgendarAssistencia.setOnClickListener(v -> {
             Intent intent = new Intent(ApoioCliente.this, AgendarAssistencia.class);
@@ -42,12 +37,16 @@ public class ApoioCliente extends AppCompatActivity {
             startActivity(intent);
         });
 
+        // Lógica de retorno ao Menu Principal
         btnVoltar.setOnClickListener(v -> {
-            // Volta para o Menu Principal
             Intent intent = new Intent(ApoioCliente.this, MenuPrincipal.class);
-            // Flags para evitar empilhar menus uns em cima dos outros
+
+            // FLAG_ACTIVITY_CLEAR_TOP: Remove todas as activities acima da activity alvo na pilha.
+            // FLAG_ACTIVITY_SINGLE_TOP: Reutiliza a instância existente se ela já estiver no topo, evitando recriação desnecessária.
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
             startActivity(intent);
+            // Encerra a activity atual (ApoioCliente) para libertar recursos e removê-la da pilha
             finish();
         });
     }
